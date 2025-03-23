@@ -1,0 +1,176 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# 📜 Project Rules and Guidelines
+
+## 1. Code Structure and Organization
+
+### File and Directory Naming
+- Use PascalCase for components: `HeaderNav.vue`, `ProjectCard.vue`
+- Use kebab-case for pages: `project-details.vue`, `about-us.vue`
+- Use camelCase for composables: `useAuth.ts`, `useProjects.ts`
+- Use PascalCase for types/interfaces: `UserProfile.ts`, `ProjectStatus.ts`
+
+### Component Structure
+```vue
+<script setup lang="ts">
+// 1. Type imports
+// 2. Component imports
+// 3. Type definitions
+// 4. Props/Emits
+// 5. Composables
+// 6. Reactive state
+// 7. Computed properties
+// 8. Methods
+// 9. Lifecycle hooks
+// 10. Watch effects
+</script>
+
+<template>
+  <!-- Single root element -->
+  <div>
+    <!-- Content -->
+  </div>
+</template>
+
+<style scoped>
+/* Component styles */
+</style>
+```
+
+## 2. Coding Standards
+
+### TypeScript Usage
+- Always use TypeScript for type safety
+- Define explicit return types for functions
+- Use interfaces for object shapes
+- Avoid `any` type - use `unknown` if necessary
+
+### Vue/Nuxt Specific
+- Never import Nuxt auto-imports (composables, components)
+- Never import shadcn-vue components (auto-imported)
+- Use `<script setup lang="ts">` for all components
+- Prefer composables over mixins
+- Use `defineProps` and `defineEmits` with type interfaces
+
+### State Management
+- Use composables for shared state
+- Keep state close to where it's used
+- Avoid global state when possible
+
+## 3. API and Data Handling
+
+### API Routes
+- Use kebab-case for endpoints: `/api/project-status`
+- Group related endpoints in directories
+- Always validate request data
+- Use proper HTTP methods (GET, POST, PUT, DELETE)
+
+### Database
+- Use Prisma for all database operations
+- No direct SQL queries
+- Always include proper relations
+- Use meaningful model names
+
+## 4. Security Rules
+
+### Authentication
+- All dashboard routes must be protected
+- Use Supabase Auth for authentication
+- Implement proper role-based access
+- Validate user sessions
+
+### API Security
+- Implement rate limiting
+- Validate all inputs
+- Use CORS appropriately
+- Implement CSP headers
+
+## 5. Performance Guidelines
+
+### General
+- Lazy load components when possible
+- Optimize images using Nuxt Image
+- Implement proper caching strategies
+- Keep bundle sizes minimal
+
+### SEO
+- Include meta tags
+- Use proper heading hierarchy
+- Implement structured data
+- Ensure mobile responsiveness
+
+## 6. Git Workflow
+
+### Branches
+- `main`: production code
+- `develop`: development branch
+- Feature branches: `feature/feature-name`
+- Bug fixes: `fix/bug-name`
+
+### Commits
+- Use conventional commits format
+- Include ticket/issue numbers
+- Keep commits focused and small
+- Write meaningful commit messages
+
+## 7. Testing Requirements
+
+### Unit Tests
+- Test all composables
+- Test utility functions
+- Test complex components
+
+### E2E Tests
+- Test critical user journeys
+- Test form submissions
+- Test authentication flows
+
+## 8. Documentation
+
+### Code Documentation
+- Document complex functions
+- Include JSDoc for public APIs
+- Document component props
+- Keep README files updated
+
+### API Documentation
+- Document all endpoints
+- Include request/response examples
+- Document error responses
+- Keep API docs in sync with code
+
+## 9. Deployment Rules
+
+### Environment Variables
+- Never commit sensitive data
+- Use proper naming conventions
+- Document all required variables
+- Use different values per environment
+
+### Build Process
+- Ensure all tests pass
+- Check for TypeScript errors
+- Verify bundle sizes
+- Test in staging first
+
+## 10. Maintenance
+
+### Code Quality
+- Run linter before commits
+- Maintain consistent formatting
+- Remove unused code
+- Keep dependencies updated
+
+### Performance Monitoring
+- Monitor API response times
+- Track client-side performance
+- Monitor error rates
+- Track user metrics
+
+- [PROJECT_OVERVIEW.md](mdc:PROJECT_OVERVIEW.md)
+- [IMPLEMENTATION_PLAN.md](mdc:IMPLEMENTATION_PLAN.md)
+- [progress.md](mdc:progress.md)
