@@ -10,10 +10,11 @@ import {
   Mail,
   Phone,
 } from "lucide-vue-next";
-import { siteConfig } from "~/utils/config/site";
+import site from "~/utils/config/site";
 
 const colorMode = useColorMode();
-const { $site } = useNuxtApp();
+// Use the imported site as fallback if $site is not available
+const { $site = site } = useNuxtApp();
 
 function toggleColorMode() {
   colorMode.preference = colorMode.value === "dark" ? "light" : "dark";

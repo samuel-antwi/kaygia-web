@@ -12,16 +12,19 @@ import {
 } from "lucide-vue-next";
 import type { FunctionalComponent } from "vue";
 import type { LucideProps } from "lucide-vue-next";
+import site from "~/utils/config/site";
 
-const { $site } = useNuxtApp();
-const isOpen = ref(false);
+const mobileMenuOpen = ref(false);
 
-function toggleMenu() {
-  isOpen.value = !isOpen.value;
+function toggleMobileMenu() {
+  mobileMenuOpen.value = !mobileMenuOpen.value;
 }
 
+// Use the imported site as fallback if $site is not available
+const { $site = site } = useNuxtApp();
+
 function closeMenu() {
-  isOpen.value = false;
+  mobileMenuOpen.value = false;
 }
 
 // Map icons to nav items with proper typing
@@ -45,12 +48,17 @@ function getNavIcon(name: string): FunctionalComponent<LucideProps> {
 <template>
   <div class="md:hidden">
     <!-- Mobile menu button -->
-    <Button variant="ghost" size="icon" @click="toggleMenu" aria-label="Menu">
+    <Button
+      variant="ghost"
+      size="icon"
+      @click="toggleMobileMenu"
+      aria-label="Menu"
+    >
       <Menu class="h-5 w-5" />
     </Button>
 
     <!-- Mobile menu drawer -->
-    <Drawer v-model:open="isOpen" direction="right">
+    <Drawer v-model:open="mobileMenuOpen" direction="right">
       <DrawerContent class="w-[250px] sm:w-[300px]">
         <DrawerHeader>
           <DrawerTitle class="flex items-center gap-2">

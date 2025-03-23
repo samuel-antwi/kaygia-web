@@ -1,9 +1,9 @@
-import { siteConfig } from "~/utils/config/site";
+import site from "~/utils/config/site";
 
 export default defineNuxtPlugin(() => {
   return {
     provide: {
-      site: siteConfig,
+      site,
     },
   };
 });

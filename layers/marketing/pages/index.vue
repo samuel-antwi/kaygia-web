@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Code, Layout, Check, ShoppingCart, Paintbrush } from "lucide-vue-next";
+import site from "~/utils/config/site";
 
 definePageMeta({
   layout: "default",
 });
 
-const { $site } = useNuxtApp();
+const { $site = site } = useNuxtApp();
 
 // Add meta tags for SEO
 useHead({

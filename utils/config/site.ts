@@ -1,15 +1,16 @@
-export const siteConfig = {
-  name: "Kaygia",
-  nameSuffix: "Web",
+import type { SiteConfig } from "../types/site";
+
+export const site: SiteConfig = {
+  name: "Kaygia Web",
+  nameSuffix: "Web Development Agency",
 
   // Company details
   company: {
     name: "Kaygia Web",
-    tagline:
-      "Crafting beautiful, functional websites for businesses that want to stand out.",
-    email: "contact@kaygiaweb.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Web Dev Street, Internet City",
+    tagline: "Transforming Ideas into Digital Reality",
+    email: "hello@kaygiaweb.co.uk",
+    phone: "+44 (0) 20 7123 4567",
+    address: "123 Web Street, London, EC1A 1BB",
     socials: {
       twitter: "https://twitter.com/kaygiaweb",
       instagram: "https://instagram.com/kaygiaweb",
@@ -21,8 +22,8 @@ export const siteConfig = {
   seo: {
     title: "Kaygia Web - Professional Web Development Agency",
     description:
-      "Kaygia Web is a professional web development agency specializing in custom websites, e-commerce solutions, and digital marketing services.",
-    ogImage: "/images/og-image.jpg",
+      "Transform your online presence with our expert web development, UI/UX design, and e-commerce solutions. Get a website that drives results.",
+    ogImage: "/og.jpg",
   },
 
   // Navigation
@@ -36,19 +37,19 @@ export const siteConfig = {
     ],
     footer: {
       services: [
-        { name: "Web Development", href: "/services" },
-        { name: "UI/UX Design", href: "/services" },
-        { name: "E-Commerce", href: "/services" },
-        { name: "SEO Optimization", href: "/services" },
+        { name: "Web Development", href: "/services#web-development" },
+        { name: "UI/UX Design", href: "/services#ui-ux-design" },
+        { name: "E-Commerce", href: "/services#e-commerce" },
+        { name: "SEO Services", href: "/services#seo" },
       ],
       company: [
-        { name: "About Us", href: "/about" },
+        { name: "About", href: "/about" },
         { name: "Portfolio", href: "/portfolio" },
         { name: "Contact", href: "/contact" },
-        { name: "Privacy Policy", href: "/privacy" },
+        { name: "Client Login", href: "/dashboard" },
       ],
     },
   },
 };
 
-export type SiteConfig = typeof siteConfig;
+export default site;
