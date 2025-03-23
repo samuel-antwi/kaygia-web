@@ -26,13 +26,12 @@ function toggleColorMode() {
     <!-- Header -->
     <header class="border-b z-20 bg-background sticky top-0">
       <div
-        class="container mx-auto flex h-16 items-center justify-between py-4"
+        class="container px-4 mx-auto flex h-16 items-center justify-between py-4"
       >
         <div class="flex items-center gap-6">
           <!-- Logo -->
           <NuxtLink to="/" class="flex items-center gap-2 font-bold">
             <span class="text-primary text-xl">{{ $site.name }}</span>
-            <span class="text-muted-foreground">{{ $site.nameSuffix }}</span>
           </NuxtLink>
 
           <!-- Navigation -->
@@ -81,7 +80,7 @@ function toggleColorMode() {
 
     <!-- Footer -->
     <footer class="border-t bg-muted/40">
-      <div class="container mx-auto py-10">
+      <div class="container px-4 mx-auto py-10">
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <!-- Company info -->
           <div>

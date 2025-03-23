@@ -29,7 +29,6 @@ export const site: SiteConfig = {
   // Navigation
   navigation: {
     main: [
-      { name: "Home", href: "/" },
       { name: "Services", href: "/services" },
       { name: "About", href: "/about" },
       { name: "Portfolio", href: "/portfolio" },
