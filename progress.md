@@ -110,3 +110,30 @@
 2. Implement authentication system
 3. Set up database connections with Prisma
 4. Create initial API endpoints
+
+## 2023-11-30: Initial Setup and Nuxt Layers Implementation
+
+- Set up the project with Nuxt 3
+- Integrated shadcn-vue for UI components
+- Created initial layouts (default and dashboard)
+- Added Tailwind CSS for styling
+
+## 2023-12-01: Marketing and Dashboard Pages
+
+- Created marketing homepage in the marketing layer
+- Implemented dashboard UI in the app layer
+- Set up site configuration for centralized management of site data
+
+## 2023-12-02: Icon and Structure Improvements
+
+- Fixed Lucide icon imports to be explicit in each component
+- Updated site configuration to be used consistently across components
+- Documented icon import requirements in the project overview
+
+## 2023-12-03: Nuxt Layers Implementation
+
+- Fixed the layers structure to properly implement Nuxt layers
+- Moved marketing pages to layers/marketing/pages
+- Moved dashboard pages to layers/app/pages/dashboard
+- Deleted redundant files in the root pages directory
+- Updated documentation to reflect the current architecture

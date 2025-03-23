@@ -29,13 +29,17 @@ The app has two main goals:
 
 ## 🧩 Nuxt Layers Structure
 
-We'll structure the project into **three distinct layers**:
+The project is structured into **three distinct layers**:
 
-. ├── layers/ │ ├── core/ # Shared composables, plugins, Prisma, configs │ ├── marketing/ # Public website (homepage, services, about) │ └── app/ # Client-side app (auth, dashboard, requests)
+```
+.
+├── layers/
+│   ├── core/    # Shared composables, plugins, Prisma, configs
+│   ├── marketing/  # Public website (homepage, services, about)
+│   └── app/     # Client-side app (auth, dashboard, requests)
+```
 
-markdown
-Copy
-Edit
+> **IMPORTANT**: We've fully implemented the layers architecture. Marketing pages are in `layers/marketing/pages` and dashboard pages are in `layers/app/pages/dashboard`. Files should no longer be added directly to the root `pages/` directory.
 
 ### 🔸 `core/`
 

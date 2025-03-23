@@ -10,7 +10,10 @@ import {
   Mail,
   LogIn,
 } from "lucide-vue-next";
+import type { FunctionalComponent } from "vue";
+import type { LucideProps } from "lucide-vue-next";
 
+const { $site } = useNuxtApp();
 const isOpen = ref(false);
 
 function toggleMenu() {
@@ -19,6 +22,23 @@ function toggleMenu() {
 
 function closeMenu() {
   isOpen.value = false;
+}
+
+// Map icons to nav items with proper typing
+type IconName = "Home" | "Services" | "About" | "Portfolio" | "Contact";
+type IconMap = Record<IconName, FunctionalComponent<LucideProps>>;
+
+const navIcons: IconMap = {
+  Home: Home,
+  Services: Settings,
+  About: Users,
+  Portfolio: Briefcase,
+  Contact: Mail,
+};
+
+// Helper function to get icon by name, with fallback
+function getNavIcon(name: string): FunctionalComponent<LucideProps> {
+  return navIcons[name as IconName] || Home;
 }
 </script>
 
@@ -34,8 +54,8 @@ function closeMenu() {
       <DrawerContent class="w-[250px] sm:w-[300px]">
         <DrawerHeader>
           <DrawerTitle class="flex items-center gap-2">
-            <span class="text-primary text-xl">Kaygia</span>
-            <span class="text-muted-foreground">Web</span>
+            <span class="text-primary text-xl">{{ $site.name }}</span>
+            <span class="text-muted-foreground">{{ $site.nameSuffix }}</span>
           </DrawerTitle>
           <Button
             variant="ghost"
@@ -50,44 +70,14 @@ function closeMenu() {
         <div class="px-6 py-2">
           <nav class="flex flex-col space-y-4">
             <NuxtLink
-              to="/"
+              v-for="item in $site.navigation.main"
+              :key="item.name"
+              :to="item.href"
               @click="closeMenu"
               class="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary"
             >
-              <Home class="h-4 w-4" />
-              Home
-            </NuxtLink>
-            <NuxtLink
-              to="/services"
-              @click="closeMenu"
-              class="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary"
-            >
-              <Settings class="h-4 w-4" />
-              Services
-            </NuxtLink>
-            <NuxtLink
-              to="/about"
-              @click="closeMenu"
-              class="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary"
-            >
-              <Users class="h-4 w-4" />
-              About
-            </NuxtLink>
-            <NuxtLink
-              to="/portfolio"
-              @click="closeMenu"
-              class="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary"
-            >
-              <Briefcase class="h-4 w-4" />
-              Portfolio
-            </NuxtLink>
-            <NuxtLink
-              to="/contact"
-              @click="closeMenu"
-              class="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary"
-            >
-              <Mail class="h-4 w-4" />
-              Contact
+              <component :is="getNavIcon(item.name)" class="h-4 w-4" />
+              {{ item.name }}
             </NuxtLink>
             <Separator />
             <NuxtLink

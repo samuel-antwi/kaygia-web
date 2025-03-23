@@ -282,57 +282,13 @@ const stats = [
               as-child
             >
               <NuxtLink
-                to="/dashboard/notifications"
+                to="/dashboard/schedule"
                 class="flex flex-col items-center"
               >
-                <Bell class="h-8 w-8 mb-2" />
-                <span>Notifications</span>
+                <Calendar class="h-8 w-8 mb-2" />
+                <span>Schedule</span>
               </NuxtLink>
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <!-- Upcoming Deadlines -->
-      <Card class="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Upcoming Deadlines</CardTitle>
-          <CardDescription
-            >Keep track of your project timelines.</CardDescription
-          >
-        </CardHeader>
-        <CardContent>
-          <div class="space-y-4">
-            <div
-              v-for="project in projects
-                .filter((p) => new Date(p.deadline) > new Date())
-                .sort(
-                  (a, b) =>
-                    new Date(a.deadline).getTime() -
-                    new Date(b.deadline).getTime()
-                )"
-              :key="project.id"
-              class="flex items-center justify-between p-3 border rounded-lg"
-            >
-              <div class="flex items-center gap-3">
-                <div class="bg-primary/10 p-2 rounded-full">
-                  <Calendar class="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p class="font-medium">{{ project.name }}</p>
-                  <p class="text-sm text-muted-foreground">
-                    {{ new Date(project.deadline).toLocaleDateString() }}
-                  </p>
-                </div>
-              </div>
-              <Badge :class="statusStyles[project.status]">
-                {{
-                  project.status
-                    .replace("-", " ")
-                    .replace(/\b\w/g, (c) => c.toUpperCase())
-                }}
-              </Badge>
-            </div>
           </div>
         </CardContent>
       </Card>

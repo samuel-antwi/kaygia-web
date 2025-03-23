@@ -10,8 +10,10 @@ import {
   Mail,
   Phone,
 } from "lucide-vue-next";
+import { siteConfig } from "~/utils/config/site";
 
 const colorMode = useColorMode();
+const { $site } = useNuxtApp();
 
 function toggleColorMode() {
   colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
@@ -21,48 +23,26 @@ function toggleColorMode() {
 <template>
   <div class="flex min-h-screen flex-col antialiased">
     <!-- Header -->
-    <header class="border-b bg-background sticky top-0 z-10">
+    <header class="border-b z-20 bg-background sticky top-0">
       <div
         class="container mx-auto flex h-16 items-center justify-between py-4"
       >
         <div class="flex items-center gap-6">
           <!-- Logo -->
           <NuxtLink to="/" class="flex items-center gap-2 font-bold">
-            <span class="text-primary text-xl">Kaygia</span>
-            <span class="text-muted-foreground">Web</span>
+            <span class="text-primary text-xl">{{ $site.name }}</span>
+            <span class="text-muted-foreground">{{ $site.nameSuffix }}</span>
           </NuxtLink>
 
           <!-- Navigation -->
           <nav class="hidden md:flex items-center gap-6">
             <NuxtLink
-              to="/"
+              v-for="item in $site.navigation.main"
+              :key="item.name"
+              :to="item.href"
               class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Home
-            </NuxtLink>
-            <NuxtLink
-              to="/services"
-              class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Services
-            </NuxtLink>
-            <NuxtLink
-              to="/about"
-              class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              About
-            </NuxtLink>
-            <NuxtLink
-              to="/portfolio"
-              class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Portfolio
-            </NuxtLink>
-            <NuxtLink
-              to="/contact"
-              class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contact
+              {{ item.name }}
             </NuxtLink>
           </nav>
         </div>
@@ -104,10 +84,9 @@ function toggleColorMode() {
         <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <!-- Company info -->
           <div>
-            <h3 class="text-lg font-semibold mb-4">Kaygia Web</h3>
+            <h3 class="text-lg font-semibold mb-4">{{ $site.company.name }}</h3>
             <p class="text-sm text-muted-foreground mb-4">
-              Crafting beautiful, functional websites for businesses that want
-              to stand out.
+              {{ $site.company.tagline }}
             </p>
             <div class="flex items-center gap-3">
               <Button variant="ghost" size="icon" aria-label="Twitter">
@@ -126,36 +105,15 @@ function toggleColorMode() {
           <div>
             <h3 class="text-lg font-semibold mb-4">Services</h3>
             <ul class="space-y-2 text-sm">
-              <li>
+              <li
+                v-for="service in $site.navigation.footer.services"
+                :key="service.name"
+              >
                 <NuxtLink
-                  to="/services"
+                  :to="service.href"
                   class="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Web Development
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink
-                  to="/services"
-                  class="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  UI/UX Design
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink
-                  to="/services"
-                  class="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  E-Commerce
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink
-                  to="/services"
-                  class="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  SEO Optimization
+                  {{ service.name }}
                 </NuxtLink>
               </li>
             </ul>
@@ -165,36 +123,15 @@ function toggleColorMode() {
           <div>
             <h3 class="text-lg font-semibold mb-4">Company</h3>
             <ul class="space-y-2 text-sm">
-              <li>
+              <li
+                v-for="item in $site.navigation.footer.company"
+                :key="item.name"
+              >
                 <NuxtLink
-                  to="/about"
+                  :to="item.href"
                   class="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  About Us
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink
-                  to="/portfolio"
-                  class="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Portfolio
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink
-                  to="/contact"
-                  class="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Contact
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink
-                  to="/privacy"
-                  class="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Privacy Policy
+                  {{ item.name }}
                 </NuxtLink>
               </li>
             </ul>
@@ -206,17 +143,21 @@ function toggleColorMode() {
             <ul class="space-y-2 text-sm">
               <li class="flex items-start">
                 <MapPin class="h-4 w-4 mr-2 mt-0.5 text-muted-foreground" />
-                <span class="text-muted-foreground"
-                  >123 Web Dev Street, Internet City</span
-                >
+                <span class="text-muted-foreground">{{
+                  $site.company.address
+                }}</span>
               </li>
               <li class="flex items-start">
                 <Mail class="h-4 w-4 mr-2 mt-0.5 text-muted-foreground" />
-                <span class="text-muted-foreground">contact@kaygiaweb.com</span>
+                <span class="text-muted-foreground">{{
+                  $site.company.email
+                }}</span>
               </li>
               <li class="flex items-start">
                 <Phone class="h-4 w-4 mr-2 mt-0.5 text-muted-foreground" />
-                <span class="text-muted-foreground">+1 (555) 123-4567</span>
+                <span class="text-muted-foreground">{{
+                  $site.company.phone
+                }}</span>
               </li>
             </ul>
           </div>
@@ -224,7 +165,8 @@ function toggleColorMode() {
 
         <div class="mt-8 pt-6 border-t">
           <p class="text-sm text-muted-foreground text-center">
-            © {{ new Date().getFullYear() }} Kaygia Web. All rights reserved.
+            © {{ new Date().getFullYear() }} {{ $site.company.name }}. All
+            rights reserved.
           </p>
         </div>
       </div>
