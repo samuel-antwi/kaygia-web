@@ -16,7 +16,7 @@ The app has two main goals:
 | Framework    | Nuxt 3 (Vue 3 + TypeScript + `<script setup lang="ts">`) |
 | Styling      | Tailwind CSS                                             |
 | UI Library   | `shadcn-vue`                                             |
-| Icons        | `lucide-vue-nex`                                         |
+| Icons        | `lucide-vue-next`                                        |
 | Composables  | `vueuse`                                                 |
 | Auth         | Supabase Auth                                            |
 | ORM          | Prisma ORM                                               |
@@ -95,6 +95,9 @@ Edit
 
 ```vue
 <script setup lang="ts">
+// Import Lucide icons explicitly
+import { Icon1, Icon2 } from "lucide-vue-next";
+
 // Types first
 type Props = {
   title: string;
@@ -129,6 +132,12 @@ const { someComposable } = useSomeComposable();
 - Composables: camelCase with 'use' prefix (e.g., `useAuth.ts`)
 - Types/Interfaces: PascalCase (e.g., `ProjectStatus.ts`)
 - API routes: kebab-case (e.g., `/api/project-status`)
+
+### Import Conventions
+
+- **shadcn-vue components**: Auto-imported by Nuxt, do not explicitly import them
+- **Lucide icons**: Must be explicitly imported in each component (e.g., `import { Menu, User } from "lucide-vue-next"`)
+- **Nuxt composables**: Auto-imported by Nuxt (e.g., `useRoute`, `useHead`)
 
 ## 🔧 Environment & Configuration
 

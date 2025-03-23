@@ -1,6 +1,6 @@
 // Core layer configuration
 export default defineNuxtConfig({
-  css: ["~/assets/css/tailwind.css", "~/assets/css/globals.css"],
+  css: ["~/assets/css/tailwind.css"],
   modules: ["@nuxtjs/tailwindcss"],
   // @ts-ignore - tailwindcss module options
   tailwindcss: {

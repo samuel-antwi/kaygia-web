@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   extends: ["./layers/core", "./layers/marketing", "./layers/app"],
   modules: ["@nuxtjs/tailwindcss", "shadcn-nuxt", "@nuxtjs/color-mode"],
 
-  css: ["~/assets/css/globals.css", "~/assets/css/tailwind.css"],
+  css: ["~/assets/css/tailwind.css"],
 
   typescript: {
     strict: true,
