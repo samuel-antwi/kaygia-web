@@ -109,7 +109,7 @@ useHead({
               </ul>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" class="w-full" as-child>
+              <Button class="w-full" as-child>
                 <NuxtLink to="/services">Learn More</NuxtLink>
               </Button>
             </CardFooter>
@@ -146,7 +146,7 @@ useHead({
               </ul>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" class="w-full" as-child>
+              <Button class="w-full" as-child>
                 <NuxtLink to="/services">Learn More</NuxtLink>
               </Button>
             </CardFooter>
@@ -183,7 +183,7 @@ useHead({
               </ul>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" class="w-full" as-child>
+              <Button class="w-full" as-child>
                 <NuxtLink to="/services">Learn More</NuxtLink>
               </Button>
             </CardFooter>
