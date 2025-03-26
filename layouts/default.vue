@@ -61,7 +61,7 @@ function toggleColorMode() {
 
           <!-- Login button -->
           <Button as-child variant="default" size="sm" class="hidden md:flex">
-            <NuxtLink to="/login" class="flex items-center gap-1">
+            <NuxtLink to="/auth/login" class="flex items-center gap-1">
               <LogIn class="h-4 w-4 mr-1" />
               Client Login
             </NuxtLink>

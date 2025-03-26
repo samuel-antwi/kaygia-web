@@ -10,7 +10,7 @@
 - Homepage created with responsive design
 - Dashboard layout and sample dashboard page created
 - All marketing pages completed (homepage, services, about, portfolio, contact)
-- **Started implementation of authentication system with Supabase Auth**
+- **Started implementation of authentication system with nuxt-auth-utils**
   - Created login, register, and forgot password pages
   - Implemented auth composable (useAuth)
   - Added auth middleware for protected routes
@@ -65,7 +65,7 @@
      - [x] Login flow UI
      - [x] Auth middleware
      - [x] Forgot password UI
-     - [ ] Supabase integration
+     - [ ] nuxt-auth-utils integration
    - [ ] Database integration
    - [ ] API routes
    - [ ] User management
@@ -116,18 +116,18 @@
 - Following Nuxt 3 best practices
 - Implementing full TypeScript support
 - Using Tailwind CSS for styling
-- Using Supabase Auth for authentication
+- Using nuxt-auth-utils for authentication
 
 ## 🎯 Next Steps
 
 1. ~~Create remaining marketing pages (services, about, portfolio, contact)~~ ✅
-2. Implement authentication system with Supabase Auth
+2. Implement authentication system with nuxt-auth-utils
    - ~~Sign-up flow UI~~ ✅
    - ~~Login flow UI~~ ✅
    - ~~Auth middleware~~ ✅
    - ~~Forgot password UI~~ ✅
-   - Set up Supabase client plugin
-   - Connect auth flows to Supabase
+   - Set up nuxt-auth-utils configuration
+   - Connect auth flows to nuxt-auth-utils
 3. Set up database connections with Prisma
 4. Create initial API endpoints
 

@@ -18,7 +18,7 @@ The app has two main goals:
 | UI Library   | `shadcn-vue`                                             |
 | Icons        | `lucide-vue-next`                                        |
 | Composables  | `vueuse`                                                 |
-| Auth         | Supabase Auth                                            |
+| Auth         | nuxt-auth-utils                                          |
 | ORM          | Prisma ORM                                               |
 | Database     | Supabase PostgreSQL                                      |
 | API          | Nuxt Server Routes (`/server/api`)                       |
@@ -81,8 +81,8 @@ The project is structured into **three distinct layers**:
 
 ### 🔹 Auth
 
-- Supabase Auth for sign-up / login
-- Session management with Supabase Auth
+- nuxt-auth-utils for sign-up / login
+- Session management with nuxt-auth-utils
 - Use middleware to protect `/dashboard` routes
 
 ### 🔹 Client Dashboard
@@ -178,7 +178,7 @@ SUPABASE_KEY=
 
 ## 🔒 Security Considerations
 
-- **Authentication**: Supabase Auth
+- **Authentication**: nuxt-auth-utils
 - **API Security**:
   - Rate limiting on all endpoints
   - CORS configuration

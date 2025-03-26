@@ -89,7 +89,7 @@ function getNavIcon(name: string): FunctionalComponent<LucideProps> {
             </NuxtLink>
             <Separator />
             <NuxtLink
-              to="/login"
+              to="/auth/login"
               @click="closeMenu"
               class="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary"
             >

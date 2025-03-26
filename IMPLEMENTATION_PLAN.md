@@ -20,7 +20,7 @@
 - [ ] Set up Supabase project
 - [ ] Configure Prisma with Supabase PostgreSQL
 - [ ] Implement initial database schema
-- [ ] Set up Supabase Auth configuration
+- [ ] Set up nuxt-auth-utils configuration
 
 ## Phase 2: Core Layer Development (Week 2)
 
@@ -156,7 +156,7 @@
 
    - Integration challenges between Supabase and Prisma
    - Performance issues with complex queries
-   - SSR complications with authentication
+   - SSR complications with nuxt-auth-utils
 
 2. **Project Risks**
    - Scope creep in custom features
