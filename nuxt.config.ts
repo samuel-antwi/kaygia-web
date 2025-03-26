@@ -1,7 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  extends: ["./layers/core", "./layers/marketing", "./layers/app"],
+  extends: [
+    "./layers/core",
+    "./layers/marketing",
+    "./layers/app",
+    "./layers/auth",
+  ],
   modules: [
     "@nuxtjs/tailwindcss",
     "shadcn-nuxt",

@@ -52,7 +52,7 @@ const navItems = [
 </script>
 
 <template>
-  <div class="flex min-h-screen antialiased">
+  <div class="flex min-h-screen antialiased bg-muted/60">
     <!-- Sidebar -->
     <aside
       class="fixed inset-y-0 left-0 z-20 flex h-full flex-col border-r bg-background transition-all duration-300"
