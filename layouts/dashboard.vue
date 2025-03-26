@@ -146,12 +146,12 @@ const navItems = [
 
     <!-- Main content -->
     <div
-      class="transition-all duration-300"
+      class="transition-all duration-300 w-full"
       :class="isSidebarCollapsed ? 'pl-[70px]' : 'pl-[250px]'"
     >
       <!-- Header -->
-      <header class="sticky top-0 z-10 border-b bg-background">
-        <div class="flex h-16 items-center justify-between px-4 sm:px-6">
+      <header class="sticky top-0 z-10 border-b bg-background w-full">
+        <div class="flex h-16 items-center justify-between px-6">
           <h1 class="text-lg font-medium">Dashboard</h1>
 
           <div class="flex items-center gap-4">
@@ -240,7 +240,7 @@ const navItems = [
       </header>
 
       <!-- Page content -->
-      <main class="container py-6">
+      <main class="px-6 py-6">
         <slot />
       </main>
     </div>

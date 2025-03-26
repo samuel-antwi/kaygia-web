@@ -76,7 +76,7 @@ const stats = [
 </script>
 
 <template>
-  <div class="ml-8">
+  <div>
     <div class="mb-8">
       <h2 class="text-3xl font-bold mb-2">Welcome back, John!</h2>
       <p class="text-muted-foreground">
