@@ -8,6 +8,9 @@ const rememberMe = ref(false);
 const loading = ref(false);
 const error = ref("");
 
+// Get auth composable
+const { signIn, initAuth } = useAuth();
+
 // Handle login form submission
 const handleLogin = async () => {
   try {
@@ -20,16 +23,22 @@ const handleLogin = async () => {
       return;
     }
 
-    // TODO: Implement Supabase auth login
-    // Will implement actual Supabase auth login once we set up the Supabase client
+    // Call our API endpoint via the auth composable
+    const result = await signIn(email.value, password.value);
 
-    // Simulate loading for now
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!result.success) {
+      error.value = result.error || "Invalid email or password";
+      return;
+    }
+
+    // Initialize auth state
+    await initAuth();
 
     // Navigate to dashboard on success
     navigateTo("/dashboard");
   } catch (err: any) {
-    error.value = err?.message || "Login failed. Please try again.";
+    console.error("Login error:", err);
+    error.value = "An unexpected error occurred. Please try again.";
   } finally {
     loading.value = false;
   }
@@ -177,7 +186,6 @@ const handleLogin = async () => {
                 id="password"
                 v-model="password"
                 type="password"
-                placeholder="••••••••"
                 class="pl-12 h-12 text-base"
                 required
                 autocomplete="new-password"

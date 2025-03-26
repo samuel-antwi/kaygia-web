@@ -20,12 +20,21 @@ import {
 const colorMode = useColorMode();
 const isSidebarCollapsed = ref(false);
 
+// Get auth composable
+const { user, signOut, loading } = useAuth();
+
 function toggleColorMode() {
   colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
 }
 
 function toggleSidebar() {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
+}
+
+// Handle logout
+async function handleLogout() {
+  await signOut();
+  navigateTo("/auth/login");
 }
 
 const navItems = [
@@ -104,8 +113,10 @@ const navItems = [
             </AvatarFallback>
           </Avatar>
           <div :class="isSidebarCollapsed ? 'hidden' : ''">
-            <p class="text-sm font-medium">John Doe</p>
-            <p class="text-xs text-muted-foreground">client@example.com</p>
+            <p class="text-sm font-medium">{{ user?.name || "User" }}</p>
+            <p class="text-xs text-muted-foreground">
+              {{ user?.email || "user@example.com" }}
+            </p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger class="ml-auto">
@@ -123,7 +134,7 @@ const navItems = [
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem class="cursor-pointer">
+              <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
                 <LogOut class="mr-2 h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
@@ -218,7 +229,7 @@ const navItems = [
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem class="cursor-pointer">
+                <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
                   <LogOut class="mr-2 h-4 w-4" />
                   <span>Logout</span>
                 </DropdownMenuItem>

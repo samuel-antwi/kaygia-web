@@ -1,4 +1,4 @@
-import type { User } from "@supabase/supabase-js";
+import type { User } from "../types/user";
 
 export const useAuth = () => {
   // State
@@ -6,17 +6,13 @@ export const useAuth = () => {
   const loading = useState<boolean>("auth-loading", () => true);
   const error = useState<string | null>("auth-error", () => null);
 
-  // Get Supabase client (would be provided by a Nuxt plugin)
-  // We're using a placeholder function until we set up the Supabase plugin
-  const getSupabase = () => {
-    // This is a placeholder - we need to set up the Supabase plugin first
-    console.warn("Supabase client not implemented yet");
-    return {
-      auth: {
-        /* placeholder */
-      },
-    };
-  };
+  // Get nuxt-auth-utils session
+  const {
+    loggedIn,
+    user: sessionUser,
+    fetch: fetchSession,
+    clear: clearSession,
+  } = useUserSession();
 
   // Sign up with email and password
   const signUp = async (
@@ -28,21 +24,26 @@ export const useAuth = () => {
       error.value = null;
       loading.value = true;
 
-      // TODO: Implement with actual Supabase client
-      // const { data, error: signUpError } = await getSupabase().auth.signUp({
-      //   email,
-      //   password,
-      //   options: { data: metadata }
-      // });
+      // Register user using nuxt-auth-utils
+      const registerResponse = await $fetch<{
+        success: boolean;
+        error?: string;
+      }>("/api/auth/register", {
+        method: "POST",
+        body: {
+          email,
+          password,
+          name: metadata.name,
+          company: metadata.company,
+        },
+      });
 
-      // if (signUpError) throw signUpError;
-      // user.value = data.user;
+      if (!registerResponse.success) {
+        throw new Error(registerResponse.error || "Failed to sign up");
+      }
 
-      // This is a placeholder for now
-      console.log("Sign up with:", email, password, metadata);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      return { success: true };
+      // After registration, sign in
+      return await signIn(email, password);
     } catch (err: any) {
       error.value = err?.message || "Failed to sign up";
       return { success: false, error: error.value };
@@ -57,18 +58,24 @@ export const useAuth = () => {
       error.value = null;
       loading.value = true;
 
-      // TODO: Implement with actual Supabase client
-      // const { data, error: signInError } = await getSupabase().auth.signInWithPassword({
-      //   email,
-      //   password,
-      // });
+      // Sign in using nuxt-auth-utils
+      const loginResponse = await $fetch<{ success: boolean; error?: string }>(
+        "/api/auth/login",
+        {
+          method: "POST",
+          body: {
+            email,
+            password,
+          },
+        }
+      );
 
-      // if (signInError) throw signInError;
-      // user.value = data.user;
+      if (!loginResponse.success) {
+        throw new Error(loginResponse.error || "Failed to sign in");
+      }
 
-      // This is a placeholder for now
-      console.log("Sign in with:", email, password);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Get user data after login
+      await initAuth();
 
       return { success: true };
     } catch (err: any) {
@@ -84,14 +91,14 @@ export const useAuth = () => {
     try {
       error.value = null;
 
-      // TODO: Implement with actual Supabase client
-      // await getSupabase().auth.signOut();
+      // Sign out using nuxt-auth-utils
+      await $fetch("/api/auth/logout", {
+        method: "POST",
+      });
 
-      // This is a placeholder for now
-      console.log("Sign out");
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+      await clearSession();
       user.value = null;
+
       return { success: true };
     } catch (err: any) {
       error.value = err?.message || "Failed to sign out";
@@ -100,23 +107,38 @@ export const useAuth = () => {
   };
 
   // Check if user is authenticated
-  const isAuthenticated = computed(() => !!user.value);
+  const isAuthenticated = computed(() => loggedIn.value);
 
   // Initialize auth state - would be called from a plugin
   const initAuth = async () => {
     try {
       loading.value = true;
 
-      // TODO: Implement with actual Supabase client
-      // const { data } = await getSupabase().auth.getSession();
-      // user.value = data.session?.user || null;
+      // Fetch the session from nuxt-auth-utils
+      await fetchSession();
 
-      // This is a placeholder for now
-      console.log("Initialize auth state");
+      if (loggedIn.value) {
+        // Fetch the full user data from the database using the email
+        const response = await $fetch<{
+          success: boolean;
+          user: User;
+          error?: string;
+        }>(`/api/user/profile`);
+
+        if (response.success && response.user) {
+          user.value = response.user;
+        } else {
+          console.error("Failed to get user profile:", response.error);
+          user.value = null;
+        }
+      } else {
+        user.value = null;
+      }
 
       return { success: true };
     } catch (err: any) {
       error.value = err?.message || "Failed to initialize auth";
+      user.value = null;
       return { success: false, error: error.value };
     } finally {
       loading.value = false;
@@ -129,13 +151,18 @@ export const useAuth = () => {
       error.value = null;
       loading.value = true;
 
-      // TODO: Implement with actual Supabase client
-      // const { error: resetError } = await getSupabase().auth.resetPasswordForEmail(email);
-      // if (resetError) throw resetError;
+      // Request password reset using nuxt-auth-utils
+      const resetResponse = await $fetch<{ success: boolean; error?: string }>(
+        "/api/auth/reset-password",
+        {
+          method: "POST",
+          body: { email },
+        }
+      );
 
-      // This is a placeholder for now
-      console.log("Reset password for:", email);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      if (!resetResponse.success) {
+        throw new Error(resetResponse.error || "Failed to reset password");
+      }
 
       return { success: true };
     } catch (err: any) {

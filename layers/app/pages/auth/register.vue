@@ -9,6 +9,9 @@ const confirmPassword = ref("");
 const loading = ref(false);
 const error = ref("");
 
+// Get auth composable
+const { signUp } = useAuth();
+
 // Handle registration form submission
 const handleRegister = async () => {
   try {
@@ -31,11 +34,15 @@ const handleRegister = async () => {
       return;
     }
 
-    // TODO: Implement Supabase auth registration
-    // Will implement actual Supabase auth registration once we set up the Supabase client
+    // Call our API endpoint via the auth composable
+    const result = await signUp(email.value, password.value, {
+      name: name.value,
+    });
 
-    // Simulate loading for now
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!result.success) {
+      error.value = result.error || "Registration failed. Please try again.";
+      return;
+    }
 
     // Navigate to dashboard on success
     navigateTo("/dashboard");

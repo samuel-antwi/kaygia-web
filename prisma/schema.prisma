@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,4 +6,74 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+// User model for authentication and profiles
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  company        String?
+  passwordHash   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lastLoggedIn   DateTime?
+  role           Role      @default(CLIENT)
+  projects       Project[] // Relation to projects
+}
+
+// Role enum for user permissions
+enum Role {
+  ADMIN
+  DEVELOPER
+  CLIENT
+}
+
+// Project model for client projects
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  description String?       @db.Text
+  status      ProjectStatus @default(PENDING)
+  clientId    String        // Relation to user
+  client      User          @relation(fields: [clientId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  startDate   DateTime?
+  endDate     DateTime?
+  type        ProjectType
+  budget      Float?
+  requirements String?      @db.Text
+}
+
+// Project status enum
+enum ProjectStatus {
+  PENDING
+  APPROVED
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+// Project type enum
+enum ProjectType {
+  WEBSITE
+  E_COMMERCE
+  WEB_APP
+  MOBILE_APP
+  BRANDING
+  MARKETING
+  OTHER
+}
+
+// Contact form messages
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
 }

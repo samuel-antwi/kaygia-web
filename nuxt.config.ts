@@ -30,4 +30,24 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: "2025-03-23",
+
+  runtimeConfig: {
+    session: {
+      maxAge: 60 * 60 * 24 * 7,
+      // Ensure strong password for cookie encryption
+      password: process.env.NUXT_SESSION_PASSWORD || "",
+
+      // Enhance cookie security in production
+      cookie:
+        process.env.NODE_ENV === "production"
+          ? {
+              sameSite: "lax",
+              secure: true,
+              httpOnly: true,
+            }
+          : undefined,
+    },
+
+    public: {},
+  },
 });

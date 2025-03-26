@@ -7,6 +7,9 @@ const loading = ref(false);
 const error = ref("");
 const success = ref(false);
 
+// Get auth composable
+const { resetPassword } = useAuth();
+
 // Handle reset password submission
 const handleResetPassword = async () => {
   try {
@@ -20,12 +23,13 @@ const handleResetPassword = async () => {
       return;
     }
 
-    // TODO: Implement actual Supabase password reset
-    // const { resetPassword } = useAuth();
-    // const result = await resetPassword(email.value);
+    // Call our password reset API
+    const result = await resetPassword(email.value);
 
-    // Simulate loading for now
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!result.success) {
+      error.value = result.error || "Password reset failed. Please try again.";
+      return;
+    }
 
     // Show success message
     success.value = true;
