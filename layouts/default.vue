@@ -19,6 +19,9 @@ const { $site = site } = useNuxtApp();
 function toggleColorMode() {
   colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
 }
+
+// Get current route for active page indicator
+const route = useRoute();
 </script>
 
 <template>
@@ -40,7 +43,12 @@ function toggleColorMode() {
               v-for="item in $site.navigation.main"
               :key="item.name"
               :to="item.href"
-              class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              class="text-sm font-medium transition-colors relative py-2"
+              :class="[
+                route.path === item.href
+                  ? 'text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary'
+                  : 'text-muted-foreground hover:text-foreground',
+              ]"
             >
               {{ item.name }}
             </NuxtLink>

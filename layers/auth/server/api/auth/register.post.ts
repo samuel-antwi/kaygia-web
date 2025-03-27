@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { H3Event } from "h3";
-import * as bcrypt from "bcryptjs";
+import * as bcrypt from "bcrypt";
 
 // Initialize Prisma client
 const prisma = new PrismaClient();

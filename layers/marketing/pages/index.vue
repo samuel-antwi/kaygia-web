@@ -50,8 +50,8 @@ useHead({
           out and succeed online.
         </p>
         <div class="flex flex-wrap gap-4">
-          <Button class="px-8">Get Started</Button>
-          <Button variant="outline">View Our Work</Button>
+          <Button class="px-8 h-12">Get Started</Button>
+          <Button class="h-12" variant="outline">View Our Work</Button>
         </div>
       </div>
     </div>
