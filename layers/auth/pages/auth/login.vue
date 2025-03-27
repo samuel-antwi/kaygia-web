@@ -9,7 +9,7 @@ const loading = ref(false);
 const error = ref("");
 
 // Get auth composable
-const { signIn, initAuth } = useAuth();
+const { signIn, initAuth, user } = useAuth();
 
 // Handle login form submission
 const handleLogin = async () => {
@@ -43,6 +43,16 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+
+watch(
+  user,
+  (newUser) => {
+    if (newUser) {
+      navigateTo("/dashboard");
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
