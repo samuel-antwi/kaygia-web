@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import {
   LayoutDashboard,
   Briefcase,
@@ -15,13 +15,27 @@ import {
   Bell,
   Sun,
   Moon,
+  Menu,
 } from "lucide-vue-next";
 
 const colorMode = useColorMode();
 const isSidebarCollapsed = ref(false);
+const isMobile = ref(false);
 
 // Get auth composable
 const { user, signOut, loading } = useAuth();
+
+// Check if device is mobile
+onMounted(() => {
+  checkIfMobile();
+  window.addEventListener("resize", checkIfMobile);
+});
+
+function checkIfMobile() {
+  isMobile.value = window.innerWidth < 768;
+  // Auto-collapse sidebar on mobile
+  isSidebarCollapsed.value = isMobile.value;
+}
 
 function toggleColorMode() {
   colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
@@ -53,10 +67,21 @@ const navItems = [
 
 <template>
   <div class="flex min-h-screen antialiased bg-muted/60">
+    <!-- Mobile Overlay -->
+    <div
+      v-if="!isSidebarCollapsed && isMobile"
+      class="fixed inset-0 bg-black/50 z-10"
+      @click="toggleSidebar"
+    ></div>
+
     <!-- Sidebar -->
     <aside
       class="fixed inset-y-0 left-0 z-20 flex h-full flex-col border-r bg-background transition-all duration-300"
-      :class="isSidebarCollapsed ? 'w-[70px]' : 'w-[250px]'"
+      :class="
+        isSidebarCollapsed
+          ? 'w-0 md:w-[70px] -translate-x-full md:translate-x-0'
+          : 'w-[250px]'
+      "
     >
       <!-- Sidebar header -->
       <div class="flex h-16 items-center border-b px-4 py-2">
@@ -93,6 +118,7 @@ const navItems = [
               :to="item.path"
               class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
               :class="isSidebarCollapsed ? 'justify-center' : 'gap-3'"
+              @click="isMobile && toggleSidebar()"
             >
               <component :is="item.icon" class="h-5 w-5" />
               <span :class="isSidebarCollapsed ? 'sr-only' : ''">
@@ -147,12 +173,24 @@ const navItems = [
     <!-- Main content -->
     <div
       class="transition-all duration-300 w-full"
-      :class="isSidebarCollapsed ? 'pl-[70px]' : 'pl-[250px]'"
+      :class="[isSidebarCollapsed ? 'md:pl-[70px]' : 'md:pl-[250px]']"
     >
       <!-- Header -->
       <header class="sticky top-0 z-10 border-b bg-background w-full">
-        <div class="flex h-16 items-center justify-between px-6">
-          <h1 class="text-lg font-medium">Dashboard</h1>
+        <div class="flex h-16 items-center justify-between px-4">
+          <div class="flex items-center">
+            <!-- Mobile menu button -->
+            <Button
+              variant="ghost"
+              size="icon"
+              @click="toggleSidebar"
+              class="mr-2 md:hidden"
+              aria-label="Toggle sidebar"
+            >
+              <Menu class="h-5 w-5" />
+            </Button>
+            <h1 class="text-lg font-medium">Dashboard</h1>
+          </div>
 
           <div class="flex items-center gap-4">
             <!-- Notifications -->
@@ -209,9 +247,9 @@ const navItems = [
               <Moon v-else class="h-5 w-5" />
             </Button>
 
-            <!-- User dropdown (mobile only) -->
+            <!-- User dropdown -->
             <DropdownMenu>
-              <DropdownMenuTrigger class="md:hidden">
+              <DropdownMenuTrigger>
                 <Avatar class="h-8 w-8">
                   <AvatarImage src="" alt="User avatar" />
                   <AvatarFallback>
@@ -240,7 +278,7 @@ const navItems = [
       </header>
 
       <!-- Page content -->
-      <main class="px-6 py-6">
+      <main class="px-4 py-6 overflow-x-hidden">
         <slot />
       </main>
     </div>
