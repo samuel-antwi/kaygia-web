@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Mail, Lock, AlertCircle } from "lucide-vue-next";
 
+// Define page meta to use auth layout
+definePageMeta({
+  layout: "auth",
+});
+
 // Form state
 const email = ref("");
 const password = ref("");
@@ -132,7 +137,7 @@ watch(
     <!-- Right side with form -->
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
       <div class="w-full max-w-md">
-        <div class="text-center mb-10">
+        <div class="mb-10">
           <h2 class="text-3xl font-bold mb-2">Sign in to your account</h2>
           <p class="text-muted-foreground">
             Don't have an account?

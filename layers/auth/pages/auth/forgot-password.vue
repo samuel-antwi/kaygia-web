@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Mail, AlertCircle, ArrowLeft } from "lucide-vue-next";
 
+// Define page meta to use auth layout
+definePageMeta({
+  layout: "auth",
+});
+
 // Form state
 const email = ref("");
 const loading = ref(false);

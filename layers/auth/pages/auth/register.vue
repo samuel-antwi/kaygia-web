@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Mail, Lock, User, AlertCircle } from "lucide-vue-next";
 
+// Define page meta to use auth layout
+definePageMeta({
+  layout: "auth",
+});
+
 // Form state
 const name = ref("");
 const email = ref("");
@@ -131,7 +136,7 @@ const handleRegister = async () => {
     <!-- Right side with form -->
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
       <div class="w-full max-w-md">
-        <div class="text-center mb-8">
+        <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Create your account</h2>
           <p class="text-muted-foreground">
             Already have an account?
