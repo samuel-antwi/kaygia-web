@@ -29,8 +29,16 @@ function toggleColorMode() {
         @click="toggleColorMode"
         aria-label="Toggle theme"
       >
-        <Sun v-if="colorMode.value === 'dark'" class="h-5 w-5" />
-        <Moon v-else class="h-5 w-5" />
+        <span class="relative block h-5 w-5">
+          <Sun
+            v-show="colorMode.value === 'dark'"
+            class="absolute inset-0 h-5 w-5"
+          />
+          <Moon
+            v-show="colorMode.value !== 'dark'"
+            class="absolute inset-0 h-5 w-5"
+          />
+        </span>
       </Button>
     </div>
 
