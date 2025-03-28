@@ -145,13 +145,13 @@ export const useAuth = () => {
     }
   };
 
-  // Reset password
+  // Reset password (request reset)
   const resetPassword = async (email: string) => {
     try {
       error.value = null;
       loading.value = true;
 
-      // Request password reset using nuxt-auth-utils
+      // Request password reset
       const resetResponse = await $fetch<{ success: boolean; error?: string }>(
         "/api/auth/reset-password",
         {
@@ -173,6 +173,35 @@ export const useAuth = () => {
     }
   };
 
+  // Complete password reset with token
+  const completePasswordReset = async (token: string, password: string) => {
+    try {
+      error.value = null;
+      loading.value = true;
+
+      // Complete the password reset
+      const response = await $fetch<{
+        success: boolean;
+        error?: string;
+        message?: string;
+      }>("/api/auth/complete-reset", {
+        method: "POST",
+        body: { token, password },
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "Failed to set new password");
+      }
+
+      return { success: true, message: response.message };
+    } catch (err: any) {
+      error.value = err?.message || "Failed to set new password";
+      return { success: false, error: error.value };
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     user,
     loading,
@@ -181,6 +210,7 @@ export const useAuth = () => {
     signIn,
     signOut,
     resetPassword,
+    completePasswordReset,
     isAuthenticated,
     initAuth,
   };

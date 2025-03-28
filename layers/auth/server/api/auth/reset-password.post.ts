@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { H3Event } from "h3";
+import { randomBytes } from "crypto";
+import { sendPasswordResetEmail } from "~/utils/email";
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -31,9 +33,28 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
-    // TODO: In a real implementation, send a password reset email
-    // This would include a unique token and expiration time
-    console.log(`Password reset requested for ${email}`);
+    // Generate a random token
+    const token = randomBytes(32).toString("hex");
+
+    // Set expiration to 1 hour from now
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    // Create a new password reset record
+    await prisma.passwordReset.create({
+      data: {
+        token,
+        expiresAt,
+        userId: user.id,
+      },
+    });
+
+    // Generate reset URL
+    const baseUrl = process.env.APP_URL || "http://localhost:3000";
+    const resetUrl = `${baseUrl}/auth/reset-password/${token}`;
+
+    // Send reset email
+    await sendPasswordResetEmail(email, resetUrl);
 
     return {
       success: true,

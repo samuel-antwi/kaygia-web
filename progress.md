@@ -16,10 +16,14 @@
   - Added auth middleware for protected routes
   - Created server API routes for authentication
   - Connected all auth forms to backend endpoints
-  - Password hashing with bcryptjs implemented
+  - Password hashing with bcrypt implemented
+  - Complete password reset flow with email notifications implemented
 - **Database setup with Prisma**
-  - Schema defined for User, Project, and ContactMessage models
+  - Schema defined for User, Project, ContactMessage, and PasswordReset models
   - Connected to Supabase PostgreSQL database
+- **Email integration**
+  - Integrated Resend for transactional emails
+  - Created email templates for password reset
 
 ## ✅ Completed Tasks
 
@@ -46,6 +50,7 @@
      - [x] Default layout for marketing site
      - [x] Dashboard layout for client portal
      - [x] MobileNav component
+     - [x] Auth layout for authentication pages
    - [ ] Navigation components (partially complete)
    - [ ] Form components
    - [ ] Common UI elements (partially complete)
@@ -62,6 +67,7 @@
      - [x] Login page
      - [x] Register page
      - [x] Forgot password page
+     - [x] Password reset page
 
 5. Authentication & Database
    - [x] Authentication setup
@@ -69,16 +75,19 @@
      - [x] Login flow UI
      - [x] Auth middleware
      - [x] Forgot password UI
+     - [x] Password reset flow UI and functionality
      - [x] nuxt-auth-utils integration
      - [x] API routes for authentication
      - [x] Frontend integration with backend APIs
      - [x] User session management
      - [x] Password hashing
+     - [x] Email integration for password reset
    - [x] Database integration with Prisma
      - [x] Prisma schema definition
      - [x] Basic user model with password hashing
      - [x] Project model for client projects
      - [x] Contact message model for contact form
+     - [x] Password reset model for secure token management
 
 ## 🚧 In Progress
 
@@ -111,11 +120,18 @@
 3. Backend
    - [x] Database schema implementation (completed)
    - [ ] Project management API endpoints
+   - [x] Email system implementation (completed)
    - [ ] File upload system
-   - [ ] Email notifications
 
 ## 🔄 Recent Changes
 
+- (2023-03-28) Implemented password reset functionality with email notifications
+  - Created PasswordReset model in Prisma schema
+  - Set up email system with Resend
+  - Created reset and complete-reset API endpoints
+  - Built a secure token-based password reset flow
+  - Created password reset page with strength validation
+- (2023-03-27) Added auth layout to remove header/footer from authentication pages
 - (2023-07-02) Connected frontend auth forms to backend API endpoints
 - (2023-07-02) Added auth plugin to initialize auth state on app load
 - (2023-07-02) Updated dashboard layout to display user information and handle logout

@@ -8,7 +8,8 @@ export const site: SiteConfig = {
   company: {
     name: "Kaygia Web",
     tagline: "Transforming Ideas into Digital Reality",
-    email: "hello@kaygiaweb.co.uk",
+    email: "admin@kaygia.com",
+    supportEmail: "support@kaygia.com",
     phone: "+44 (0) 20 7123 4567",
     address: "123 Web Street, London, EC1A 1BB",
     socials: {

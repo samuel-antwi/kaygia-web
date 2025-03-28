@@ -5,6 +5,7 @@ export interface SiteConfig {
     name: string;
     tagline: string;
     email: string;
+    supportEmail: string;
     phone: string;
     address: string;
     socials: {
