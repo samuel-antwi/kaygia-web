@@ -40,6 +40,8 @@ const togglePasswordVisibility = () => {
 // Form state
 const loading = ref(false);
 const error = ref("");
+const needsVerification = ref(false);
+const userEmail = ref("");
 
 // Get auth composable
 const { signIn, initAuth, user } = useAuth();
@@ -49,11 +51,16 @@ const onSubmit = form.handleSubmit(async (values) => {
   try {
     loading.value = true;
     error.value = "";
+    needsVerification.value = false;
 
     // Call our API endpoint via the auth composable
     const result = await signIn(values.email, values.password);
 
     if (!result.success) {
+      if (result.needsVerification) {
+        needsVerification.value = true;
+        userEmail.value = result.email || values.email;
+      }
       error.value = result.error || "Invalid email or password";
       return;
     }
@@ -70,6 +77,11 @@ const onSubmit = form.handleSubmit(async (values) => {
     loading.value = false;
   }
 });
+
+// Handle resending verification email
+const handleResend = () => {
+  navigateTo("/resend-verification");
+};
 
 watch(
   user,
@@ -178,6 +190,14 @@ watch(
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
             {{ error }}
+            <div v-if="needsVerification" class="mt-2">
+              <button
+                @click="handleResend"
+                class="text-white underline font-medium"
+              >
+                Resend verification email
+              </button>
+            </div>
           </AlertDescription>
         </Alert>
 

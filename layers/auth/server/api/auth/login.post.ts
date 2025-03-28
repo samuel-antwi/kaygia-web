@@ -47,6 +47,17 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
+    // Check if email is verified
+    if (!existingUser.emailVerified) {
+      return {
+        success: false,
+        error:
+          "Email not verified. Please verify your email before logging in.",
+        needsVerification: true,
+        email: existingUser.email,
+      };
+    }
+
     // Get user data for session
     const userData = {
       id: existingUser.id,

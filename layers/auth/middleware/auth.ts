@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware((to) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
 
   // Wait for auth to initialize
   if (loading.value) {
@@ -11,5 +11,16 @@ export default defineNuxtRouteMiddleware((to) => {
   if (!isAuthenticated.value && to.path.startsWith("/dashboard")) {
     // Redirect to login page
     return navigateTo("/auth/login");
+  }
+
+  // If user is authenticated but email not verified
+  if (
+    isAuthenticated.value &&
+    user.value &&
+    !user.value.emailVerified &&
+    to.path.startsWith("/dashboard")
+  ) {
+    // Redirect to email verification page
+    return navigateTo("/resend-verification");
   }
 });

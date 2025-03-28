@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { H3Event } from "h3";
 import * as bcrypt from "bcrypt";
+import { randomBytes } from "crypto";
+import { sendVerificationEmail } from "~/utils/email";
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -41,10 +43,32 @@ export default defineEventHandler(async (event: H3Event) => {
         company,
         passwordHash,
         role: "CLIENT", // Default role for new users
+        emailVerified: false, // Email not verified by default
       },
     });
 
-    // TODO: In a real implementation, store hashed password in a UserAuth table
+    // Generate a verification token
+    const token = randomBytes(32).toString("hex");
+
+    // Set expiration to 24 hours from now
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    // Create a verification record
+    await prisma.emailVerification.create({
+      data: {
+        token,
+        expiresAt,
+        userId: newUser.id,
+      },
+    });
+
+    // Generate verification URL
+    const baseUrl = process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const verificationUrl = `${baseUrl}/verify-email/${token}`;
+
+    // Send verification email
+    await sendVerificationEmail(email, verificationUrl);
 
     return {
       success: true,
@@ -54,6 +78,8 @@ export default defineEventHandler(async (event: H3Event) => {
         name: newUser.name,
         company: newUser.company,
       },
+      message:
+        "Registration successful. Please check your email to verify your account.",
     };
   } catch (error: any) {
     console.error("Registration error:", error);

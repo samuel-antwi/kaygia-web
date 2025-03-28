@@ -13,6 +13,7 @@ export interface User {
   updatedAt: Date;
   role: Role;
   lastLoggedIn?: Date | null;
+  emailVerified: boolean;
 }
 
 export interface UserWithProjects extends User {

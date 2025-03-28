@@ -41,9 +41,6 @@ export const useAuth = () => {
       if (!registerResponse.success) {
         throw new Error(registerResponse.error || "Failed to sign up");
       }
-
-      // After registration, sign in
-      return await signIn(email, password);
     } catch (err: any) {
       error.value = err?.message || "Failed to sign up";
       return { success: false, error: error.value };
@@ -59,18 +56,31 @@ export const useAuth = () => {
       loading.value = true;
 
       // Sign in using nuxt-auth-utils
-      const loginResponse = await $fetch<{ success: boolean; error?: string }>(
-        "/api/auth/login",
-        {
-          method: "POST",
-          body: {
-            email,
-            password,
-          },
-        }
-      );
+      const loginResponse = await $fetch<{
+        success: boolean;
+        error?: string;
+        needsVerification?: boolean;
+        email?: string;
+      }>("/api/auth/login", {
+        method: "POST",
+        body: {
+          email,
+          password,
+        },
+      });
 
       if (!loginResponse.success) {
+        // Pass along any verification info
+        if (loginResponse.needsVerification) {
+          error.value = loginResponse.error || "Email not verified";
+          return {
+            success: false,
+            error: error.value,
+            needsVerification: true,
+            email: loginResponse.email,
+          };
+        }
+
         throw new Error(loginResponse.error || "Failed to sign in");
       }
 
@@ -202,6 +212,37 @@ export const useAuth = () => {
     }
   };
 
+  // Resend verification email
+  const resendVerificationEmail = async (email: string) => {
+    try {
+      error.value = null;
+      loading.value = true;
+
+      // Request verification email resend
+      const response = await $fetch<{
+        success: boolean;
+        error?: string;
+        message?: string;
+      }>("/api/auth/resend-verification", {
+        method: "POST",
+        body: { email },
+      });
+
+      if (!response.success) {
+        throw new Error(
+          response.error || "Failed to resend verification email"
+        );
+      }
+
+      return { success: true, message: response.message };
+    } catch (err: any) {
+      error.value = err?.message || "Failed to resend verification email";
+      return { success: false, error: error.value };
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     user,
     loading,
@@ -211,6 +252,7 @@ export const useAuth = () => {
     signOut,
     resetPassword,
     completePasswordReset,
+    resendVerificationEmail,
     isAuthenticated,
     initAuth,
   };

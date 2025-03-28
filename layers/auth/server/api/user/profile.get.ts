@@ -43,10 +43,13 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
-    // Return user data
+    // Return user data (including emailVerified)
     return {
       success: true,
-      user,
+      user: {
+        ...user,
+        emailVerified: user.emailVerified || false, // Ensure it has a default value
+      },
     };
   } catch (error: any) {
     console.error("Profile fetch error:", error);

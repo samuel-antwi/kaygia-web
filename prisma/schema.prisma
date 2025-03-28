@@ -10,17 +10,19 @@ datasource db {
 
 // User model for authentication and profiles
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  name           String?
-  company        String?
-  passwordHash   String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  lastLoggedIn   DateTime?
-  role           Role      @default(CLIENT)
-  projects       Project[] // Relation to projects
-  passwordResets PasswordReset[]  // Relation to password resets
+  id                String              @id @default(cuid())
+  email             String              @unique
+  name              String?
+  company           String?
+  passwordHash      String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  lastLoggedIn      DateTime?
+  role              Role                @default(CLIENT)
+  projects          Project[]           // Relation to projects
+  passwordResets    PasswordReset[]     // Relation to password resets
+  emailVerified     Boolean             @default(false)  // Whether email is verified
+  emailVerifications EmailVerification[] // Relation to email verifications
 }
 
 // Role enum for user permissions
@@ -81,6 +83,17 @@ model ContactMessage {
 
 // Password reset model
 model PasswordReset {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+}
+
+// Email verification model
+model EmailVerification {
   id        String   @id @default(cuid())
   token     String   @unique
   userId    String

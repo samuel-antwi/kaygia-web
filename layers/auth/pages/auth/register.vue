@@ -69,13 +69,13 @@ const onSubmit = form.handleSubmit(async (values) => {
       name: values.name,
     });
 
-    if (!result.success) {
-      error.value = result.error || "Registration failed. Please try again.";
+    if (!result?.success) {
+      error.value = result?.error || "Registration failed. Please try again.";
       return;
     }
 
     // Navigate to dashboard on success
-    navigateTo("/dashboard");
+    navigateTo("/");
   } catch (err: any) {
     error.value = err?.message || "Registration failed. Please try again.";
   } finally {
