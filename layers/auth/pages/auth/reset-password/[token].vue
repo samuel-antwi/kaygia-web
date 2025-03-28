@@ -7,6 +7,9 @@ import {
   ArrowLeft,
   CheckCircle,
 } from "lucide-vue-next";
+import { z } from "zod";
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
 
 // Define page meta to use auth layout
 definePageMeta({
@@ -17,74 +20,61 @@ definePageMeta({
 const route = useRoute();
 const token = route.params.token as string;
 
-// Form state
-const password = ref("");
-const confirmPassword = ref("");
+// Form schema using Zod with password validation
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" })
+      .regex(/[A-Z]/, {
+        message: "Password must contain at least one uppercase letter",
+      })
+      .regex(/[a-z]/, {
+        message: "Password must contain at least one lowercase letter",
+      })
+      .regex(/[0-9]/, { message: "Password must contain at least one number" }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+// Convert Zod schema to VeeValidate schema
+const validationSchema = toTypedSchema(resetPasswordSchema);
+
+// Use the form hook
+const form = useForm({
+  validationSchema: validationSchema,
+  initialValues: {
+    password: "",
+    confirmPassword: "",
+  },
+});
+
+// Password visibility state
 const showPassword = ref(false);
 const loading = ref(false);
 const error = ref("");
 const success = ref(false);
-
-// Password validation rules
-const passwordRules = [
-  { test: (p: string) => p.length >= 8, message: "At least 8 characters" },
-  {
-    test: (p: string) => /[A-Z]/.test(p),
-    message: "At least one uppercase letter",
-  },
-  {
-    test: (p: string) => /[a-z]/.test(p),
-    message: "At least one lowercase letter",
-  },
-  { test: (p: string) => /[0-9]/.test(p), message: "At least one number" },
-];
-
-// Password validation status
-const validations = computed(() => {
-  return passwordRules.map((rule) => ({
-    valid: rule.test(password.value),
-    message: rule.message,
-  }));
-});
-
-// Check if password is valid
-const isPasswordValid = computed(() => {
-  return validations.value.every((v) => v.valid);
-});
-
-// Check if passwords match
-const passwordsMatch = computed(() => {
-  return password.value === confirmPassword.value && password.value !== "";
-});
-
-// Get auth composable
-const { completePasswordReset } = useAuth();
 
 // Toggle password visibility
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
+// Get auth composable
+const { completePasswordReset } = useAuth();
+
 // Handle reset password submission
-const handleResetPassword = async () => {
+const onSubmit = form.handleSubmit(async (values) => {
   try {
     // Reset state
     loading.value = true;
     error.value = "";
 
-    // Validate passwords
-    if (!isPasswordValid.value) {
-      error.value = "Please ensure your password meets all requirements";
-      return;
-    }
-
-    if (!passwordsMatch.value) {
-      error.value = "Passwords do not match";
-      return;
-    }
-
     // Call auth composable to complete password reset
-    const result = await completePasswordReset(token, password.value);
+    const result = await completePasswordReset(token, values.password);
 
     if (!result.success) {
       error.value =
@@ -99,7 +89,7 @@ const handleResetPassword = async () => {
   } finally {
     loading.value = false;
   }
-};
+});
 </script>
 
 <template>
@@ -222,7 +212,7 @@ const handleResetPassword = async () => {
         </div>
 
         <!-- Reset password form -->
-        <form @submit.prevent="handleResetPassword" class="space-y-6" v-else>
+        <form @submit="onSubmit" class="space-y-6" v-else>
           <!-- Error alert -->
           <Alert v-if="error" variant="destructive" class="mb-6">
             <AlertCircle class="h-4 w-4" />
@@ -233,115 +223,82 @@ const handleResetPassword = async () => {
           </Alert>
 
           <!-- Password field -->
-          <div class="space-y-2">
-            <Label for="password" class="text-sm font-medium"
-              >New password</Label
-            >
-            <div class="relative">
-              <div
-                class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
-              >
-                <Lock class="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div class="absolute inset-y-0 right-0 flex items-center pr-4">
+          <FormField v-slot="{ componentField }" name="password">
+            <FormItem>
+              <FormLabel>New password</FormLabel>
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                >
+                  <Lock class="h-5 w-5 text-muted-foreground" />
+                </div>
+                <FormControl>
+                  <Input
+                    id="password"
+                    v-bind="componentField"
+                    :type="showPassword ? 'text' : 'password'"
+                    class="pl-12 pr-12 h-12 text-base"
+                    autocomplete="new-password"
+                  />
+                </FormControl>
                 <button
                   type="button"
                   @click="togglePasswordVisibility"
-                  class="text-muted-foreground hover:text-foreground"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                  tabindex="-1"
                 >
-                  <Eye v-if="!showPassword" class="h-5 w-5" />
-                  <EyeOff v-else class="h-5 w-5" />
+                  <Eye
+                    v-if="!showPassword"
+                    class="h-5 w-5 text-muted-foreground"
+                  />
+                  <EyeOff v-else class="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
-              <Input
-                id="password"
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                class="pl-12 pr-12 h-12 text-base"
-                required
-              />
-            </div>
-
-            <!-- Password validation -->
-            <div class="mt-2 space-y-1">
-              <div
-                v-for="(validation, index) in validations"
-                :key="index"
-                class="flex items-center text-xs"
-                :class="
-                  validation.valid
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-muted-foreground'
-                "
-              >
-                <CheckCircle v-if="validation.valid" class="h-3 w-3 mr-1.5" />
-                <div
-                  v-else
-                  class="h-3 w-3 rounded-full border border-muted-foreground mr-1.5"
-                ></div>
-                {{ validation.message }}
-              </div>
-            </div>
-          </div>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
           <!-- Confirm password field -->
-          <div class="space-y-2">
-            <Label for="confirmPassword" class="text-sm font-medium"
-              >Confirm password</Label
-            >
-            <div class="relative">
-              <div
-                class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
-              >
-                <Lock class="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div class="absolute inset-y-0 right-0 flex items-center pr-4">
+          <FormField v-slot="{ componentField }" name="confirmPassword">
+            <FormItem>
+              <FormLabel>Confirm password</FormLabel>
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                >
+                  <Lock class="h-5 w-5 text-muted-foreground" />
+                </div>
+                <FormControl>
+                  <Input
+                    id="confirmPassword"
+                    v-bind="componentField"
+                    :type="showPassword ? 'text' : 'password'"
+                    class="pl-12 pr-12 h-12 text-base"
+                    autocomplete="new-password"
+                  />
+                </FormControl>
                 <button
                   type="button"
                   @click="togglePasswordVisibility"
-                  class="text-muted-foreground hover:text-foreground"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                  tabindex="-1"
                 >
-                  <Eye v-if="!showPassword" class="h-5 w-5" />
-                  <EyeOff v-else class="h-5 w-5" />
+                  <Eye
+                    v-if="!showPassword"
+                    class="h-5 w-5 text-muted-foreground"
+                  />
+                  <EyeOff v-else class="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
-              <Input
-                id="confirmPassword"
-                v-model="confirmPassword"
-                :type="showPassword ? 'text' : 'password'"
-                class="pl-12 pr-12 h-12 text-base"
-                required
-              />
-            </div>
-            <!-- Passwords match indicator -->
-            <div class="flex items-center text-xs mt-1" v-if="confirmPassword">
-              <CheckCircle
-                v-if="passwordsMatch"
-                class="h-3 w-3 mr-1.5 text-green-600 dark:text-green-400"
-              />
-              <AlertCircle
-                v-else
-                class="h-3 w-3 mr-1.5 text-red-600 dark:text-red-400"
-              />
-              <span
-                :class="
-                  passwordsMatch
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-red-600 dark:text-red-400'
-                "
-              >
-                {{
-                  passwordsMatch ? "Passwords match" : "Passwords do not match"
-                }}
-              </span>
-            </div>
-          </div>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
           <!-- Submit button -->
           <Button
             type="submit"
             class="w-full h-12 text-base font-medium"
-            :disabled="loading || !isPasswordValid || !passwordsMatch"
+            :disabled="loading"
           >
             <span v-if="loading" class="flex items-center justify-center">
               <svg
