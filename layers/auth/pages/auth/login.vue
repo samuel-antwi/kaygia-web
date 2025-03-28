@@ -1,15 +1,43 @@
 <script setup lang="ts">
-import { Mail, Lock, AlertCircle } from "lucide-vue-next";
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-vue-next";
+import { z } from "zod";
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
 
 // Define page meta to use auth layout
 definePageMeta({
   layout: "auth",
 });
 
+// Form schema using Zod
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional().default(false),
+});
+
+// Convert Zod schema to VeeValidate schema
+const validationSchema = toTypedSchema(loginSchema);
+
+// Use the form hook
+const form = useForm({
+  validationSchema: validationSchema,
+  initialValues: {
+    email: "",
+    password: "",
+    rememberMe: false,
+  },
+});
+
+// Password visibility state
+const showPassword = ref(false);
+
+// Toggle password visibility
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+
 // Form state
-const email = ref("");
-const password = ref("");
-const rememberMe = ref(false);
 const loading = ref(false);
 const error = ref("");
 
@@ -17,19 +45,13 @@ const error = ref("");
 const { signIn, initAuth, user } = useAuth();
 
 // Handle login form submission
-const handleLogin = async () => {
+const onSubmit = form.handleSubmit(async (values) => {
   try {
     loading.value = true;
     error.value = "";
 
-    // Basic validation
-    if (!email.value || !password.value) {
-      error.value = "Please enter both email and password";
-      return;
-    }
-
     // Call our API endpoint via the auth composable
-    const result = await signIn(email.value, password.value);
+    const result = await signIn(values.email, values.password);
 
     if (!result.success) {
       error.value = result.error || "Invalid email or password";
@@ -41,13 +63,13 @@ const handleLogin = async () => {
 
     // Navigate to dashboard on success
     navigateTo("/dashboard");
-  } catch (err: any) {
+  } catch (err) {
     console.error("Login error:", err);
     error.value = "An unexpected error occurred. Please try again.";
   } finally {
     loading.value = false;
   }
-};
+});
 
 watch(
   user,
@@ -150,74 +172,96 @@ watch(
           </p>
         </div>
 
-        <form @submit.prevent="handleLogin" class="space-y-6">
-          <!-- Error alert -->
-          <Alert v-if="error" variant="destructive" class="mb-6">
-            <AlertCircle class="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {{ error }}
-            </AlertDescription>
-          </Alert>
+        <!-- Error alert -->
+        <Alert v-if="error" variant="destructive" class="mb-6">
+          <AlertCircle class="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {{ error }}
+          </AlertDescription>
+        </Alert>
 
+        <form @submit="onSubmit" class="space-y-6">
           <!-- Email field -->
-          <div class="space-y-2">
-            <Label for="email" class="text-sm font-medium">Email address</Label>
-            <div class="relative">
-              <div
-                class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
-              >
-                <Mail class="h-5 w-5 text-muted-foreground" />
+          <FormField v-slot="{ componentField }" name="email">
+            <FormItem>
+              <FormLabel>Email address</FormLabel>
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                >
+                  <Mail class="h-5 w-5 text-muted-foreground" />
+                </div>
+                <FormControl>
+                  <Input
+                    id="email"
+                    v-bind="componentField"
+                    type="email"
+                    placeholder="name@example.com"
+                    class="pl-12 h-12 text-base"
+                  />
+                </FormControl>
               </div>
-              <Input
-                id="email"
-                v-model="email"
-                type="email"
-                placeholder="name@example.com"
-                class="pl-12 h-12 text-base"
-                required
-              />
-            </div>
-          </div>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
           <!-- Password field -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <Label for="password" class="text-sm font-medium">Password</Label>
-              <NuxtLink
-                to="/auth/forgot-password"
-                class="text-sm font-medium text-primary hover:underline"
-              >
-                Forgot password?
-              </NuxtLink>
-            </div>
-            <div class="relative">
-              <div
-                class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
-              >
-                <Lock class="h-5 w-5 text-muted-foreground" />
+          <FormField v-slot="{ componentField }" name="password">
+            <FormItem>
+              <div class="flex items-center justify-between">
+                <FormLabel>Password</FormLabel>
+                <NuxtLink
+                  to="/auth/forgot-password"
+                  class="text-sm font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </NuxtLink>
               </div>
-              <Input
-                id="password"
-                v-model="password"
-                type="password"
-                class="pl-12 h-12 text-base"
-                required
-                autocomplete="new-password"
-              />
-            </div>
-          </div>
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                >
+                  <Lock class="h-5 w-5 text-muted-foreground" />
+                </div>
+                <FormControl>
+                  <Input
+                    id="password"
+                    v-bind="componentField"
+                    :type="showPassword ? 'text' : 'password'"
+                    class="pl-12 pr-12 h-12 text-base"
+                    autocomplete="new-password"
+                  />
+                </FormControl>
+                <button
+                  type="button"
+                  @click="togglePasswordVisibility"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                  tabindex="-1"
+                >
+                  <Eye
+                    v-if="!showPassword"
+                    class="h-5 w-5 text-muted-foreground"
+                  />
+                  <EyeOff v-else class="h-5 w-5 text-muted-foreground" />
+                </button>
+              </div>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
           <!-- Remember me checkbox -->
-          <div class="flex items-center space-x-2">
-            <Checkbox id="remember" v-model:checked="rememberMe" />
-            <Label
-              for="remember"
-              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Remember me for 30 days
-            </Label>
-          </div>
+          <FormField v-slot="{ componentField }" name="rememberMe">
+            <div class="flex items-center space-x-2">
+              <Checkbox id="remember" v-bind="componentField" />
+              <Label
+                for="remember"
+                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Remember me for 30 days
+              </Label>
+            </div>
+          </FormField>
 
           <!-- Login button -->
           <Button
