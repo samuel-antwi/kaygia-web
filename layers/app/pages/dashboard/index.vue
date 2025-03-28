@@ -15,6 +15,7 @@ import {
 
 definePageMeta({
   layout: "dashboard",
+  middleware: "auth",
 });
 
 // Mock data for projects
