@@ -171,6 +171,21 @@ alwaysApply: true
 - Monitor error rates
 - Track user metrics
 
+// ... existing code ...
+### File and Directory Naming
+- Use PascalCase for components: `HeaderNav.vue`, `ProjectCard.vue`
+- Use kebab-case for pages: `project-details.vue`, `about-us.vue`
+- Use camelCase for composables: `useAuth.ts`, `useProjects.ts`
+- Use PascalCase for types/interfaces: `UserProfile.ts`, `ProjectStatus.ts`
+
+### Component Modularity
+- Use small, modular components rather than large monolithic files
+- Keep files under 400 lines of code
+- If a file exceeds 400 lines, consider breaking it into smaller components
+- Extract reusable UI patterns into their own components
+- Follow the single responsibility principle for components
+
+
 - [PROJECT_OVERVIEW.md](mdc:PROJECT_OVERVIEW.md)
 - [IMPLEMENTATION_PLAN.md](mdc:IMPLEMENTATION_PLAN.md)
 - [progress.md](mdc:progress.md)
