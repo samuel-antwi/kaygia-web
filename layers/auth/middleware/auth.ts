@@ -12,15 +12,4 @@ export default defineNuxtRouteMiddleware((to) => {
     // Redirect to login page
     return navigateTo("/auth/login");
   }
-
-  // If user is authenticated but email not verified
-  if (
-    isAuthenticated.value &&
-    user.value &&
-    !user.value.emailVerified &&
-    to.path.startsWith("/dashboard")
-  ) {
-    // Redirect to email verification page
-    return navigateTo("/resend-verification");
-  }
 });
