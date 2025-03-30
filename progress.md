@@ -169,6 +169,9 @@
    - [ ] Update project status endpoint
    - [ ] Get projects endpoint
    - [ ] Get project details endpoint
+6. **Project Request Form (Functionality)**: Implement the backend logic to handle form submission, create the project record in the database associated with the logged-in client, and provide user feedback (success/error messages).
+7. **Messages Page**: Implement UI and functionality for viewing messages.
+8. **Invoices Page**: Implement UI and functionality for viewing invoices.
 
 ## 2023-07-02: Authentication Frontend-Backend Integration
 
