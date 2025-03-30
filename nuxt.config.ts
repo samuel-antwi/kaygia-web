@@ -5,6 +5,7 @@ export default defineNuxtConfig({
     "./layers/core",
     "./layers/marketing",
     "./layers/app",
+    "./layers/dashboard",
     "./layers/auth",
   ],
   modules: [
@@ -12,6 +13,7 @@ export default defineNuxtConfig({
     "shadcn-nuxt",
     "@nuxtjs/color-mode",
     "nuxt-auth-utils",
+    "@pinia/nuxt",
   ],
 
   css: ["~/assets/css/tailwind.css"],
