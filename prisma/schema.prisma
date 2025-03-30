@@ -25,10 +25,8 @@ model User {
   emailVerifications EmailVerification[] // Relation to email verifications
 }
 
-// Role enum for user permissions
+// Modified Role enum (if you want to keep it for future expansion)
 enum Role {
-  ADMIN
-  DEVELOPER
   CLIENT
 }
 

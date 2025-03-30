@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Verify user is the project owner or admin
-    if (project.clientId !== user.id && user.role !== "ADMIN") {
+    if (project.clientId !== user.id) {
       return {
         success: false,
         error: "You do not have permission to view this project",

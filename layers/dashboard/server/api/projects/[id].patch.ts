@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Verify user is the project owner or admin
-    if (existingProject.clientId !== user.id && user.role !== "ADMIN") {
+    if (existingProject.clientId !== user.id) {
       await prisma.$disconnect();
       return {
         success: false,
