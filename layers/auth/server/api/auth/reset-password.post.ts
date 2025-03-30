@@ -50,7 +50,7 @@ export default defineEventHandler(async (event: H3Event) => {
     });
 
     // Generate reset URL
-    const baseUrl = process.env.APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000";
     const resetUrl = `${baseUrl}/auth/reset-password/${token}`;
 
     // Send reset email
