@@ -134,6 +134,7 @@ const handleSubmit = async () => {
               v-model="projectData.title"
               placeholder="Enter a name for your project"
               :class="{ 'border-destructive': formErrors.title }"
+              class="h-14"
             />
             <p v-if="formErrors.title" class="text-sm text-destructive">
               {{ formErrors.title }}
@@ -146,7 +147,10 @@ const handleSubmit = async () => {
               >Project Type <span class="text-destructive">*</span></Label
             >
             <Select v-model="projectData.type">
-              <SelectTrigger :class="{ 'border-destructive': formErrors.type }">
+              <SelectTrigger
+                class="h-14"
+                :class="{ 'border-destructive': formErrors.type }"
+              >
                 <SelectValue placeholder="Select project type" />
               </SelectTrigger>
               <SelectContent>
@@ -177,13 +181,14 @@ const handleSubmit = async () => {
 
           <!-- Budget -->
           <div class="space-y-2">
-            <Label for="budget">Estimated Budget ($)</Label>
+            <Label for="budget">Estimated Budget (£)</Label>
             <Input
               id="budget"
               v-model="projectData.budget"
               type="number"
               min="0"
               placeholder="Enter your budget"
+              class="h-14"
             />
           </div>
 
@@ -200,7 +205,7 @@ const handleSubmit = async () => {
 
           <!-- Submit Button -->
           <div class="pt-4">
-            <Button type="submit" class="w-full" :disabled="isSubmitting">
+            <Button type="submit" class="w-full h-14" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="mr-2">
                 <div
                   class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"
