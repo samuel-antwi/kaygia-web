@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import {
   LayoutDashboard,
   Briefcase,
@@ -21,6 +21,7 @@ import {
 const colorMode = useColorMode();
 const isSidebarCollapsed = ref(false);
 const isMobile = ref(false);
+const route = useRoute();
 
 // Get auth composable
 const { user, signOut, loading } = useAuth();
@@ -51,13 +52,65 @@ async function handleLogout() {
   navigateTo("/auth/login");
 }
 
+// Check if a route is active
+function isActiveRoute(path: string): boolean {
+  const currentPath = route.path;
+
+  // Special case for "Request Project" page
+  if (
+    path === "/dashboard/projects/new" &&
+    currentPath === "/dashboard/projects/new"
+  ) {
+    return true;
+  }
+
+  // Exact match for dashboard home
+  if (path === "/dashboard" && currentPath === "/dashboard") {
+    return true;
+  }
+
+  // For other routes, check if current route starts with the path (for nested routes)
+  // but exclude the special case of /projects/new when checking /projects
+  if (
+    path === "/dashboard/projects" &&
+    currentPath === "/dashboard/projects/new"
+  ) {
+    return false;
+  }
+
+  return path !== "/dashboard" && currentPath.startsWith(path);
+}
+
+// Get current page title based on route
+const pageTitle = computed(() => {
+  const currentPath = route.path;
+
+  // Find matching nav item
+  const matchingItem = navItems.find(
+    (item) =>
+      (item.path === "/dashboard" && currentPath === "/dashboard") ||
+      (item.path !== "/dashboard" && currentPath.startsWith(item.path))
+  );
+
+  if (matchingItem) {
+    return matchingItem.name;
+  }
+
+  // Default to Dashboard or try to generate a title from the path
+  if (currentPath.includes("/projects/")) {
+    return "Project Details";
+  }
+
+  return "Dashboard";
+});
+
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Projects", icon: Briefcase, path: "/dashboard/projects" },
   {
     name: "Request Project",
     icon: FilePlus,
-    path: "/dashboard/request-project",
+    path: "/dashboard/projects/new",
   },
   { name: "Messages", icon: MessageSquare, path: "/dashboard/messages" },
   { name: "Invoices", icon: Receipt, path: "/dashboard/invoices" },
@@ -116,14 +169,27 @@ const navItems = [
           <li v-for="item in navItems" :key="item.path">
             <NuxtLink
               :to="item.path"
-              class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
-              :class="isSidebarCollapsed ? 'justify-center' : 'gap-3'"
+              class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+              :class="[
+                isSidebarCollapsed ? 'justify-center' : 'gap-3',
+                isActiveRoute(item.path)
+                  ? 'bg-primary/10 text-primary'
+                  : 'hover:bg-muted text-muted-foreground',
+              ]"
               @click="isMobile && toggleSidebar()"
             >
-              <component :is="item.icon" class="h-5 w-5" />
+              <component
+                :is="item.icon"
+                class="h-5 w-5"
+                :class="{ 'text-primary': isActiveRoute(item.path) }"
+              />
               <span :class="isSidebarCollapsed ? 'sr-only' : ''">
                 {{ item.name }}
               </span>
+              <div
+                v-if="isActiveRoute(item.path) && !isSidebarCollapsed"
+                class="ml-auto w-1.5 h-5 bg-primary rounded-full"
+              ></div>
             </NuxtLink>
           </li>
         </ul>
@@ -189,7 +255,7 @@ const navItems = [
             >
               <Menu class="h-5 w-5" />
             </Button>
-            <h1 class="text-lg font-medium">Dashboard</h1>
+            <h1 class="text-lg font-medium">{{ pageTitle }}</h1>
           </div>
 
           <div class="flex items-center gap-4">
