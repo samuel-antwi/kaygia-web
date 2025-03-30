@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useToast } from "../../../../components/ui/toast/use-toast";
-import { AlertCircle, CheckCircle } from "lucide-vue-next";
 import PasswordChangeForm from "../../components/PasswordChangeForm.vue";
 
 definePageMeta({

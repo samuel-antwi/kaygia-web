@@ -12,7 +12,7 @@ export const useProjectStore = defineStore("project", {
   state: (): ProjectState => ({
     projects: [],
     currentProject: null,
-    isLoading: false,
+    isLoading: true,
     error: null,
   }),
 

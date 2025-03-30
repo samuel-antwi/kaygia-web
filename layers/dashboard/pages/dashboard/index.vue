@@ -166,7 +166,7 @@ const stats = computed(() => [
                   <p class="mt-2 text-muted-foreground">Loading projects...</p>
                 </TableCell>
               </TableRow>
-              <TableRow v-else-if="recentProjects.length === 0">
+              <TableRow v-else-if="!isLoading && recentProjects.length === 0">
                 <TableCell colspan="6" class="text-center py-8">
                   <div class="flex flex-col items-center">
                     <File class="h-10 w-10 text-muted-foreground mb-2" />
@@ -179,7 +179,11 @@ const stats = computed(() => [
                   </div>
                 </TableCell>
               </TableRow>
-              <TableRow v-for="project in recentProjects" :key="project.id">
+              <TableRow
+                v-for="project in recentProjects"
+                :key="project.id"
+                v-else
+              >
                 <TableCell class="font-medium">{{ project.title }}</TableCell>
                 <TableCell>
                   <Badge :class="getStatusClass(project.status)">
@@ -230,8 +234,16 @@ const stats = computed(() => [
         </CardHeader>
         <CardContent>
           <div class="space-y-4 sm:space-y-6">
+            <div v-if="isLoading" class="text-center py-4">
+              <div class="flex justify-center mb-2">
+                <div
+                  class="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"
+                ></div>
+              </div>
+              <p class="text-muted-foreground">Loading activity...</p>
+            </div>
             <div
-              v-if="recentProjects.length > 0"
+              v-else-if="recentProjects.length > 0"
               class="flex items-start gap-3 sm:gap-4"
             >
               <Avatar class="mt-1 h-8 w-8 sm:h-10 sm:w-10">
@@ -253,7 +265,7 @@ const stats = computed(() => [
                 </p>
               </div>
             </div>
-            <div v-if="recentProjects.length === 0" class="text-center py-4">
+            <div v-else class="text-center py-4">
               <p class="text-muted-foreground">No recent activity.</p>
             </div>
           </div>
