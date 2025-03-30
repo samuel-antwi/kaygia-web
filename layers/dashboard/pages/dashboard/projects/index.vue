@@ -149,7 +149,10 @@ const refreshProjects = async () => {
     <!-- Projects table -->
     <Card class="overflow-hidden">
       <CardHeader>
-        <CardTitle>All Projects</CardTitle>
+        <CardTitle>{{
+          statusOptions.find((option) => option.value === statusFilter)
+            ?.label || "All Projects"
+        }}</CardTitle>
         <CardDescription>
           {{ filteredProjects.length }} projects found.
         </CardDescription>
