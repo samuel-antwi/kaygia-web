@@ -101,7 +101,6 @@ const stats = computed(() => [
   },
 ]);
 </script>
-
 <template>
   <div>
     <div class="mb-6">
@@ -112,7 +111,6 @@ const stats = computed(() => [
         Here's an overview of your projects and activities.
       </p>
     </div>
-
     <!-- Stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
       <Card v-for="stat in stats" :key="stat.title" class="flex items-center">
@@ -136,7 +134,6 @@ const stats = computed(() => [
         </CardContent>
       </Card>
     </div>
-
     <!-- Recent Projects -->
     <Card class="mb-6 sm:mb-8 overflow-hidden">
       <CardHeader>
@@ -223,7 +220,6 @@ const stats = computed(() => [
         </Button>
       </CardFooter>
     </Card>
-
     <!-- Activity and Notifications -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
       <!-- Recent Activity -->
@@ -268,7 +264,6 @@ const stats = computed(() => [
           </Button>
         </CardFooter>
       </Card>
-
       <!-- Quick Actions -->
       <Card>
         <CardHeader>

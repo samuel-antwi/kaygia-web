@@ -6,9 +6,7 @@ import {
   DollarSign,
   FileText,
   Tag,
-  Check,
-  X,
-  Loader2,
+  Banknote,
 } from "lucide-vue-next";
 import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
 import type { ProjectStatus } from "../../../types/project";
@@ -26,7 +24,7 @@ definePageMeta({
 const projectStore = useProjectStore();
 const { currentProject, isLoading, error } = storeToRefs(projectStore);
 
-// Status options for updating
+// Status options for displaying
 const statusOptions = [
   { value: "PENDING", label: "Pending" },
   { value: "APPROVED", label: "Approved" },
@@ -35,12 +33,6 @@ const statusOptions = [
   { value: "COMPLETED", label: "Completed" },
   { value: "CANCELLED", label: "Cancelled" },
 ];
-
-// Status Update State
-const showStatusUpdate = ref(false);
-const newStatus = ref<ProjectStatus | null>(null);
-const isUpdating = ref(false);
-const updateError = ref("");
 
 // Fetch the project on component mount
 onMounted(async () => {
@@ -78,47 +70,6 @@ const formatDate = (dateString: string): string => {
     month: "long",
     day: "numeric",
   });
-};
-
-// Initialize status update
-const initiateStatusUpdate = () => {
-  if (currentProject.value) {
-    newStatus.value = currentProject.value.status;
-    showStatusUpdate.value = true;
-  }
-};
-
-// Cancel status update
-const cancelStatusUpdate = () => {
-  showStatusUpdate.value = false;
-  newStatus.value = null;
-  updateError.value = "";
-};
-
-// Update project status
-const updateStatus = async () => {
-  if (!newStatus.value || !currentProject.value) return;
-
-  isUpdating.value = true;
-  updateError.value = "";
-
-  try {
-    const result = await projectStore.updateProject(id, {
-      status: newStatus.value,
-    });
-
-    if (result.success) {
-      showStatusUpdate.value = false;
-      newStatus.value = null;
-    } else {
-      updateError.value = result.error || "Failed to update project status";
-    }
-  } catch (error) {
-    updateError.value = "An unexpected error occurred";
-    console.error("Error updating project status:", error);
-  } finally {
-    isUpdating.value = false;
-  }
 };
 </script>
 
@@ -170,14 +121,6 @@ const updateStatus = async () => {
             <Badge :class="getStatusClass(currentProject.status)">
               {{ formatStatus(currentProject.status) }}
             </Badge>
-            <Button
-              @click="initiateStatusUpdate"
-              variant="ghost"
-              size="sm"
-              class="h-7 px-2 ml-2 text-xs"
-            >
-              Update Status
-            </Button>
           </div>
         </div>
 
@@ -238,12 +181,12 @@ const updateStatus = async () => {
                   Budget
                 </h4>
                 <div class="flex items-center">
-                  <DollarSign class="h-4 w-4 mr-1 text-muted-foreground" />
+                  <Banknote class="h-4 w-4 mr-1 text-muted-foreground" />
                   <span v-if="currentProject.budget" class="font-medium">
                     {{
-                      currentProject.budget.toLocaleString("en-US", {
+                      currentProject.budget.toLocaleString("en-UK", {
                         style: "currency",
-                        currency: "USD",
+                        currency: "GBP",
                       })
                     }}
                   </span>
@@ -305,63 +248,5 @@ const updateStatus = async () => {
         </div>
       </div>
     </div>
-
-    <!-- Status update dialog -->
-    <Dialog
-      :open="showStatusUpdate"
-      @update:open="
-        (value: boolean) => {
-          if (!value) cancelStatusUpdate();
-        }
-      "
-    >
-      <DialogContent class="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Update Project Status</DialogTitle>
-          <DialogDescription>
-            Change the current status of this project.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="space-y-4 py-4">
-          <Alert v-if="updateError" variant="destructive">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{{ updateError }}</AlertDescription>
-          </Alert>
-
-          <div class="space-y-2">
-            <Label for="status">New Status</Label>
-            <Select v-model="newStatus">
-              <SelectTrigger>
-                <SelectValue placeholder="Select new status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="option in statusOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            @click="cancelStatusUpdate"
-            :disabled="isUpdating"
-          >
-            Cancel
-          </Button>
-          <Button @click="updateStatus" :disabled="isUpdating">
-            <Loader2 v-if="isUpdating" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isUpdating ? "Updating..." : "Update Status" }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   </div>
 </template>

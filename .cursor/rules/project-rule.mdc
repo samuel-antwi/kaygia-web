@@ -50,6 +50,9 @@ alwaysApply: true
 
 ## 2. Coding Standards
 
+## Currency
+- This project will be in the United kingdom so don't use dollar($) anywhere in the app but rather use pounds (£)
+
 ### TypeScript Usage
 - Always use TypeScript for type safety
 - Define explicit return types for functions
@@ -181,3 +184,5 @@ alwaysApply: true
 - [PROJECT_OVERVIEW.md](mdc:PROJECT_OVERVIEW.md)
 - [IMPLEMENTATION_PLAN.md](mdc:IMPLEMENTATION_PLAN.md)
 - [progress.md](mdc:progress.md)
+
+
