@@ -2,8 +2,10 @@
 import { ref } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { AlertCircle } from "lucide-vue-next";
+import { useAuth } from "../../auth/composables/useAuth";
 
 const { toast } = useToast();
+const { signOut } = useAuth();
 
 // Form state
 const currentPassword = ref("");
@@ -19,7 +21,7 @@ const errors = ref({
   general: "",
 });
 
-// Basic validation function (can be expanded)
+// Basic validation function
 const validateForm = () => {
   errors.value = {
     currentPassword: "",
@@ -38,7 +40,6 @@ const validateForm = () => {
     isValid = false;
   }
   if (newPassword.value.length < 8) {
-    // Example: Minimum length validation
     errors.value.newPassword =
       "New password must be at least 8 characters long.";
     isValid = false;
@@ -80,14 +81,24 @@ const handleChangePassword = async () => {
       toast({
         title: "Password Changed",
         description:
-          data.value.message || "Your password has been updated successfully.",
+          "Your password has been updated successfully. For security reasons, you will be logged out.",
+        duration: 5000,
       });
+
       // Reset form fields
       currentPassword.value = "";
       newPassword.value = "";
       confirmPassword.value = "";
+
+      // Wait a moment for the user to read the toast message before logout
+      setTimeout(async () => {
+        // Sign out the user
+        await signOut();
+        // Redirect to login page
+        navigateTo("/auth/login?message=password_changed");
+      }, 2000);
     } else {
-      // Handle cases where API returns success: false (though our backend throws errors)
+      // Handle unexpected success=false case
       throw new Error(
         data.value?.message ||
           "Failed to change password due to an unexpected response."

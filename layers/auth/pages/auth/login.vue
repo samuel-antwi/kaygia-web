@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-vue-next";
+import {
+  Mail,
+  Lock,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  CheckCircle,
+} from "lucide-vue-next";
 import { z } from "zod";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
@@ -40,8 +47,16 @@ const togglePasswordVisibility = () => {
 // Form state
 const loading = ref(false);
 const error = ref("");
+const successMessage = ref("");
 const needsVerification = ref(false);
 const userEmail = ref("");
+
+// Check for password change message in URL
+const route = useRoute();
+if (route.query.message === "password_changed") {
+  successMessage.value =
+    "Your password has been changed successfully. Please sign in with your new password.";
+}
 
 // Get auth composable
 const { signIn, initAuth, user } = useAuth();
@@ -252,6 +267,14 @@ watch(
                 Resend verification email
               </button>
             </div>
+          </AlertDescription>
+        </Alert>
+
+        <!-- Success message -->
+        <Alert v-if="successMessage" variant="default" class="mb-6">
+          <CheckCircle class="h-4 w-4" />
+          <AlertDescription>
+            {{ successMessage }}
           </AlertDescription>
         </Alert>
 
