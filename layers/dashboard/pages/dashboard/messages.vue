@@ -21,6 +21,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import DialogContentFixed from "../../../../components/ui/dialog/DialogContentFixed.vue";
 import { useAuth } from "../../../auth/composables/useAuth";
+import { useMessageUtils } from "../../composables/useMessageUtils";
 
 definePageMeta({
   layout: "dashboard",
@@ -36,6 +37,10 @@ const { sortedMessages, isLoading, error, isSending } =
 // Auth state
 const { user, loading: authLoading } = useAuth();
 
+// Message utils
+const { formatDate, formatTime, getSenderIcon, getSenderName } =
+  useMessageUtils();
+
 // State
 const searchQuery = ref("");
 const selectedMessage = ref<ClientMessage | null>(null);
@@ -48,25 +53,6 @@ watchEffect(() => {
     messageStore.fetchMessages();
   }
 });
-
-// Format date
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
-
-// Format time
-const formatTime = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
 
 // Filter messages by search query
 const filteredMessages = computed(() => {
@@ -123,19 +109,10 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm();
   }
 });
-
-// Helper functions for the UI
-const getSenderIcon = (sender: string) => {
-  return sender === "ADMIN" ? MessagesSquare : UserCircle;
-};
-
-const getSenderName = (sender: string) => {
-  return sender === "ADMIN" ? "Admin" : "You";
-};
 </script>
 
 <template>
-  <ClientOnly>
+  <div>
     <div class="mb-6">
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
@@ -281,6 +258,7 @@ const getSenderName = (sender: string) => {
                 <div
                   v-if="!message.isRead"
                   class="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0"
+                  title="Unread"
                 ></div>
               </div>
             </div>
@@ -336,7 +314,9 @@ const getSenderName = (sender: string) => {
             <p class="text-sm font-medium text-muted-foreground mb-1">
               Message:
             </p>
-            <p class="whitespace-pre-line">{{ selectedMessage.content }}</p>
+            <p class="whitespace-pre-line break-words">
+              {{ selectedMessage.content }}
+            </p>
           </div>
         </div>
 
@@ -407,5 +387,5 @@ const getSenderName = (sender: string) => {
         </form>
       </DialogContentFixed>
     </Dialog>
-  </ClientOnly>
+  </div>
 </template>

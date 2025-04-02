@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watchEffect } from "vue";
 import {
   LayoutDashboard,
   Briefcase,
@@ -16,7 +16,12 @@ import {
   Sun,
   Moon,
   Menu,
+  MessagesSquare,
+  UserCircle,
 } from "lucide-vue-next";
+import { useMessageStore } from "../layers/dashboard/stores/messageStore";
+import { storeToRefs } from "pinia";
+import { useMessageUtils } from "../layers/dashboard/composables/useMessageUtils";
 
 const colorMode = useColorMode();
 const isSidebarCollapsed = ref(false);
@@ -24,7 +29,19 @@ const isMobile = ref(false);
 const route = useRoute();
 
 // Get auth composable
-const { user, signOut, loading } = useAuth();
+const { user, signOut, loading: authLoading } = useAuth();
+
+// Get message store
+const messageStore = useMessageStore();
+const { unreadCount, sortedMessages } = storeToRefs(messageStore);
+
+// Get message utils
+const { formatDate, getSenderIcon, getSenderName } = useMessageUtils();
+
+// Log unread count for debugging
+watchEffect(() => {
+  console.log("Layout unreadCount:", unreadCount.value);
+});
 
 // Check if device is mobile
 onMounted(() => {
@@ -116,6 +133,11 @@ const navItems = [
   { name: "Invoices", icon: Receipt, path: "/dashboard/invoices" },
   { name: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
+
+// Navigate to messages page
+const goToMessages = () => {
+  navigateTo("/dashboard/messages");
+};
 </script>
 
 <template>
@@ -255,49 +277,91 @@ const navItems = [
             >
               <Menu class="h-5 w-5" />
             </Button>
-            <h1 class="text-lg font-medium">{{ pageTitle }}</h1>
+            <h1 class="text-lg font-semibold">
+              {{ pageTitle }}
+            </h1>
           </div>
 
-          <div class="flex items-center gap-4">
+          <div class="flex items-center space-x-2">
             <!-- Notifications -->
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button variant="ghost" size="icon" class="relative">
+              <DropdownMenuTrigger as-child>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="relative rounded-full"
+                >
                   <Bell class="h-5 w-5" />
-                  <span
-                    class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center"
+                  <Badge
+                    v-if="unreadCount > 0"
+                    variant="destructive"
+                    class="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs"
                   >
-                    3
-                  </span>
+                    {{ unreadCount }}
+                  </Badge>
+                  <span class="sr-only">Notifications</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[300px]">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuContent align="end" class="w-[300px]">
+                <DropdownMenuLabel>Recent Messages</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div class="max-h-[300px] overflow-y-auto">
-                  <div
-                    v-for="i in 3"
-                    :key="i"
-                    class="flex gap-3 p-3 hover:bg-muted/50"
+                <div
+                  v-if="sortedMessages.length > 0"
+                  class="max-h-[300px] overflow-y-auto"
+                >
+                  <DropdownMenuItem
+                    v-for="message in sortedMessages.slice(0, 5)"
+                    :key="message.id"
+                    class="cursor-pointer flex items-start gap-3 p-3"
+                    @click="goToMessages"
                   >
-                    <Avatar class="h-8 w-8">
-                      <AvatarImage src="" alt="" />
-                      <AvatarFallback>
-                        <Bell class="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p class="text-sm font-medium">Project Update</p>
-                      <p class="text-xs text-muted-foreground">
-                        Your project has been updated
-                      </p>
-                      <p class="text-xs text-muted-foreground">2 hours ago</p>
+                    <div
+                      class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"
+                      :class="{
+                        'bg-secondary/20': message.sender === 'CLIENT',
+                      }"
+                    >
+                      <component
+                        :is="getSenderIcon(message.sender)"
+                        class="h-4 w-4"
+                        :class="
+                          message.sender === 'ADMIN'
+                            ? 'text-primary'
+                            : 'text-secondary'
+                        "
+                      />
                     </div>
-                  </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate">
+                        {{ message.subject }}
+                      </p>
+                      <p class="text-xs text-muted-foreground truncate">
+                        {{ message.content }}
+                      </p>
+                      <p class="text-xs text-muted-foreground mt-1">
+                        {{ getSenderName(message.sender) }} -
+                        {{ formatDate(message.createdAt) }}
+                      </p>
+                    </div>
+                    <div
+                      v-if="!message.isRead"
+                      class="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1"
+                      title="Unread"
+                    ></div>
+                  </DropdownMenuItem>
+                </div>
+                <div
+                  v-else
+                  class="p-4 text-center text-sm text-muted-foreground"
+                >
+                  No recent messages.
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem class="cursor-pointer justify-center">
-                  View all notifications
+                <DropdownMenuItem
+                  class="cursor-pointer justify-center"
+                  @click="goToMessages"
+                >
+                  View All Messages
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -344,7 +408,7 @@ const navItems = [
       </header>
 
       <!-- Page content -->
-      <main class="px-4 py-6 overflow-x-hidden">
+      <main class="p-4 md:p-6">
         <slot />
       </main>
     </div>
