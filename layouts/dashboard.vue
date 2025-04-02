@@ -22,6 +22,12 @@ import {
 import { useMessageStore } from "../layers/dashboard/stores/messageStore";
 import { storeToRefs } from "pinia";
 import { useMessageUtils } from "../layers/dashboard/composables/useMessageUtils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const colorMode = useColorMode();
 const isSidebarCollapsed = ref(false);
@@ -187,34 +193,45 @@ const goToMessages = () => {
 
       <!-- Navigation -->
       <nav class="flex-1 overflow-y-auto py-4">
-        <ul class="space-y-1 px-2">
-          <li v-for="item in navItems" :key="item.path">
-            <NuxtLink
-              :to="item.path"
-              class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
-              :class="[
-                isSidebarCollapsed ? 'justify-center' : 'gap-3',
-                isActiveRoute(item.path)
-                  ? 'bg-primary/10 text-primary'
-                  : 'hover:bg-muted text-muted-foreground',
-              ]"
-              @click="isMobile && toggleSidebar()"
-            >
-              <component
-                :is="item.icon"
-                class="h-5 w-5"
-                :class="{ 'text-primary': isActiveRoute(item.path) }"
-              />
-              <span :class="isSidebarCollapsed ? 'sr-only' : ''">
-                {{ item.name }}
-              </span>
-              <div
-                v-if="isActiveRoute(item.path) && !isSidebarCollapsed"
-                class="ml-auto w-1.5 h-5 bg-primary rounded-full"
-              ></div>
-            </NuxtLink>
-          </li>
-        </ul>
+        <TooltipProvider :delay-duration="100">
+          <ul class="space-y-1 px-2">
+            <Tooltip v-for="item in navItems" :key="item.path">
+              <li>
+                <TooltipTrigger as-child>
+                  <NuxtLink
+                    :to="item.path"
+                    class="flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors"
+                    :class="[
+                      isSidebarCollapsed ? 'justify-center' : 'gap-3',
+                      isActiveRoute(item.path)
+                        ? 'bg-primary/10 text-primary'
+                        : 'hover:bg-muted text-muted-foreground',
+                    ]"
+                    @click="isMobile && toggleSidebar()"
+                  >
+                    <component
+                      :is="item.icon"
+                      class="h-5 w-5"
+                      :class="{ 'text-primary': isActiveRoute(item.path) }"
+                    />
+                    <span :class="isSidebarCollapsed ? 'sr-only' : ''">
+                      {{ item.name }}
+                    </span>
+                    <div
+                      v-if="isActiveRoute(item.path) && !isSidebarCollapsed"
+                      class="ml-auto w-1.5 h-5 bg-primary rounded-full"
+                    ></div>
+                  </NuxtLink>
+                </TooltipTrigger>
+                <TooltipContent v-if="isSidebarCollapsed" side="right">
+                  <p class="text-white">
+                    {{ item.name }}
+                  </p>
+                </TooltipContent>
+              </li>
+            </Tooltip>
+          </ul>
+        </TooltipProvider>
       </nav>
 
       <!-- Sidebar footer -->
@@ -373,8 +390,8 @@ const goToMessages = () => {
               @click="toggleColorMode"
               aria-label="Toggle theme"
             >
-              <Sun v-if="colorMode.value === 'dark'" class="h-5 w-5" />
-              <Moon v-else class="h-5 w-5" />
+              <Sun v-show="colorMode.value === 'dark'" class="h-5 w-5" />
+              <Moon v-show="colorMode.value === 'light'" class="h-5 w-5" />
             </Button>
 
             <!-- User dropdown -->
