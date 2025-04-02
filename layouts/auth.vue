@@ -13,11 +13,11 @@ function toggleColorMode() {
 <template>
   <div class="flex min-h-screen flex-col antialiased bg-background">
     <!-- Header with logo and theme toggle -->
-    <div class="absolute top-4 left-4 right-4 flex justify-between z-10">
+    <div class="fixed top-4 left-4 right-4 flex justify-between z-50">
       <!-- Logo with link to home page -->
       <NuxtLink
         to="/"
-        class="flex items-center gap-2 font-bold text-foreground text-xl hover:text-primary transition-colors"
+        class="flex items-center gap-2 font-bold text-foreground text-xl transition-colors cursor-pointer"
       >
         {{ $site.name }}
       </NuxtLink>
