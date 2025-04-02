@@ -20,6 +20,7 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import DialogContentFixed from "../../../../components/ui/dialog/DialogContentFixed.vue";
+import { useAuth } from "../../../auth/composables/useAuth";
 
 definePageMeta({
   layout: "dashboard",
@@ -28,8 +29,12 @@ definePageMeta({
 
 // Initialize message store
 const messageStore = useMessageStore();
+messageStore.error = null;
 const { sortedMessages, isLoading, error, isSending } =
   storeToRefs(messageStore);
+
+// Auth state
+const { user, loading: authLoading } = useAuth();
 
 // State
 const searchQuery = ref("");
@@ -37,9 +42,11 @@ const selectedMessage = ref<ClientMessage | null>(null);
 const showDetails = ref(false);
 const showNewMessage = ref(false);
 
-// Load messages on mount
-onMounted(async () => {
-  await messageStore.fetchMessages();
+// Watch for auth state before fetching messages
+watchEffect(() => {
+  if (!authLoading.value && user.value) {
+    messageStore.fetchMessages();
+  }
 });
 
 // Format date
@@ -128,7 +135,7 @@ const getSenderName = (sender: string) => {
 </script>
 
 <template>
-  <div>
+  <ClientOnly>
     <div class="mb-6">
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
@@ -170,114 +177,129 @@ const getSenderName = (sender: string) => {
         </div>
       </CardHeader>
       <CardContent class="p-0">
-        <div v-if="isLoading" class="flex justify-center py-12">
+        <!-- Show loading if either auth or message fetch is loading -->
+        <div v-if="authLoading || isLoading" class="flex justify-center py-12">
           <div
             class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"
           ></div>
           <span class="sr-only">Loading...</span>
         </div>
 
-        <div v-else-if="error" class="p-6 text-center">
-          <AlertCircle class="mx-auto h-10 w-10 text-destructive mb-2" />
-          <p class="text-destructive font-medium mb-1">
-            Error Loading Messages
-          </p>
-          <p class="text-muted-foreground">{{ error }}</p>
-        </div>
+        <!-- Only show content when auth and message fetch are not loading -->
+        <div v-else>
+          <!-- Error display -->
+          <div v-if="error" class="p-6 text-center">
+            <AlertCircle class="mx-auto h-10 w-10 text-destructive mb-2" />
+            <p class="text-destructive font-medium mb-1">
+              Error Loading Messages
+            </p>
+            <p class="text-muted-foreground">{{ error }}</p>
+          </div>
 
-        <div
-          v-else-if="sortedMessages.length === 0"
-          class="flex flex-col items-center justify-center py-12 px-4 text-center"
-        >
-          <MessageSquare class="h-12 w-12 text-muted-foreground mb-3" />
-          <h3 class="text-lg font-medium mb-1">No Messages Yet</h3>
-          <p class="text-muted-foreground max-w-md">
-            You don't have any messages yet. Start a conversation with our team
-            by clicking the "New Message" button.
-          </p>
-          <Button @click="showNewMessage = true" variant="outline" class="mt-4">
-            New Message
-          </Button>
-        </div>
-
-        <div v-else class="divide-y">
+          <!-- No messages display -->
           <div
-            v-for="message in filteredMessages"
-            :key="message.id"
-            @click="viewMessage(message)"
-            class="p-4 sm:p-6 hover:bg-accent/50 cursor-pointer transition-colors"
-            :class="{
-              'bg-primary/5': !message.isRead,
-            }"
+            v-else-if="sortedMessages.length === 0"
+            class="flex flex-col items-center justify-center py-12 px-4 text-center"
           >
-            <div class="flex items-start gap-4">
-              <div
-                class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"
-                :class="{ 'bg-secondary/20': message.sender === 'CLIENT' }"
-              >
-                <component
-                  :is="getSenderIcon(message.sender)"
-                  class="h-5 w-5"
-                  :class="
-                    message.sender === 'ADMIN'
-                      ? 'text-primary'
-                      : 'text-secondary'
-                  "
-                />
-              </div>
-              <div class="flex-1 min-w-0">
+            <MessageSquare class="h-12 w-12 text-muted-foreground mb-3" />
+            <h3 class="text-lg font-medium mb-1">No Messages Yet</h3>
+            <p class="text-muted-foreground max-w-md">
+              You don't have any messages yet. Start a conversation with our
+              team by clicking the "New Message" button.
+            </p>
+            <Button
+              @click="showNewMessage = true"
+              variant="outline"
+              class="mt-4"
+            >
+              New Message
+            </Button>
+          </div>
+
+          <!-- Message list display -->
+          <div v-else class="divide-y">
+            <div
+              v-for="message in filteredMessages"
+              :key="message.id"
+              @click="viewMessage(message)"
+              class="p-4 sm:p-6 hover:bg-accent/50 cursor-pointer transition-colors"
+              :class="{
+                'bg-primary/5': !message.isRead,
+              }"
+            >
+              <!-- Message item content -->
+              <div class="flex items-start gap-4">
+                <!-- Sender Icon -->
                 <div
-                  class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2"
+                  class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"
+                  :class="{ 'bg-secondary/20': message.sender === 'CLIENT' }"
                 >
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <h4 class="font-medium">
-                        {{ message.subject }}
-                      </h4>
-                      <Badge variant="outline" class="text-xs">
-                        {{ getSenderName(message.sender) }}
-                      </Badge>
-                    </div>
-                    <p class="text-sm text-muted-foreground truncate">
-                      {{ message.content.substring(0, 60)
-                      }}{{ message.content.length > 60 ? "..." : "" }}
-                    </p>
-                  </div>
+                  <component
+                    :is="getSenderIcon(message.sender)"
+                    class="h-5 w-5"
+                    :class="
+                      message.sender === 'ADMIN'
+                        ? 'text-primary'
+                        : 'text-secondary'
+                    "
+                  />
+                </div>
+                <!-- Message Details -->
+                <div class="flex-1 min-w-0">
                   <div
-                    class="flex items-center gap-2 text-sm text-muted-foreground"
+                    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2"
                   >
-                    <span class="flex items-center">
-                      <Calendar class="h-3.5 w-3.5 mr-1" />
-                      {{ formatDate(message.createdAt) }}
-                    </span>
-                    <span class="flex items-center">
-                      <Clock class="h-3.5 w-3.5 mr-1" />
-                      {{ formatTime(message.createdAt) }}
-                    </span>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <h4 class="font-medium">
+                          {{ message.subject }}
+                        </h4>
+                        <Badge variant="outline" class="text-xs">
+                          {{ getSenderName(message.sender) }}
+                        </Badge>
+                      </div>
+                      <p class="text-sm text-muted-foreground truncate">
+                        {{ message.content.substring(0, 60)
+                        }}{{ message.content.length > 60 ? "..." : "" }}
+                      </p>
+                    </div>
+                    <div
+                      class="flex items-center gap-2 text-sm text-muted-foreground"
+                    >
+                      <span class="flex items-center">
+                        <Calendar class="h-3.5 w-3.5 mr-1" />
+                        {{ formatDate(message.createdAt) }}
+                      </span>
+                      <span class="flex items-center">
+                        <Clock class="h-3.5 w-3.5 mr-1" />
+                        {{ formatTime(message.createdAt) }}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <!-- Unread Indicator -->
+                <div
+                  v-if="!message.isRead"
+                  class="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0"
+                ></div>
               </div>
-              <div
-                v-if="!message.isRead"
-                class="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0"
-              ></div>
             </div>
           </div>
-        </div>
 
-        <!-- Empty search results -->
-        <div
-          v-if="
-            searchQuery &&
-            filteredMessages.length === 0 &&
-            sortedMessages.length > 0
-          "
-          class="p-6 text-center"
-        >
-          <Search class="mx-auto h-10 w-10 text-muted-foreground mb-2" />
-          <p class="text-muted-foreground">
-            No messages found matching "{{ searchQuery }}".
-          </p>
+          <!-- Empty search results -->
+          <div
+            v-if="
+              searchQuery &&
+              filteredMessages.length === 0 &&
+              sortedMessages.length > 0
+            "
+            class="p-6 text-center"
+          >
+            <Search class="mx-auto h-10 w-10 text-muted-foreground mb-2" />
+            <p class="text-muted-foreground">
+              No messages found matching "{{ searchQuery }}".
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -334,25 +356,35 @@ const getSenderName = (sender: string) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form @submit.prevent="onSubmit">
-          <div class="space-y-4">
-            <div class="space-y-2">
-              <Label for="subject">Subject</Label>
-              <Input id="subject" name="subject" placeholder="Enter subject" />
-              <ErrorMessage name="subject" class="text-destructive text-sm" />
-            </div>
+        <form @submit="onSubmit" class="space-y-4">
+          <FormField v-slot="{ componentField }" name="subject">
+            <FormItem>
+              <FormLabel>Subject</FormLabel>
+              <FormControl>
+                <Input
+                  class="h-14"
+                  type="text"
+                  placeholder="Enter subject"
+                  v-bind="componentField"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
-            <div class="space-y-2">
-              <Label for="content">Message</Label>
-              <Textarea
-                id="content"
-                name="content"
-                placeholder="Type your message here..."
-                rows="6"
-              />
-              <ErrorMessage name="content" class="text-destructive text-sm" />
-            </div>
-          </div>
+          <FormField v-slot="{ componentField }" name="content">
+            <FormItem>
+              <FormLabel>Message</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Type your message here..."
+                  rows="6"
+                  v-bind="componentField"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          </FormField>
 
           <DialogFooter class="mt-6">
             <Button
@@ -375,5 +407,5 @@ const getSenderName = (sender: string) => {
         </form>
       </DialogContentFixed>
     </Dialog>
-  </div>
+  </ClientOnly>
 </template>
