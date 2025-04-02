@@ -1,11 +1,12 @@
 import { defineStore } from "pinia";
-import type { ContactMessage } from "../types/message";
+import type { ClientMessage } from "../types/message";
 
 export const useMessageStore = defineStore("message", () => {
   // State
-  const messages = ref<ContactMessage[]>([]);
+  const messages = ref<ClientMessage[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const isSending = ref(false);
 
   // Actions
   async function fetchMessages() {
@@ -13,17 +14,32 @@ export const useMessageStore = defineStore("message", () => {
     error.value = null;
 
     try {
-      const { data } = await useFetch("/api/messages");
-      const response = data.value as any;
+      const { data: responseData, error: fetchError } = await useFetch(
+        "/api/messages",
+        {
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        }
+      );
+
+      if (fetchError.value) {
+        error.value = fetchError.value.message || "Failed to fetch messages";
+        console.error("Error fetching messages:", fetchError.value);
+        return;
+      }
+
+      const response = responseData.value as any;
 
       if (response?.success && response?.messages) {
         messages.value = response.messages;
       } else {
         error.value = response?.error || "Failed to fetch messages";
+        console.error("Error in response:", response);
       }
     } catch (err: any) {
       error.value = err.message || "An unexpected error occurred";
-      console.error("Error fetching messages:", err);
+      console.error("Exception fetching messages:", err);
     } finally {
       isLoading.value = false;
     }
@@ -31,11 +47,23 @@ export const useMessageStore = defineStore("message", () => {
 
   async function markAsRead(messageId: string) {
     try {
-      const { data } = await useFetch(`/api/messages/${messageId}/read`, {
-        method: "POST",
-      });
+      const { data: responseData, error: fetchError } = await useFetch(
+        `/api/messages/${messageId}/read`,
+        {
+          method: "POST",
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        }
+      );
 
-      const response = data.value as any;
+      if (fetchError.value) {
+        error.value =
+          fetchError.value.message || "Failed to mark message as read";
+        return false;
+      }
+
+      const response = responseData.value as any;
 
       if (response?.success) {
         // Update the message in the store
@@ -57,6 +85,47 @@ export const useMessageStore = defineStore("message", () => {
     }
   }
 
+  async function sendMessage(subject: string, content: string) {
+    isSending.value = true;
+    error.value = null;
+
+    try {
+      const { data: responseData, error: fetchError } = await useFetch(
+        "/api/messages",
+        {
+          method: "POST",
+          body: { subject, content },
+          headers: {
+            "Cache-Control": "no-cache",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (fetchError.value) {
+        error.value = fetchError.value.message || "Failed to send message";
+        return false;
+      }
+
+      const response = responseData.value as any;
+
+      if (response?.success && response?.message) {
+        // Add the new message to the store
+        messages.value = [response.message, ...messages.value];
+        return true;
+      } else {
+        error.value = response?.error || "Failed to send message";
+        return false;
+      }
+    } catch (err: any) {
+      error.value = err.message || "An unexpected error occurred";
+      console.error("Error sending message:", err);
+      return false;
+    } finally {
+      isSending.value = false;
+    }
+  }
+
   // Getters
   const unreadCount = computed(() => {
     return messages.value.filter((message) => !message.isRead).length;
@@ -68,13 +137,27 @@ export const useMessageStore = defineStore("message", () => {
     });
   });
 
+  const adminMessages = computed(() => {
+    return sortedMessages.value.filter((message) => message.sender === "ADMIN");
+  });
+
+  const clientMessages = computed(() => {
+    return sortedMessages.value.filter(
+      (message) => message.sender === "CLIENT"
+    );
+  });
+
   return {
     messages,
     isLoading,
+    isSending,
     error,
     fetchMessages,
     markAsRead,
+    sendMessage,
     unreadCount,
     sortedMessages,
+    adminMessages,
+    clientMessages,
   };
 });

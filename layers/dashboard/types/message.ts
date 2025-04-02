@@ -1,17 +1,19 @@
-export interface ContactMessage {
+export type MessageSender = "ADMIN" | "CLIENT";
+
+export interface ClientMessage {
   id: string;
-  name: string;
-  email: string;
-  company?: string;
-  message: string;
+  subject: string;
+  content: string;
+  userId: string;
   createdAt: string;
   isRead: boolean;
+  sender: MessageSender;
 }
 
 export interface MessageResponse {
   success: boolean;
-  messages?: ContactMessage[];
-  message?: ContactMessage;
+  messages?: ClientMessage[];
+  message?: ClientMessage;
   error?: string;
   statusCode?: number;
 }

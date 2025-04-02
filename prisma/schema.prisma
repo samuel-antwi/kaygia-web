@@ -23,6 +23,7 @@ model User {
   passwordResets    PasswordReset[]     // Relation to password resets
   emailVerified     Boolean             @default(false)  // Whether email is verified
   emailVerifications EmailVerification[] // Relation to email verifications
+  messages          ClientMessage[]     // Relation to client messages
 }
 
 // Modified Role enum (if you want to keep it for future expansion)
@@ -77,6 +78,24 @@ model ContactMessage {
   message   String   @db.Text
   createdAt DateTime @default(now())
   isRead    Boolean  @default(false)
+}
+
+// Client messages for dashboard communication
+model ClientMessage {
+  id        String        @id @default(cuid())
+  subject   String
+  content   String        @db.Text
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  isRead    Boolean       @default(false)
+  sender    MessageSender @default(ADMIN)
+}
+
+// Message sender enum
+enum MessageSender {
+  ADMIN
+  CLIENT
 }
 
 // Password reset model

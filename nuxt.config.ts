@@ -4,7 +4,6 @@ export default defineNuxtConfig({
   extends: [
     "./layers/core",
     "./layers/marketing",
-    "./layers/app",
     "./layers/dashboard",
     "./layers/auth",
   ],

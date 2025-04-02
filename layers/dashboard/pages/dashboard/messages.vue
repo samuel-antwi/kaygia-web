@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import {
   MessageSquare,
-  Check,
+  Send,
   Clock,
   Eye,
   Search,
   Mail,
   MailOpen,
   Calendar,
+  AlertCircle,
+  UserCircle,
+  MessagesSquare,
+  MessageCircle,
+  Plus,
 } from "lucide-vue-next";
 import { useMessageStore } from "../../stores/messageStore";
-import type { ContactMessage } from "../../types/message";
+import type { ClientMessage } from "../../types/message";
+import { useForm } from "vee-validate";
+import { toTypedSchema } from "@vee-validate/zod";
+import * as z from "zod";
+import DialogContentFixed from "../../../../components/ui/dialog/DialogContentFixed.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -19,12 +28,14 @@ definePageMeta({
 
 // Initialize message store
 const messageStore = useMessageStore();
-const { sortedMessages, isLoading, error } = storeToRefs(messageStore);
+const { sortedMessages, isLoading, error, isSending } =
+  storeToRefs(messageStore);
 
 // State
 const searchQuery = ref("");
-const selectedMessage = ref<ContactMessage | null>(null);
+const selectedMessage = ref<ClientMessage | null>(null);
 const showDetails = ref(false);
+const showNewMessage = ref(false);
 
 // Load messages on mount
 onMounted(async () => {
@@ -57,16 +68,14 @@ const filteredMessages = computed(() => {
   const query = searchQuery.value.toLowerCase();
   return sortedMessages.value.filter((message) => {
     return (
-      message.name.toLowerCase().includes(query) ||
-      message.email.toLowerCase().includes(query) ||
-      message.message.toLowerCase().includes(query) ||
-      (message.company && message.company.toLowerCase().includes(query))
+      message.subject.toLowerCase().includes(query) ||
+      message.content.toLowerCase().includes(query)
     );
   });
 });
 
 // View message details
-const viewMessage = async (message: ContactMessage) => {
+const viewMessage = async (message: ClientMessage) => {
   selectedMessage.value = message;
   showDetails.value = true;
 
@@ -81,14 +90,57 @@ const closeDetails = () => {
   showDetails.value = false;
   selectedMessage.value = null;
 };
+
+// New message form schema
+const formSchema = toTypedSchema(
+  z.object({
+    subject: z.string().min(3, "Subject must be at least 3 characters"),
+    content: z.string().min(10, "Message must be at least 10 characters"),
+  })
+);
+
+// Form validation
+const { handleSubmit, resetForm } = useForm({
+  validationSchema: formSchema,
+});
+
+// Handle form submission
+const onSubmit = handleSubmit(async (values) => {
+  const success = await messageStore.sendMessage(
+    values.subject,
+    values.content
+  );
+
+  if (success) {
+    showNewMessage.value = false;
+    resetForm();
+  }
+});
+
+// Helper functions for the UI
+const getSenderIcon = (sender: string) => {
+  return sender === "ADMIN" ? MessagesSquare : UserCircle;
+};
+
+const getSenderName = (sender: string) => {
+  return sender === "ADMIN" ? "Admin" : "You";
+};
 </script>
 
 <template>
   <div>
     <div class="mb-6">
-      <h2 class="text-2xl sm:text-3xl font-bold mb-2">Messages</h2>
-      <p class="text-muted-foreground">
-        View and manage your messages and inquiries.
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+      >
+        <h2 class="text-2xl sm:text-3xl font-bold">Messages</h2>
+        <Button @click="showNewMessage = true" class="flex items-center gap-2">
+          <Plus class="w-4 h-4" />
+          <span>New Message</span>
+        </Button>
+      </div>
+      <p class="text-muted-foreground mt-2">
+        Send and receive messages with our support team.
       </p>
     </div>
 
@@ -101,7 +153,7 @@ const closeDetails = () => {
           <div>
             <CardTitle>Your Messages</CardTitle>
             <CardDescription>
-              View messages and inquiries from our team.
+              View messages and inquiries with our team.
             </CardDescription>
           </div>
           <div class="relative w-full sm:w-64">
@@ -140,9 +192,12 @@ const closeDetails = () => {
           <MessageSquare class="h-12 w-12 text-muted-foreground mb-3" />
           <h3 class="text-lg font-medium mb-1">No Messages Yet</h3>
           <p class="text-muted-foreground max-w-md">
-            You don't have any messages yet. Check back later or reach out to us
-            if you need assistance.
+            You don't have any messages yet. Start a conversation with our team
+            by clicking the "New Message" button.
           </p>
+          <Button @click="showNewMessage = true" variant="outline" class="mt-4">
+            New Message
+          </Button>
         </div>
 
         <div v-else class="divide-y">
@@ -158,10 +213,16 @@ const closeDetails = () => {
             <div class="flex items-start gap-4">
               <div
                 class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"
+                :class="{ 'bg-secondary/20': message.sender === 'CLIENT' }"
               >
                 <component
-                  :is="message.isRead ? MailOpen : Mail"
-                  class="h-5 w-5 text-primary"
+                  :is="getSenderIcon(message.sender)"
+                  class="h-5 w-5"
+                  :class="
+                    message.sender === 'ADMIN'
+                      ? 'text-primary'
+                      : 'text-secondary'
+                  "
                 />
               </div>
               <div class="flex-1 min-w-0">
@@ -169,17 +230,17 @@ const closeDetails = () => {
                   class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2"
                 >
                   <div>
-                    <h4 class="font-medium truncate">
-                      {{ message.name }}
-                      <span
-                        v-if="message.company"
-                        class="text-muted-foreground"
-                      >
-                        • {{ message.company }}
-                      </span>
-                    </h4>
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-medium">
+                        {{ message.subject }}
+                      </h4>
+                      <Badge variant="outline" class="text-xs">
+                        {{ getSenderName(message.sender) }}
+                      </Badge>
+                    </div>
                     <p class="text-sm text-muted-foreground truncate">
-                      {{ message.email }}
+                      {{ message.content.substring(0, 60)
+                      }}{{ message.content.length > 60 ? "..." : "" }}
                     </p>
                   </div>
                   <div
@@ -195,9 +256,6 @@ const closeDetails = () => {
                     </span>
                   </div>
                 </div>
-                <p class="text-sm line-clamp-2">
-                  {{ message.message }}
-                </p>
               </div>
               <div
                 v-if="!message.isRead"
@@ -226,9 +284,9 @@ const closeDetails = () => {
 
     <!-- Message detail dialog -->
     <Dialog v-model:open="showDetails">
-      <DialogContent class="sm:max-w-lg">
+      <DialogContentFixed class="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Message from {{ selectedMessage?.name }}</DialogTitle>
+          <DialogTitle>{{ selectedMessage?.subject }}</DialogTitle>
           <DialogDescription>
             {{ formatDate(selectedMessage?.createdAt || "") }} at
             {{ formatTime(selectedMessage?.createdAt || "") }}
@@ -238,33 +296,84 @@ const closeDetails = () => {
         <div v-if="selectedMessage" class="space-y-4">
           <div>
             <p class="text-sm font-medium text-muted-foreground mb-1">From:</p>
-            <p>{{ selectedMessage.name }}</p>
-          </div>
-
-          <div v-if="selectedMessage.company">
-            <p class="text-sm font-medium text-muted-foreground mb-1">
-              Company:
+            <p class="flex items-center gap-2">
+              <component
+                :is="getSenderIcon(selectedMessage.sender)"
+                class="h-4 w-4"
+                :class="
+                  selectedMessage.sender === 'ADMIN'
+                    ? 'text-primary'
+                    : 'text-secondary'
+                "
+              />
+              <span>{{ getSenderName(selectedMessage.sender) }}</span>
             </p>
-            <p>{{ selectedMessage.company }}</p>
-          </div>
-
-          <div>
-            <p class="text-sm font-medium text-muted-foreground mb-1">Email:</p>
-            <p>{{ selectedMessage.email }}</p>
           </div>
 
           <div>
             <p class="text-sm font-medium text-muted-foreground mb-1">
               Message:
             </p>
-            <p class="whitespace-pre-line">{{ selectedMessage.message }}</p>
+            <p class="whitespace-pre-line">{{ selectedMessage.content }}</p>
           </div>
         </div>
 
         <DialogFooter>
           <Button @click="closeDetails">Close</Button>
         </DialogFooter>
-      </DialogContent>
+      </DialogContentFixed>
+    </Dialog>
+
+    <!-- New message dialog -->
+    <Dialog v-model:open="showNewMessage">
+      <DialogContentFixed class="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>New Message</DialogTitle>
+          <DialogDescription>
+            Send a message to our support team.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form @submit.prevent="onSubmit">
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <Label for="subject">Subject</Label>
+              <Input id="subject" name="subject" placeholder="Enter subject" />
+              <ErrorMessage name="subject" class="text-destructive text-sm" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="content">Message</Label>
+              <Textarea
+                id="content"
+                name="content"
+                placeholder="Type your message here..."
+                rows="6"
+              />
+              <ErrorMessage name="content" class="text-destructive text-sm" />
+            </div>
+          </div>
+
+          <DialogFooter class="mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              @click="showNewMessage = false"
+              :disabled="isSending"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" :disabled="isSending" class="gap-2">
+              <div
+                v-if="isSending"
+                class="animate-spin h-4 w-4 border-2 border-background border-t-transparent rounded-full"
+              ></div>
+              <Send v-else class="h-4 w-4" />
+              <span>Send Message</span>
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContentFixed>
     </Dialog>
   </div>
 </template>

@@ -252,5 +252,19 @@
 - Implemented UI to display messages with read/unread status
 - Added search functionality to filter messages
 - Created message detail view with responsive design
-- Connected messaging with the existing ContactMessage model
+- Implemented two-way communication between clients and administrators
+- Created ClientMessage database model for proper messaging
+- Added ability for clients to send messages to support team
 - Ensured proper authentication and security measures
+
+## 2024-07-11: Messages Feature Improvements
+
+- Redesigned the Messages feature for proper client-admin communication
+- Enhanced the schema with ClientMessage model and MessageSender enum
+- Implemented two-way messaging system for better client support
+- Created message composition UI for clients to send inquiries to admin
+- Added API endpoints for sending, receiving and managing messages
+- Updated UI with sender identification and better conversation flow
+- Improved message display with appropriate styling for different senders
+- Generated database migration for the new message model
+- Enhanced search functionality to work with new message structure

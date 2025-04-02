@@ -31,30 +31,42 @@ export default defineEventHandler(async (event) => {
       };
     }
 
-    // Fetch client messages for the user
-    const messages = await prisma.clientMessage.findMany({
-      where: {
+    // Get request body
+    const body = await readBody(event);
+
+    // Validate required fields
+    if (!body.subject || !body.content) {
+      return {
+        success: false,
+        error: "Subject and content are required",
+        statusCode: 400,
+      };
+    }
+
+    // Create a new message
+    const message = await prisma.clientMessage.create({
+      data: {
+        subject: body.subject,
+        content: body.content,
         userId: user.id,
-      },
-      orderBy: {
-        createdAt: "desc",
+        sender: "CLIENT",
       },
     });
 
-    // Return success with messages
+    // Return success with the created message
     return {
       success: true,
-      messages: messages.map((msg) => ({
-        ...msg,
-        createdAt: msg.createdAt.toISOString(),
-      })),
+      message: {
+        ...message,
+        createdAt: message.createdAt.toISOString(),
+      },
     };
   } catch (error: any) {
-    console.error("Error fetching messages:", error);
+    console.error("Error sending message:", error);
 
     return {
       success: false,
-      error: error.message || "An error occurred while fetching messages",
+      error: error.message || "An error occurred while sending the message",
       statusCode: 500,
     };
   }

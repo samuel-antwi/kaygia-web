@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../../../../../server/utils/prisma";
 
 export default defineEventHandler(async (event) => {
   try {
     // Check user authentication
     const session = await getUserSession(event);
-    if (!session) {
+    if (!session || !session.user?.email) {
       return {
         success: false,
         error: "Authentication required",
@@ -12,12 +12,14 @@ export default defineEventHandler(async (event) => {
       };
     }
 
-    const prisma = new PrismaClient();
-
     // Get user from session
     const user = await prisma.user.findUnique({
       where: {
-        email: session.user?.email as string,
+        email: session.user.email,
+      },
+      select: {
+        id: true,
+        email: true,
       },
     });
 
@@ -40,7 +42,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Find the message
-    const message = await prisma.contactMessage.findUnique({
+    const message = await prisma.clientMessage.findUnique({
       where: {
         id: messageId,
       },
@@ -55,7 +57,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if the message belongs to the user
-    if (message.email !== user.email) {
+    if (message.userId !== user.id) {
       return {
         success: false,
         error: "Unauthorized access to message",
@@ -64,7 +66,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update the message to mark it as read
-    const updatedMessage = await prisma.contactMessage.update({
+    const updatedMessage = await prisma.clientMessage.update({
       where: {
         id: messageId,
       },
@@ -73,13 +75,13 @@ export default defineEventHandler(async (event) => {
       },
     });
 
-    // Close Prisma connection
-    await prisma.$disconnect();
-
     // Return success with updated message
     return {
       success: true,
-      message: updatedMessage,
+      message: {
+        ...updatedMessage,
+        createdAt: updatedMessage.createdAt.toISOString(),
+      },
     };
   } catch (error: any) {
     console.error("Error marking message as read:", error);
