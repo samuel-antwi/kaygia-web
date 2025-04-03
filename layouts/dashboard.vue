@@ -195,8 +195,8 @@ const goToMessages = () => {
       <nav class="flex-1 overflow-y-auto py-4">
         <TooltipProvider :delay-duration="100">
           <ul class="space-y-1 px-2">
-            <Tooltip v-for="item in navItems" :key="item.path">
-              <li>
+            <li v-for="item in navItems" :key="item.path">
+              <Tooltip>
                 <TooltipTrigger as-child>
                   <NuxtLink
                     :to="item.path"
@@ -228,8 +228,8 @@ const goToMessages = () => {
                     {{ item.name }}
                   </p>
                 </TooltipContent>
-              </li>
-            </Tooltip>
+              </Tooltip>
+            </li>
           </ul>
         </TooltipProvider>
       </nav>
