@@ -20,19 +20,19 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
-    // Find user by email
+    // Find user by email and explicitly select needed fields
     const user = await prisma.user.findUnique({
       where: { email: userEmail },
-      include: {
-        // Include basic project information
-        projects: {
-          select: {
-            id: true,
-            title: true,
-            status: true,
-            createdAt: true,
-          },
-        },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        company: true,
+        role: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+        lastLoggedIn: true,
       },
     });
 
@@ -43,13 +43,10 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
-    // Return user data (including emailVerified)
+    // Return explicitly selected user data
     return {
       success: true,
-      user: {
-        ...user,
-        emailVerified: user.emailVerified || false, // Ensure it has a default value
-      },
+      user: user,
     };
   } catch (error: any) {
     console.error("Profile fetch error:", error);

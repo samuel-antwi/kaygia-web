@@ -97,16 +97,6 @@ const onSubmit = form.handleSubmit(async (values) => {
 const handleResend = () => {
   navigateTo("/resend-verification");
 };
-
-watch(
-  user,
-  (newUser) => {
-    if (newUser) {
-      navigateTo("/dashboard");
-    }
-  },
-  { immediate: true }
-);
 </script>
 
 <template>

@@ -185,4 +185,7 @@ alwaysApply: true
 - [IMPLEMENTATION_PLAN.md](mdc:IMPLEMENTATION_PLAN.md)
 - [progress.md](mdc:progress.md)
 
+You can access session like this in api endpoint without importing it
+const session = await getUserSession(event);
+
 

@@ -30,6 +30,7 @@ model User {
 // Modified Role enum (if you want to keep it for future expansion)
 enum Role {
   CLIENT
+  ADMIN
 }
 
 // Project model for client projects

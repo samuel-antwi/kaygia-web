@@ -6,6 +6,7 @@ export default defineNuxtConfig({
     "./layers/marketing",
     "./layers/dashboard",
     "./layers/auth",
+    "./layers/admin",
   ],
   modules: [
     "@nuxtjs/tailwindcss",

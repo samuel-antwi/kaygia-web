@@ -9,7 +9,6 @@ export const useAuth = () => {
   // Get nuxt-auth-utils session
   const {
     loggedIn,
-    user: sessionUser,
     fetch: fetchSession,
     clear: clearSession,
   } = useUserSession();
@@ -116,42 +115,30 @@ export const useAuth = () => {
     }
   };
 
-  // Check if user is authenticated
-  const isAuthenticated = computed(() => loggedIn.value);
-
-  // Initialize auth state - would be called from a plugin
+  // Initialize auth state - SIMPLIFIED
+  // This function now primarily focuses on loading the core session status.
+  // Fetching the full user profile is moved to the plugin.
   const initAuth = async () => {
+    console.log("[initAuth - Simplified] Starting session check...");
+    // Reset state only if loading is currently false (prevent flicker on HMR?)
+    // if (!loading.value) {
+    //    user.value = null;
+    // }
+    loading.value = true;
     try {
-      loading.value = true;
-
-      // Fetch the session from nuxt-auth-utils
-      await fetchSession();
-
-      if (loggedIn.value) {
-        // Fetch the full user data from the database using the email
-        const response = await $fetch<{
-          success: boolean;
-          user: User;
-          error?: string;
-        }>(`/api/user/profile`);
-
-        if (response.success && response.user) {
-          user.value = response.user;
-        } else {
-          console.error("Failed to get user profile:", response.error);
-          user.value = null;
-        }
-      } else {
-        user.value = null;
-      }
-
-      return { success: true };
+      await fetchSession(); // Check/load session cookie status
+      console.log(
+        `[initAuth - Simplified] fetchSession complete. LoggedIn state: ${loggedIn.value}`
+      );
+      // No profile fetch here
+      // No explicit success/error return needed as plugin handles profile fetch
     } catch (err: any) {
-      error.value = err?.message || "Failed to initialize auth";
-      user.value = null;
-      return { success: false, error: error.value };
+      console.error("[initAuth - Simplified] Error during fetchSession:", err);
+      user.value = null; // Clear user if session check fails
+      error.value = err.message || "Failed to initialize session";
     } finally {
       loading.value = false;
+      console.log("[initAuth - Simplified] Finished. Loading set to false.");
     }
   };
 
@@ -247,13 +234,13 @@ export const useAuth = () => {
     user,
     loading,
     error,
+    loggedIn,
     signUp,
     signIn,
     signOut,
     resetPassword,
     completePasswordReset,
     resendVerificationEmail,
-    isAuthenticated,
     initAuth,
   };
 };
