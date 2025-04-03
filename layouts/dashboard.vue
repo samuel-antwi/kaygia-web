@@ -70,24 +70,24 @@ async function handleLogout() {
 function isActiveRoute(path: string): boolean {
   const currentPath = route.path;
 
-  // Handle exact match for /dashboard and /dashboard/projects/new
-  if (
-    (path === "/dashboard" && currentPath === "/dashboard") ||
-    (path === "/dashboard/projects/new" &&
-      currentPath === "/dashboard/projects/new")
-  ) {
+  // 1. Exact match is always active
+  if (path === currentPath) {
     return true;
   }
 
-  // Ensure /dashboard/projects doesn't activate for /dashboard/projects/new
+  // 2. Special case: Activate "Projects" list link when viewing a specific project detail page
+  //    (path starts with /dashboard/projects/ followed by something),
+  //    but explicitly exclude the "Request Project" page.
   if (
     path === "/dashboard/projects" &&
-    currentPath.startsWith("/dashboard/projects/")
+    currentPath.startsWith("/dashboard/projects/") &&
+    currentPath !== "/dashboard/projects/new"
   ) {
     return true;
   }
 
-  // Ensure /dashboard/tickets doesn't activate for /dashboard/tickets/*
+  // 3. Special case: Activate "Tickets" list link when viewing a specific ticket detail page.
+  //    (path starts with /dashboard/tickets/ followed by something)
   if (
     path === "/dashboard/tickets" &&
     currentPath.startsWith("/dashboard/tickets/")
@@ -95,13 +95,10 @@ function isActiveRoute(path: string): boolean {
     return true;
   }
 
-  // General check for other top-level routes
-  return (
-    path !== "/dashboard" &&
-    path !== "/dashboard/projects" &&
-    path !== "/dashboard/tickets" &&
-    currentPath.startsWith(path)
-  );
+  // Add checks here for any *other* future nested sections if needed
+
+  // Default: not active if none of the above conditions are met
+  return false;
 }
 
 // Get current page title based on route
