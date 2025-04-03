@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watchEffect } from "vue";
+import { ref, onMounted, computed } from "vue";
 import {
   LayoutDashboard,
   Briefcase,
@@ -19,9 +19,9 @@ import {
   MessagesSquare,
   UserCircle,
 } from "lucide-vue-next";
-import { useMessageStore } from "../layers/dashboard/stores/messageStore";
+import { useTicketStore } from "../layers/dashboard/stores/ticketStore";
 import { storeToRefs } from "pinia";
-import { useMessageUtils } from "../layers/dashboard/composables/useMessageUtils";
+import { useTicketUtils } from "../layers/dashboard/composables/useTicketUtils";
 import {
   Tooltip,
   TooltipContent,
@@ -37,17 +37,8 @@ const route = useRoute();
 // Get auth composable
 const { user, signOut, loading: authLoading } = useAuth();
 
-// Get message store
-const messageStore = useMessageStore();
-const { unreadCount, sortedMessages } = storeToRefs(messageStore);
-
 // Get message utils
-const { formatDate, getSenderIcon, getSenderName } = useMessageUtils();
-
-// Log unread count for debugging
-watchEffect(() => {
-  console.log("Layout unreadCount:", unreadCount.value);
-});
+const { formatDate, getSenderIcon, getSenderName } = useTicketUtils();
 
 // Check if device is mobile
 onMounted(() => {
@@ -79,29 +70,38 @@ async function handleLogout() {
 function isActiveRoute(path: string): boolean {
   const currentPath = route.path;
 
-  // Special case for "Request Project" page
+  // Handle exact match for /dashboard and /dashboard/projects/new
   if (
-    path === "/dashboard/projects/new" &&
-    currentPath === "/dashboard/projects/new"
+    (path === "/dashboard" && currentPath === "/dashboard") ||
+    (path === "/dashboard/projects/new" &&
+      currentPath === "/dashboard/projects/new")
   ) {
     return true;
   }
 
-  // Exact match for dashboard home
-  if (path === "/dashboard" && currentPath === "/dashboard") {
-    return true;
-  }
-
-  // For other routes, check if current route starts with the path (for nested routes)
-  // but exclude the special case of /projects/new when checking /projects
+  // Ensure /dashboard/projects doesn't activate for /dashboard/projects/new
   if (
     path === "/dashboard/projects" &&
-    currentPath === "/dashboard/projects/new"
+    currentPath.startsWith("/dashboard/projects/")
   ) {
-    return false;
+    return true;
   }
 
-  return path !== "/dashboard" && currentPath.startsWith(path);
+  // Ensure /dashboard/tickets doesn't activate for /dashboard/tickets/*
+  if (
+    path === "/dashboard/tickets" &&
+    currentPath.startsWith("/dashboard/tickets/")
+  ) {
+    return true;
+  }
+
+  // General check for other top-level routes
+  return (
+    path !== "/dashboard" &&
+    path !== "/dashboard/projects" &&
+    path !== "/dashboard/tickets" &&
+    currentPath.startsWith(path)
+  );
 }
 
 // Get current page title based on route
@@ -135,15 +135,10 @@ const navItems = [
     icon: FilePlus,
     path: "/dashboard/projects/new",
   },
-  { name: "Messages", icon: MessageSquare, path: "/dashboard/messages" },
+  { name: "Tickets", icon: MessageSquare, path: "/dashboard/tickets" },
   { name: "Invoices", icon: Receipt, path: "/dashboard/invoices" },
   { name: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
-
-// Navigate to messages page
-const goToMessages = () => {
-  navigateTo("/dashboard/messages");
-};
 </script>
 
 <template>
@@ -300,115 +295,36 @@ const goToMessages = () => {
           </div>
 
           <div class="flex items-center space-x-2">
-            <!-- Notifications -->
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  class="relative rounded-full"
-                >
-                  <Bell class="h-5 w-5" />
-                  <Badge
-                    v-if="unreadCount > 0"
-                    variant="destructive"
-                    class="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs"
-                  >
-                    {{ unreadCount }}
-                  </Badge>
-                  <span class="sr-only">Notifications</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" class="w-[300px]">
-                <DropdownMenuLabel>Recent Messages</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div
-                  v-if="sortedMessages.length > 0"
-                  class="max-h-[300px] overflow-y-auto"
-                >
-                  <DropdownMenuItem
-                    v-for="message in sortedMessages.slice(0, 5)"
-                    :key="message.id"
-                    class="cursor-pointer flex items-start gap-3 p-3"
-                    @click="goToMessages"
-                  >
-                    <div
-                      class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0"
-                      :class="{
-                        'bg-secondary/20': message.sender === 'CLIENT',
-                      }"
-                    >
-                      <component
-                        :is="getSenderIcon(message.sender)"
-                        class="h-4 w-4"
-                        :class="
-                          message.sender === 'ADMIN'
-                            ? 'text-primary'
-                            : 'text-secondary'
-                        "
-                      />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium truncate">
-                        {{ message.subject }}
-                      </p>
-                      <p class="text-xs text-muted-foreground truncate">
-                        {{ message.content }}
-                      </p>
-                      <p class="text-xs text-muted-foreground mt-1">
-                        {{ getSenderName(message.sender) }} -
-                        {{ formatDate(message.createdAt) }}
-                      </p>
-                    </div>
-                    <div
-                      v-if="!message.isRead"
-                      class="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1"
-                      title="Unread"
-                    ></div>
-                  </DropdownMenuItem>
-                </div>
-                <div
-                  v-else
-                  class="p-4 text-center text-sm text-muted-foreground"
-                >
-                  No recent messages.
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  class="cursor-pointer justify-center"
-                  @click="goToMessages"
-                >
-                  View All Messages
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             <!-- Color mode toggle -->
             <Button
               variant="ghost"
               size="icon"
               @click="toggleColorMode"
-              aria-label="Toggle theme"
+              class="rounded-full"
             >
-              <Sun v-show="colorMode.value === 'dark'" class="h-5 w-5" />
-              <Moon v-show="colorMode.value === 'light'" class="h-5 w-5" />
+              <Sun
+                class="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+              />
+              <Moon
+                class="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+              />
+              <span class="sr-only">Toggle theme</span>
             </Button>
 
-            <!-- User dropdown -->
+            <!-- User profile dropdown -->
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Avatar class="h-8 w-8">
-                  <AvatarImage src="" alt="User avatar" />
-                  <AvatarFallback>
-                    <User class="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
+              <DropdownMenuTrigger as-child>
+                <Button variant="ghost" class="relative h-8 w-8 rounded-full">
+                  <Avatar class="h-8 w-8">
+                    <AvatarFallback>
+                      <User class="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem class="cursor-pointer">
-                  <User class="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem class="cursor-pointer">
                   <Settings class="mr-2 h-4 w-4" />
                   <span>Settings</span>
