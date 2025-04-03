@@ -4,18 +4,11 @@ import { PrismaClient, Role } from "@prisma/client"; // Explicit import for clar
 const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
-  console.log("[API][Admin] GET /api/admin/tickets - Handler Start");
-
   // --- START DEBUG LOGGING ---
   // Logging the attempt to get session
-  console.log(
-    "[API][Admin] Attempting to get user session via getUserSession(event)..."
-  );
+
   const session = await getUserSession(event);
-  console.log(
-    "[API][Admin] Result from getUserSession(event):",
-    JSON.stringify(session, null, 2)
-  );
+
   // --- END DEBUG LOGGING ---
 
   // 1. Check for admin user session using getUserSession
@@ -31,10 +24,6 @@ export default defineEventHandler(async (event) => {
       statusMessage: "Forbidden: Admin access required.",
     });
   }
-
-  console.log(
-    `[API][Admin] User ${user.email} (Role: ${user.role}) is accessing admin tickets.`
-  );
 
   try {
     // 2. Fetch all tickets from the database
@@ -56,8 +45,6 @@ export default defineEventHandler(async (event) => {
         },
       },
     });
-
-    console.log(`[API][Admin] Found ${tickets.length} tickets.`);
 
     // 3. Return the tickets
     return {

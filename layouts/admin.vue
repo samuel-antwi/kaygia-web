@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import {
   LogOut,
   User,
@@ -7,18 +7,55 @@ import {
   LayoutDashboard,
   MessageSquare,
   Users,
+  Sun,
+  Moon,
+  PanelLeft,
+  PanelLeftClose,
+  Menu,
 } from "lucide-vue-next";
 // Note: Assuming Button, Avatar, DropdownMenu etc. are globally available via shadcn-vue auto-imports
+
+// Sidebar state
+const isSidebarCollapsed = ref(false);
+const isMobile = ref(false);
+
+// Check screen size on mount and resize
+onMounted(() => {
+  checkIfMobile();
+  window.addEventListener("resize", checkIfMobile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkIfMobile);
+});
+
+function checkIfMobile() {
+  isMobile.value = window.innerWidth < 768; // Using 768px breakpoint like dashboard
+  // Auto-collapse sidebar on mobile if needed, or set initial state
+  isSidebarCollapsed.value = isMobile.value;
+}
+
+// Get Nuxt color mode composable
+const colorMode = useColorMode();
 
 // Get auth composable
 const { user, signOut } = useAuth();
 
 // Handle logout
 async function handleLogout() {
-  console.log("[Admin Layout] Logging out...");
   await signOut();
   // Redirect to login after sign out
   await navigateTo("/auth/login");
+}
+
+// Function to toggle color mode
+function toggleColorMode() {
+  colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
+}
+
+// Function to toggle sidebar collapse state
+function toggleSidebar() {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
 }
 
 // Define admin navigation items
@@ -41,67 +78,148 @@ function isAdminRouteActive(path: string): boolean {
 
 <template>
   <div class="flex min-h-screen bg-muted/40">
+    <!-- Mobile Overlay -->
+    <div
+      v-if="!isSidebarCollapsed && isMobile"
+      class="fixed inset-0 bg-black/60 z-30 lg:hidden"
+      @click="toggleSidebar"
+    ></div>
+
     <!-- Admin Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col border-r bg-background sm:flex"
+      class="fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r bg-background transition-all duration-300 ease-in-out"
+      :class="[
+        isSidebarCollapsed && isMobile
+          ? 'w-0 -translate-x-full'
+          : isSidebarCollapsed && !isMobile
+            ? 'w-[70px]'
+            : !isSidebarCollapsed && isMobile
+              ? 'w-60 translate-x-0'
+              : 'w-60', // Default: expanded desktop
+      ]"
     >
       <!-- Sidebar Header -->
-      <div class="flex h-16 items-center border-b px-4">
-        <NuxtLink to="/admin" class="flex items-center gap-2 font-semibold">
-          <Settings class="h-6 w-6 text-primary" />
-          <span>Admin Panel</span>
+      <div
+        class="flex h-16 shrink-0 items-center justify-between border-b pr-4"
+      >
+        <NuxtLink
+          to="/admin"
+          class="flex items-center gap-2 font-semibold transition-opacity mr-4"
+          :class="isSidebarCollapsed ? 'justify-center' : ''"
+        >
+          <!-- <Settings class="h-6 w-6 text-primary" /> REMOVED -->
+          <!-- Hide text when collapsed -->
+          <div
+            :class="
+              isSidebarCollapsed
+                ? 'opacity-0 w-0 h-0  overflow-hidden absolute'
+                : 'opacity-100 pl-4'
+            "
+          >
+            Admin Panel
+          </div>
         </NuxtLink>
+        <!-- Sidebar Toggle Button -->
+        <Button
+          variant="ghost"
+          size="icon"
+          @click="toggleSidebar"
+          class="rounded-lg shrink-0"
+          aria-label="Toggle sidebar"
+        >
+          <PanelLeftClose v-if="!isSidebarCollapsed" class="h-5 w-5" />
+          <PanelLeft v-else class="h-5 w-5" />
+        </Button>
       </div>
       <!-- Admin Navigation -->
       <nav class="flex-1 overflow-y-auto py-4">
-        <ul class="space-y-1 px-2">
-          <li v-for="item in adminNavItems" :key="item.path">
-            <NuxtLink
-              :to="item.path"
-              class="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              :class="{
-                'bg-muted text-primary': isAdminRouteActive(item.path),
-              }"
-            >
-              <component :is="item.icon" class="h-4 w-4" />
-              {{ item.name }}
-            </NuxtLink>
-          </li>
-        </ul>
+        <!-- Assuming Tooltip components are globally available -->
+        <TooltipProvider :delay-duration="100">
+          <ul class="space-y-1 px-2">
+            <li v-for="item in adminNavItems" :key="item.path">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <NuxtLink
+                    :to="item.path"
+                    class="flex items-center rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    :class="[
+                      isSidebarCollapsed ? 'justify-center' : 'gap-3',
+                      {
+                        'bg-muted text-primary': isAdminRouteActive(item.path),
+                      },
+                    ]"
+                    @click="isMobile && toggleSidebar()"
+                  >
+                    <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
+                    <!-- Hide text when collapsed -->
+                    <span :class="isSidebarCollapsed ? 'sr-only' : ''">{{
+                      item.name
+                    }}</span>
+                  </NuxtLink>
+                </TooltipTrigger>
+                <TooltipContent v-if="isSidebarCollapsed" side="right">
+                  <p>{{ item.name }}</p>
+                </TooltipContent>
+              </Tooltip>
+            </li>
+          </ul>
+        </TooltipProvider>
       </nav>
       <!-- Sidebar Footer (User Info & Logout) -->
-      <div class="mt-auto border-t p-4">
+      <div
+        class="mt-auto border-t p-2"
+        :class="isSidebarCollapsed ? 'px-2 py-2' : 'p-4'"
+      >
         <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <Button
-              variant="ghost"
-              class="flex items-center gap-2 w-full justify-start"
-            >
-              <Avatar class="h-8 w-8">
-                <AvatarFallback>
-                  <User class="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div class="flex flex-col items-start">
-                <span class="text-sm font-medium">{{
-                  user?.name || "Admin User"
-                }}</span>
-                <span class="text-xs text-muted-foreground">{{
-                  user?.email
-                }}</span>
-              </div>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" class="w-52">
+          <TooltipProvider :delay-duration="100">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <DropdownMenuTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    class="flex items-center w-full"
+                    :class="
+                      isSidebarCollapsed
+                        ? 'justify-center h-10 w-10 p-0'
+                        : 'gap-2 justify-start'
+                    "
+                  >
+                    <Avatar class="h-8 w-8 shrink-0">
+                      <AvatarFallback>
+                        <User class="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <!-- Hide text when collapsed -->
+                    <div
+                      :class="
+                        isSidebarCollapsed
+                          ? 'sr-only'
+                          : 'flex flex-col items-start'
+                      "
+                    >
+                      <span class="text-sm font-medium truncate">{{
+                        user?.name || "Admin User"
+                      }}</span>
+                      <span class="text-xs text-muted-foreground truncate">{{
+                        user?.email
+                      }}</span>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent v-if="isSidebarCollapsed" side="right">
+                <p>{{ user?.name || "Admin User" }}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <DropdownMenuContent align="start" side="top" class="w-52 mb-2">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled>
-              <!-- Add link later if profile page exists -->
               <User class="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem disabled>
-              <!-- Add link later if settings page exists -->
               <Settings class="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
@@ -119,23 +237,57 @@ function isAdminRouteActive(path: string): boolean {
     </aside>
 
     <!-- Main Content Area -->
-    <div class="flex flex-1 flex-col sm:pl-60">
-      <!-- Header (Optional - can add a simple header here if needed) -->
+    <div
+      class="flex flex-1 flex-col transition-all duration-300 ease-in-out"
+      :class="isSidebarCollapsed ? 'md:pl-[70px]' : 'md:pl-60'"
+    >
+      <!-- Header -->
       <header
-        class="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4"
+        class="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6"
       >
-        <!-- Could add breadcrumbs or page title here -->
-        <h1 class="text-lg font-semibold hidden sm:flex">
-          {{
-            adminNavItems.find((item) => isAdminRouteActive(item.path))?.name ||
-            "Admin"
-          }}
-        </h1>
-        <!-- Mobile Menu/User Button can go here if needed for small screens -->
+        <!-- Left side: Title / Mobile Menu Toggle -->
+        <div class="flex items-center">
+          <!-- Mobile Menu Button -->
+          <Button
+            variant="ghost"
+            size="icon"
+            class="shrink-0 md:hidden mr-2"
+            @click="toggleSidebar"
+            aria-label="Toggle Menu"
+          >
+            <Menu class="h-5 w-5" />
+          </Button>
+          <!-- Desktop Title -->
+          <h1 class="text-lg font-semibold hidden md:flex">
+            {{
+              adminNavItems.find((item) => isAdminRouteActive(item.path))
+                ?.name || "Admin"
+            }}
+          </h1>
+        </div>
+
+        <!-- Right side: Actions (Theme Toggle) -->
+        <div class="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            @click="toggleColorMode"
+            class="rounded-full"
+            aria-label="Toggle theme"
+          >
+            <Sun
+              class="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+            />
+            <Moon
+              class="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+            />
+            <span class="sr-only">Toggle theme</span>
+          </Button>
+        </div>
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-4 sm:px-6 sm:py-0">
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6">
         <slot />
         <!-- Where the admin page content will be rendered -->
       </main>

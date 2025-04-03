@@ -100,9 +100,6 @@ const onSubmit = form.handleSubmit(async (values) => {
   isSubmitting.value = true;
 
   try {
-    // Log form values to verify
-    console.log("Form values submitted:", values);
-
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -299,7 +296,9 @@ const onSubmit = form.handleSubmit(async (values) => {
                 <FormControl>
                   <Checkbox
                     :checked="field.value"
-                    @update:checked="(checked: boolean) => handleChange(checked)"
+                    @update:checked="
+                      (checked: boolean) => handleChange(checked)
+                    "
                     :id="field.name"
                   />
                 </FormControl>

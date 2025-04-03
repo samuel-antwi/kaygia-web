@@ -12,37 +12,14 @@ const router = useRouter(); // Auto-imported
 
 // Watch auth state for role check after loading
 watchEffect(() => {
-  console.log(
-    `[Admin Page Watcher] Loading: ${loading.value}, User Exists: ${!!user.value}`
-  );
-
   // Wait until loading is false and user object is available
   if (!loading.value && user.value) {
-    console.log(
-      "[Admin Page Watcher] Checking user role. User object:",
-      JSON.parse(JSON.stringify(user.value))
-    ); // Log the whole user object
-    console.log(
-      `[Admin Page Watcher] User Role: '${user.value.role}', Type: ${typeof user.value.role}`
-    );
-    console.log(
-      `[Admin Page Watcher] Comparing with Role.ADMIN ('${Role.ADMIN}', Type: ${typeof Role.ADMIN})`
-    );
-
     // Perform the role check here
     if (user.value.role !== Role.ADMIN) {
       console.warn("[Admin Page Watcher] Role check FAILED. Redirecting...");
       router.push("/dashboard?error=unauthorized");
-    } else {
-      console.log(
-        "[Admin Page Watcher] Role check SUCCEEDED. Access confirmed."
-      );
     }
   } else if (!loading.value && !user.value) {
-    // Should have been caught by middleware, but double-check
-    console.warn(
-      "[Admin Page] User not loaded after loading finished. Redirecting to login..."
-    );
     router.push("/auth/login?redirect=/admin");
   }
 });

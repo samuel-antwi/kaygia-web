@@ -17,33 +17,18 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   const { user, loading } = useAuth(); // Use the main auth composable
 
-  // --- ADDED DETAILED LOGGING ---
-  console.log(
-    `[Admin Middleware] Check - Path: ${to.path}, Loading: ${loading.value}, User Exists: ${!!user.value}`
-  );
-
   // If auth is still loading its initial state, let navigation proceed.
   // The page component MUST handle the final check after loading finishes.
   if (loading.value) {
-    console.log("[Admin Middleware] Decision: ALLOW (Auth loading)");
     return;
   }
 
   // If loading is finished, but there's no user object, they are not logged in.
   if (!user.value) {
-    // Log right before redirecting
-    console.error(
-      `[Admin Middleware] Decision: REDIRECT TO LOGIN (Auth loaded but user is null!)`
-    );
     return navigateTo(
       "/auth/login?redirect=" + encodeURIComponent(to.fullPath)
     );
   }
 
-  // At this point, loading is false and user.value exists.
-  // We STILL defer the ROLE check to the page component.
-  console.log(
-    `[Admin Middleware] Decision: ALLOW (Auth loaded, user exists) - User: ${user.value.email}`
-  );
   return;
 });

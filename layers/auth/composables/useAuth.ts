@@ -119,7 +119,6 @@ export const useAuth = () => {
   // This function now primarily focuses on loading the core session status.
   // Fetching the full user profile is moved to the plugin.
   const initAuth = async () => {
-    console.log("[initAuth - Simplified] Starting session check...");
     // Reset state only if loading is currently false (prevent flicker on HMR?)
     // if (!loading.value) {
     //    user.value = null;
@@ -127,9 +126,7 @@ export const useAuth = () => {
     loading.value = true;
     try {
       await fetchSession(); // Check/load session cookie status
-      console.log(
-        `[initAuth - Simplified] fetchSession complete. LoggedIn state: ${loggedIn.value}`
-      );
+
       // No profile fetch here
       // No explicit success/error return needed as plugin handles profile fetch
     } catch (err: any) {
@@ -138,7 +135,6 @@ export const useAuth = () => {
       error.value = err.message || "Failed to initialize session";
     } finally {
       loading.value = false;
-      console.log("[initAuth - Simplified] Finished. Loading set to false.");
     }
   };
 

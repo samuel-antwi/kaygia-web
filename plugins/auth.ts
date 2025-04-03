@@ -25,7 +25,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   // 2. If session is valid, fetch the full user profile HERE
   if (loggedIn.value) {
-    console.log("[Auth Plugin] Session valid. Fetching profile...");
     try {
       // useFetch works correctly inside plugins
       const { data: profileDataRef, error: profileError } =
@@ -43,9 +42,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         );
         userState.value = null; // Clear state on error
       } else if (profileData && profileData.success === true) {
-        console.log(
-          "[Auth Plugin] Profile fetched successfully. Updating user state."
-        );
         userState.value = profileData.user; // Now safe to access .user
       } else {
         console.error(
@@ -59,9 +55,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       userState.value = null;
     }
   } else {
-    console.log("[Auth Plugin] No valid session found after initAuth.");
     userState.value = null; // Ensure user state is null if not logged in
   }
-
-  console.log("[Auth Plugin] Finished.");
 });
