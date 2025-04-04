@@ -1,4 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { defineNuxtConfig } from "nuxt/config";
+import type { UserConfig } from "vite";
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
   extends: [
@@ -23,6 +26,7 @@ export default defineNuxtConfig({
     typeCheck: true,
   },
 
+  // @ts-ignore - Sometimes needed if type inference struggles
   colorMode: {
     preference: "light",
     fallback: "light",
@@ -53,10 +57,21 @@ export default defineNuxtConfig({
 
   nitro: {
     externals: {
-      external: ["@prisma/client", ".prisma/client/index-browser"],
+      external: ["@prisma/client"],
     },
-    prerender: {
-      ignore: ["/prisma/"],
+  },
+
+  hooks: {
+    "vite:extendConfig": (config: UserConfig) => {
+      config.optimizeDeps = config.optimizeDeps || {};
+      config.optimizeDeps.exclude = config.optimizeDeps.exclude || [];
+      config.optimizeDeps.exclude.push("@prisma/client");
+
+      config.resolve = config.resolve || {};
+      config.resolve.alias = config.resolve.alias || {};
+      (config.resolve.alias as Record<string, string>)[
+        ".prisma/client/index-browser"
+      ] = "@prisma/client/index-browser";
     },
   },
 });

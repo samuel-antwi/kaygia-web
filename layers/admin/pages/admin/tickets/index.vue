@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { type SupportTicket, type User as ClientUser } from "@prisma/client";
+import {
+  type SupportTicket,
+  type User as ClientUser,
+  type TicketStatus,
+} from "@prisma/client";
 import { AlertTriangle, Loader2 } from "lucide-vue-next";
 
 definePageMeta({
@@ -45,7 +49,7 @@ function formatDate(dateString: string | Date): string {
 }
 
 // Utility to get status variant (updated based on schema)
-function getStatusVariant(status: string): string {
+function getStatusVariant(status: TicketStatus): string {
   switch (status) {
     case "OPEN":
       return "bg-blue-100 text-blue-800";

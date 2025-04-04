@@ -5,6 +5,7 @@ import {
   type SupportTicket,
   type TicketComment,
   type User as PrismaUser,
+  type TicketStatus,
 } from "@prisma/client";
 import {
   AlertTriangle,
@@ -15,6 +16,13 @@ import {
   Clock,
   ArrowLeft,
 } from "lucide-vue-next";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 definePageMeta({
   layout: "admin",
@@ -44,6 +52,9 @@ interface ApiCommentResponse {
   message?: string;
   comment?: TicketComment;
 }
+
+// Define valid statuses as a constant array
+const VALID_STATUSES = ["OPEN", "PENDING", "RESOLVED", "CLOSED"] as const;
 
 const route = useRoute();
 const ticketId = computed(() => route.params.id as string);
@@ -156,10 +167,11 @@ async function addComment() {
 async function updateStatus(
   value: string | number | boolean | object | null | undefined
 ) {
-  // Define valid statuses as strings
-  const validStatuses: string[] = ["OPEN", "PENDING", "RESOLVED", "CLOSED"];
-  if (typeof value === "string" && validStatuses.includes(value)) {
-    const newStatus = value; // Value is already a valid status string
+  if (
+    typeof value === "string" &&
+    VALID_STATUSES.includes(value as (typeof VALID_STATUSES)[number])
+  ) {
+    const newStatus = value as TicketStatus; // Type assertion is safe here due to the check above
     // Actual API call logic will go here
     console.log("Updating status to:", newStatus);
   } else {
@@ -367,8 +379,7 @@ async function updateStatus(
             <p class="text-sm text-muted-foreground mb-2">
               Change ticket status:
             </p>
-            <!-- Temporarily commented out Select component to resolve TS errors -->
-            <!-- <Select
+            <Select
               @update:modelValue="updateStatus"
               :defaultValue="ticket.status"
             >
@@ -377,17 +388,14 @@ async function updateStatus(
               </SelectTrigger>
               <SelectContent>
                 <SelectItem
-                  v-for="status in Object.values(TicketStatus)"
+                  v-for="status in VALID_STATUSES"
                   :key="status"
                   :value="status"
                 >
                   {{ status }}
                 </SelectItem>
               </SelectContent>
-            </Select> -->
-            <p class="text-sm text-muted-foreground">
-              (Status update UI temporarily disabled)
-            </p>
+            </Select>
           </CardContent>
         </Card>
       </div>

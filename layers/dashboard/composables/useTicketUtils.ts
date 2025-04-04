@@ -1,13 +1,7 @@
 // New empty file content, old file will be deleted
 
 import { MessagesSquare, UserCircle } from "lucide-vue-next";
-
-interface TicketStatus {
-  OPEN: "OPEN";
-  PENDING: "PENDING";
-  RESOLVED: "RESOLVED";
-  CLOSED: "CLOSED";
-}
+import type { TicketStatus } from "@prisma/client";
 
 export const useTicketUtils = () => {
   // Format date
@@ -54,11 +48,11 @@ export const useTicketUtils = () => {
   };
 
   // Helper to get badge variant based on status
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: TicketStatus) => {
     switch (status) {
       case "OPEN":
       case "PENDING":
-        return "default"; // Or maybe 'destructive' for OPEN?
+        return "default";
       case "RESOLVED":
         return "secondary";
       case "CLOSED":
