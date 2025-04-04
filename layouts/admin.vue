@@ -12,6 +12,7 @@ import {
   PanelLeft,
   PanelLeftClose,
   Menu,
+  MoreVertical,
 } from "lucide-vue-next";
 // Note: Assuming Button, Avatar, DropdownMenu etc. are globally available via shadcn-vue auto-imports
 
@@ -43,9 +44,28 @@ const { user, signOut } = useAuth();
 
 // Handle logout
 async function handleLogout() {
-  await signOut();
-  // Redirect to login after sign out
-  await navigateTo("/auth/login");
+  console.log("Attempting logout..."); // Add logging
+  try {
+    const result = await signOut(); // Store the result
+    console.log("SignOut Result:", result); // Log the result
+
+    if (!result?.success) {
+      // If signOut failed, log the error from useAuth and maybe show a notification
+      console.error("Logout failed:", result?.error || "Unknown error");
+      // Optionally: Add user feedback here (e.g., using a toast notification library)
+      // alert(`Logout failed: ${result?.error || "Unknown error"}`); // Simple alert for now
+      return; // Stop execution if logout failed
+    }
+
+    // Redirect to login only if sign out was successful
+    console.log("Logout successful, navigating to login...");
+    await navigateTo("/auth/login");
+  } catch (error) {
+    // Catch any unexpected errors during the logout process or navigation
+    console.error("Error in handleLogout:", error);
+    // Optionally: Add user feedback here
+    // alert("An unexpected error occurred during logout.");
+  }
 }
 
 // Function to toggle color mode
@@ -170,69 +190,62 @@ function isAdminRouteActive(path: string): boolean {
         class="mt-auto border-t p-2"
         :class="isSidebarCollapsed ? 'px-2 py-2' : 'p-4'"
       >
-        <DropdownMenu>
-          <TooltipProvider :delay-duration="100">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <DropdownMenuTrigger as-child>
-                  <Button
-                    variant="ghost"
-                    class="flex items-center w-full"
-                    :class="
-                      isSidebarCollapsed
-                        ? 'justify-center h-10 w-10 p-0'
-                        : 'gap-2 justify-start'
-                    "
-                  >
-                    <Avatar class="h-8 w-8 shrink-0">
-                      <AvatarFallback>
-                        <User class="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <!-- Hide text when collapsed -->
-                    <div
-                      :class="
-                        isSidebarCollapsed
-                          ? 'sr-only'
-                          : 'flex flex-col items-start'
-                      "
-                    >
-                      <span class="text-sm font-medium truncate">{{
-                        user?.name || "Admin User"
-                      }}</span>
-                      <span class="text-xs text-muted-foreground truncate">{{
-                        user?.email
-                      }}</span>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent v-if="isSidebarCollapsed" side="right">
-                <p>{{ user?.name || "Admin User" }}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <DropdownMenuContent align="start" side="top" class="w-52 mb-2">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
-              <User class="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              <Settings class="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              @click="handleLogout"
-              class="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-100"
-            >
-              <LogOut class="mr-2 h-4 w-4" />
-              <span>Logout</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <!-- Modified structure -->
+        <div class="flex items-center gap-2">
+          <!-- User Avatar & Info (always visible unless collapsed) -->
+          <Avatar class="h-8 w-8 shrink-0">
+            <AvatarFallback>
+              <User class="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div
+            :class="
+              isSidebarCollapsed ? 'sr-only' : 'flex flex-col items-start'
+            "
+          >
+            <span class="text-sm font-medium truncate">{{
+              user?.name || "Admin User"
+            }}</span>
+            <span class="text-xs text-muted-foreground truncate">{{
+              user?.email
+            }}</span>
+          </div>
+
+          <!-- Dropdown Menu Trigger (separate button) -->
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child class="ml-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                class="h-8 w-8"
+                :class="isSidebarCollapsed ? 'mx-auto' : ''"
+                aria-label="User actions"
+              >
+                <MoreVertical class="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="top" class="w-52 mb-1">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled>
+                <User class="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                <Settings class="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                @click="handleLogout"
+                class="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-100"
+              >
+                <LogOut class="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </aside>
 
