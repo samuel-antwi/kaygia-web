@@ -1,6 +1,3 @@
-import { PrismaClient, TicketStatus, CommentSender } from "@prisma/client";
-const prisma = new PrismaClient();
-
 async function main() {
   const targetUserId = "cm8thak9x000dc9vmsmv805mm"; // Target specific user
 
@@ -23,7 +20,7 @@ async function main() {
         data: {
           subject: "Welcome to Kaygia Support!",
           clientId: user.id,
-          status: TicketStatus.OPEN,
+          status: "OPEN",
         },
       });
 
@@ -33,7 +30,7 @@ async function main() {
             "Welcome! Feel free to reply here with any questions you have about your project.",
           ticketId: ticket.id,
           userId: user.id, // Track who the comment is FOR (client), even if ADMIN sent it
-          sender: CommentSender.ADMIN,
+          sender: "ADMIN",
         },
       });
 

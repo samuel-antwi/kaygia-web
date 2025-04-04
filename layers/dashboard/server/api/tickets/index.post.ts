@@ -1,7 +1,4 @@
-import { PrismaClient, TicketStatus, CommentSender } from "@prisma/client";
 import { z } from "zod";
-
-const prisma = new PrismaClient();
 
 // Zod schema for input validation
 const createTicketSchema = z.object({
@@ -60,7 +57,7 @@ export default defineEventHandler(async (event) => {
         data: {
           subject: subject,
           clientId: user.id,
-          status: TicketStatus.OPEN, // Default status
+          status: "OPEN", // Default status
           // lastRepliedAt will default to now()
         },
       });
@@ -71,7 +68,7 @@ export default defineEventHandler(async (event) => {
           content: content,
           ticketId: ticket.id,
           userId: user.id, // Comment is from the client
-          sender: CommentSender.CLIENT, // Mark sender as CLIENT
+          sender: "CLIENT", // Mark sender as CLIENT
         },
       });
 

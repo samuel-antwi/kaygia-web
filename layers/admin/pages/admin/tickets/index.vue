@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import {
-  type SupportTicket,
-  type User as ClientUser,
-  TicketStatus,
-} from "@prisma/client";
+import { type SupportTicket, type User as ClientUser } from "@prisma/client";
 import { AlertTriangle, Loader2 } from "lucide-vue-next";
 
 definePageMeta({
@@ -49,20 +45,18 @@ function formatDate(dateString: string | Date): string {
 }
 
 // Utility to get status variant (updated based on schema)
-function getStatusVariant(status: TicketStatus): string {
+function getStatusVariant(status: string): string {
   switch (status) {
-    case TicketStatus.OPEN:
+    case "OPEN":
       return "bg-blue-100 text-blue-800";
-    case TicketStatus.PENDING:
+    case "PENDING":
       return "bg-yellow-100 text-yellow-800";
-    case TicketStatus.RESOLVED:
+    case "RESOLVED":
       return "bg-cyan-100 text-cyan-800";
-    case TicketStatus.CLOSED:
+    case "CLOSED":
       return "bg-green-100 text-green-800";
     default:
-      // Fallback for any unexpected status
-      const exhaustiveCheck: never = status;
-      console.warn(`Unknown ticket status: ${exhaustiveCheck}`);
+      console.warn(`Unknown ticket status: ${status}`);
       return "bg-gray-100 text-gray-800";
   }
 }

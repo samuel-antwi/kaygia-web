@@ -1,5 +1,5 @@
 import { defineEventHandler, getRouterParam, readBody } from "h3";
-import { Role, CommentSender } from "@prisma/client";
+import { Role } from "@prisma/client";
 
 export default defineEventHandler(async (event) => {
   const ticketId = getRouterParam(event, "ticketId");
@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
           content: content,
           ticketId: ticketId,
           userId: user.id, // Link comment to the logged-in admin user
-          sender: CommentSender.ADMIN, // Mark sender as ADMIN
+          sender: "ADMIN",
         },
       });
 
@@ -55,8 +55,6 @@ export default defineEventHandler(async (event) => {
         data: {
           updatedAt: new Date(), // Explicitly set update time
           lastRepliedAt: new Date(), // Update last reply time
-          // Optional: Consider changing status back to OPEN or PENDING if admin replies?
-          // status: TicketStatus.OPEN, // Or PENDING, depending on workflow
         },
       });
 

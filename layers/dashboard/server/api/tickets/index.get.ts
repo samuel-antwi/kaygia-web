@@ -1,7 +1,3 @@
-import { PrismaClient, TicketStatus } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
 export default defineEventHandler(async (event) => {
   // Get user session from event context (populated by nuxt-auth-utils)
   const session = await getUserSession(event);

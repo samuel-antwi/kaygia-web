@@ -1,7 +1,4 @@
-import { PrismaClient, CommentSender, TicketStatus } from "@prisma/client";
 import { z } from "zod";
-
-const prisma = new PrismaClient();
 
 // Zod schema for input validation
 const addCommentSchema = z.object({
@@ -76,7 +73,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Optional: Prevent adding comments to closed tickets
-  if (ticket.status === TicketStatus.CLOSED) {
+  if (ticket.status === "CLOSED") {
     throw createError({
       statusCode: 403,
       statusMessage: "Cannot add comments to a closed ticket",
@@ -92,7 +89,7 @@ export default defineEventHandler(async (event) => {
           content: content,
           ticketId: ticket.id,
           userId: user.id,
-          sender: CommentSender.CLIENT, // Comment is from the client
+          sender: "CLIENT", // Comment is from the client
         },
         // Include user details in the response for immediate display
         include: {
@@ -109,10 +106,7 @@ export default defineEventHandler(async (event) => {
           // If admin replies, status might change to PENDING,
           // if client replies, status might change from PENDING back to OPEN
           // For now, if client replies, ensure it's not stuck in PENDING
-          status:
-            ticket.status === TicketStatus.PENDING
-              ? TicketStatus.OPEN
-              : ticket.status,
+          status: ticket.status === "PENDING" ? "OPEN" : ticket.status,
         },
       }),
     ]);

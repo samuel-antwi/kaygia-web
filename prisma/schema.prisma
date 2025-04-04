@@ -108,10 +108,10 @@ model TicketComment {
 }
 
 enum TicketStatus {
-  OPEN      // Newly created or needs attention
-  PENDING   // Awaiting response (e.g., from client)
-  RESOLVED  // Issue fixed, awaiting confirmation
-  CLOSED    // Confirmed resolved and closed
+  OPEN     
+  PENDING   
+  RESOLVED 
+  CLOSED   
 }
 
 enum CommentSender {

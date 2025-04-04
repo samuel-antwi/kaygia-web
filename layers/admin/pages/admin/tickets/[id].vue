@@ -5,9 +5,6 @@ import {
   type SupportTicket,
   type TicketComment,
   type User as PrismaUser,
-  TicketStatus,
-  Role,
-  CommentSender,
 } from "@prisma/client";
 import {
   AlertTriangle,
@@ -78,32 +75,34 @@ function formatDate(dateString: string | Date): string {
   });
 }
 
-function getStatusVariant(status?: TicketStatus): string {
+// Accept string | undefined for status
+function getStatusVariant(status?: string): string {
   if (!status) return "bg-gray-100 text-gray-800";
   switch (status) {
-    case TicketStatus.OPEN:
+    case "OPEN": // Use string literal
       return "bg-blue-100 text-blue-800";
-    case TicketStatus.PENDING:
+    case "PENDING": // Use string literal
       return "bg-yellow-100 text-yellow-800";
-    case TicketStatus.RESOLVED:
+    case "RESOLVED": // Use string literal
       return "bg-cyan-100 text-cyan-800";
-    case TicketStatus.CLOSED:
+    case "CLOSED": // Use string literal
       return "bg-green-100 text-green-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
 }
 
-function getStatusIcon(status?: TicketStatus) {
+// Accept string | undefined for status
+function getStatusIcon(status?: string) {
   if (!status) return Clock;
   switch (status) {
-    case TicketStatus.OPEN:
+    case "OPEN": // Use string literal
       return Clock;
-    case TicketStatus.PENDING:
+    case "PENDING": // Use string literal
       return CornerUpLeft;
-    case TicketStatus.RESOLVED:
+    case "RESOLVED": // Use string literal
       return CheckCircle;
-    case TicketStatus.CLOSED:
+    case "CLOSED": // Use string literal
       return CheckCircle;
     default:
       return Clock;
@@ -157,10 +156,12 @@ async function addComment() {
 async function updateStatus(
   value: string | number | boolean | object | null | undefined
 ) {
-  const validStatuses = Object.values(TicketStatus) as string[];
+  // Define valid statuses as strings
+  const validStatuses: string[] = ["OPEN", "PENDING", "RESOLVED", "CLOSED"];
   if (typeof value === "string" && validStatuses.includes(value)) {
-    const newStatus = value as TicketStatus;
+    const newStatus = value; // Value is already a valid status string
     // Actual API call logic will go here
+    console.log("Updating status to:", newStatus);
   } else {
     console.warn(
       "Received invalid value from Select for status update:",
@@ -249,7 +250,7 @@ async function updateStatus(
                 <Avatar class="mt-1">
                   <AvatarFallback
                     :class="
-                      comment.sender === CommentSender.ADMIN
+                      comment.sender === 'ADMIN'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
                     "
@@ -260,16 +261,14 @@ async function updateStatus(
                 <div
                   class="flex-1 p-3 rounded-md"
                   :class="
-                    comment.sender === CommentSender.ADMIN
-                      ? 'bg-primary/10'
-                      : 'bg-muted/70'
+                    comment.sender === 'ADMIN' ? 'bg-primary/10' : 'bg-muted/70'
                   "
                 >
                   <div class="flex justify-between items-center mb-1">
                     <p class="text-sm font-medium">
                       {{ comment.user?.name || "Unknown User" }}
                       <span
-                        v-if="comment.sender === CommentSender.ADMIN"
+                        v-if="comment.sender === 'ADMIN'"
                         class="text-xs text-primary/80 ml-1"
                         >(Admin)</span
                       >

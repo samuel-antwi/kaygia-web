@@ -1,12 +1,7 @@
 // New empty file content, old file will be deleted
 
 import { defineStore } from "pinia";
-import type {
-  SupportTicket,
-  TicketComment,
-  TicketStatus,
-  User,
-} from "@prisma/client";
+import type { SupportTicket, TicketComment } from "@prisma/client";
 
 // Define interfaces for the shape of data returned by our API
 // (Prisma types + potential nested data)
