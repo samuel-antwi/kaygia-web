@@ -1,10 +1,15 @@
 import { H3Event } from "h3";
 import * as bcrypt from "bcrypt";
 import { sendPasswordChangedEmail } from "~/utils/email";
+import { getDb } from "~/server/utils/db";
+import { users, passwordResets } from "~/server/db/schema";
+import { eq, and, gt } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
     const { token, password } = await readBody(event);
+    const db = getDb(event);
 
     // Validate required fields
     if (!token || !password) {
@@ -26,13 +31,13 @@ export default defineEventHandler(async (event: H3Event) => {
     const now = new Date();
 
     // Find a valid password reset token
-    const passwordReset = await prisma.passwordReset.findFirst({
-      where: {
-        token,
-        expiresAt: { gt: now },
-        used: false,
-      },
-      include: {
+    const passwordReset = await db.query.passwordResets.findFirst({
+      where: and(
+        eq(passwordResets.token, token),
+        gt(passwordResets.expiresAt, now),
+        eq(passwordResets.used, false)
+      ),
+      with: {
         user: true,
       },
     });
@@ -49,28 +54,25 @@ export default defineEventHandler(async (event: H3Event) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Update the user's password
-    await prisma.user.update({
-      where: {
-        id: passwordReset.userId,
-      },
-      data: {
+    await db
+      .update(users)
+      .set({
         passwordHash,
-      },
-    });
+      })
+      .where(eq(users.id, passwordReset.userId));
 
     // Mark the token as used
-    await prisma.passwordReset.update({
-      where: {
-        id: passwordReset.id,
-      },
-      data: {
+    await db
+      .update(passwordResets)
+      .set({
         used: true,
-      },
-    });
+      })
+      .where(eq(passwordResets.id, passwordReset.id));
 
     // Send password changed notification
     try {
-      await sendPasswordChangedEmail(passwordReset.user.email);
+      const user = passwordReset.user as InferSelectModel<typeof users>;
+      await sendPasswordChangedEmail(user.email);
     } catch (emailError) {
       console.error("Error sending password changed email:", emailError);
       // Continue with the process even if email fails

@@ -1,6 +1,7 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { supportTickets, users } from "~/server/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   // 1. Get User Session & ID
@@ -8,14 +9,17 @@ export default defineEventHandler(async (event) => {
   if (!session?.user?.email) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }
+
+  const db = getDb(event);
+
   let user;
   try {
-    user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
+    user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
   } catch (dbError) {
-    console.error("Prisma Error fetching user:", dbError);
+    console.error("Database Error fetching user:", dbError);
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not fetch user",
@@ -33,28 +37,25 @@ export default defineEventHandler(async (event) => {
 
   // 3. Fetch the specific ticket and its comments
   try {
-    const ticket = await prisma.supportTicket.findUnique({
-      where: {
-        id: ticketId,
+    const ticket = await db.query.supportTickets.findFirst({
+      where: and(
+        eq(supportTickets.id, ticketId),
         // Security Check: Ensure the logged-in user is the client for this ticket
-        clientId: user.id,
-      },
-      include: {
+        eq(supportTickets.clientId, user.id)
+      ),
+      with: {
         // Include comments, ordered chronologically
         comments: {
-          orderBy: {
-            createdAt: "asc",
-          },
-          // Include commenter's name for display
-          include: {
+          with: {
             user: {
-              select: { name: true, id: true },
+              columns: { name: true, id: true },
             },
           },
+          orderBy: (comments, { asc }) => [asc(comments.createdAt)],
         },
         // Include client info (optional, if needed on detail view)
         client: {
-          select: { name: true, email: true },
+          columns: { name: true, email: true },
         },
       },
     });
@@ -69,9 +70,9 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, ticket };
   } catch (dbError) {
-    // Handle potential Prisma errors (e.g., invalid ID format)
-    console.error("Prisma Error fetching ticket details:", dbError);
-    // Don't expose detailed Prisma errors to client
+    // Handle potential database errors
+    console.error("Database Error fetching ticket details:", dbError);
+    // Don't expose detailed errors to client
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not fetch ticket details",

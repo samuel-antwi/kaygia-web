@@ -1,52 +1,65 @@
 // New empty file content, old file will be deleted
 
 import { defineStore } from "pinia";
-import type { SupportTicket, TicketComment } from "@prisma/client";
+import { ref, computed } from "vue";
+import type { InferSelectModel } from "drizzle-orm";
+import type { supportTickets, ticketComments, users } from "~/server/db/schema";
 
-// Define interfaces for the shape of data returned by our API
-// (Prisma types + potential nested data)
-
-// Type for the ticket list item
-interface TicketListItem extends Omit<SupportTicket, "clientId"> {
+// Define interfaces for API responses
+interface TicketListItem extends InferSelectModel<typeof supportTickets> {
   _count: {
     comments: number;
   };
+  client: Pick<InferSelectModel<typeof users>, "id" | "name" | "email"> | null;
 }
 
-// Type for the detailed ticket view (includes comments with user names)
-interface TicketCommentWithUser extends TicketComment {
-  user: { name: string | null; id: string };
-}
-interface TicketDetails extends SupportTicket {
-  comments: TicketCommentWithUser[];
-  client: { name: string | null; email: string };
+interface TicketComment extends InferSelectModel<typeof ticketComments> {
+  user: Pick<InferSelectModel<typeof users>, "id" | "name" | "email"> | null;
 }
 
-export const useTicketStore = defineStore("ticket", () => {
-  // === STATE ===
-  const tickets = ref<TicketListItem[]>([]); // List of tickets for the main page
-  const currentTicket = ref<TicketDetails | null>(null); // Holds the currently viewed ticket details + comments
+interface TicketDetails extends InferSelectModel<typeof supportTickets> {
+  comments: TicketComment[];
+  client: Pick<InferSelectModel<typeof users>, "id" | "name" | "email"> | null;
+}
+
+interface ApiTicketListResponse {
+  success: boolean;
+  tickets?: TicketListItem[];
+  message?: string;
+}
+
+interface ApiTicketDetailsResponse {
+  success: boolean;
+  ticket?: TicketDetails;
+  message?: string;
+}
+
+interface ApiCommentResponse {
+  success: boolean;
+  message?: string;
+  comment?: TicketComment;
+}
+
+export const useTicketStore = defineStore("tickets", () => {
+  // State
+  const tickets = ref<TicketListItem[]>([]);
+  const currentTicket = ref<TicketDetails | null>(null);
   const isLoadingList = ref(false);
   const isLoadingDetails = ref(false);
-  const isCreatingTicket = ref(false);
   const isAddingComment = ref(false);
+  const isCreatingTicket = ref(false);
   const error = ref<string | null>(null);
 
-  // === ACTIONS ===
-
-  // Fetch the list of tickets for the dashboard
-  async function fetchTickets() {
+  // Actions
+  const fetchTickets = async () => {
     isLoadingList.value = true;
     error.value = null;
     try {
-      const response = await $fetch<{
-        success: boolean;
-        tickets: TicketListItem[];
-      }>("/api/tickets", {
+      const response = await $fetch<ApiTicketListResponse>("/api/tickets", {
         headers: { "Cache-Control": "no-cache" },
       });
       if (response.success) {
-        tickets.value = response.tickets;
+        tickets.value = response.tickets || [];
       } else {
         throw new Error("API indicated failure fetching tickets");
       }
@@ -54,25 +67,24 @@ export const useTicketStore = defineStore("ticket", () => {
       error.value =
         err.data?.statusMessage || err.message || "Failed to fetch tickets";
       console.error("Error fetching tickets:", err);
-      tickets.value = []; // Clear list on error
     } finally {
       isLoadingList.value = false;
     }
-  }
+  };
 
-  // Fetch details for a single ticket (including comments)
-  async function fetchTicketDetails(ticketId: string) {
+  const fetchTicketDetails = async (ticketId: string) => {
+    if (!ticketId) return;
+
     isLoadingDetails.value = true;
     error.value = null;
-    currentTicket.value = null; // Clear previous details
     try {
-      const response = await $fetch<{
-        success: boolean;
-        ticket: TicketDetails;
-      }>(`/api/tickets/${ticketId}`, {
-        headers: { "Cache-Control": "no-cache" },
-      });
-      if (response.success) {
+      const response = await $fetch<ApiTicketDetailsResponse>(
+        `/api/tickets/${ticketId}`,
+        {
+          headers: { "Cache-Control": "no-cache" },
+        }
+      );
+      if (response.success && response.ticket) {
         currentTicket.value = response.ticket;
       } else {
         throw new Error("API indicated failure fetching ticket details");
@@ -83,37 +95,35 @@ export const useTicketStore = defineStore("ticket", () => {
         err.message ||
         "Failed to fetch ticket details";
       console.error("Error fetching ticket details:", err);
+      currentTicket.value = null;
     } finally {
       isLoadingDetails.value = false;
     }
-  }
+  };
 
-  // Create a new support ticket
-  async function createTicket(
+  const createTicket = async (
     subject: string,
     content: string
-  ): Promise<boolean> {
+  ): Promise<boolean> => {
+    if (!subject || !content.trim()) return false;
+
     isCreatingTicket.value = true;
     error.value = null;
     try {
       const response = await $fetch<{
         success: boolean;
-        ticket?: Partial<SupportTicket>; // API returns partial ticket info
-        error?: string;
+        ticket?: TicketListItem;
+        message?: string;
       }>("/api/tickets", {
         method: "POST",
         body: { subject, content },
-        headers: { "Cache-Control": "no-cache" },
       });
 
-      if (response.success && response.ticket) {
-        // Optionally refresh the list or navigate
-        await fetchTickets(); // Refresh the main list
+      if (response.success) {
+        await fetchTickets(); // Refresh the list
         return true;
       } else {
-        throw new Error(
-          response.error || "API indicated failure creating ticket"
-        );
+        throw new Error(response.message || "Failed to create ticket");
       }
     } catch (err: any) {
       error.value =
@@ -123,55 +133,28 @@ export const useTicketStore = defineStore("ticket", () => {
     } finally {
       isCreatingTicket.value = false;
     }
-  }
+  };
 
-  // Add a comment to an existing ticket
-  async function addComment(
-    ticketId: string,
-    content: string
-  ): Promise<boolean> {
-    if (!currentTicket.value || currentTicket.value.id !== ticketId) {
-      console.warn(
-        "Attempted to add comment but currentTicket doesn't match ticketId"
-      );
-      // Fetch details if missing? Or rely on UI context?
-      // For now, we assume the relevant ticket details are loaded in currentTicket
-      // await fetchTicketDetails(ticketId);
-      // if (!currentTicket.value) return false;
-      error.value = "Cannot add comment: Ticket details not loaded correctly.";
-      return false;
-    }
+  const addComment = async (ticketId: string, content: string) => {
+    if (!ticketId || !content.trim()) return;
 
     isAddingComment.value = true;
     error.value = null;
     try {
-      const response = await $fetch<{
-        success: boolean;
-        comment?: TicketCommentWithUser;
-        error?: string;
-      }>(`/api/tickets/${ticketId}/comment`, {
-        method: "POST",
-        body: { content },
-        headers: { "Cache-Control": "no-cache" },
-      });
-
-      if (response.success && response.comment) {
-        // Add the new comment to the current ticket's comment list
-        if (currentTicket.value) {
-          currentTicket.value.comments.push(response.comment);
-          // Update ticket status and last replied time locally
-          currentTicket.value.lastRepliedAt = new Date(
-            response.comment.createdAt
-          );
-          if (currentTicket.value.status === "PENDING") {
-            currentTicket.value.status = "OPEN";
-          }
+      const response = await $fetch<ApiCommentResponse>(
+        `/api/tickets/${ticketId}/comment`,
+        {
+          method: "POST",
+          body: { content },
         }
+      );
+
+      if (response.success) {
+        // Refresh ticket details to get the new comment
+        await fetchTicketDetails(ticketId);
         return true;
       } else {
-        throw new Error(
-          response.error || "API indicated failure adding comment"
-        );
+        throw new Error(response.message || "Failed to add comment");
       }
     } catch (err: any) {
       error.value =
@@ -181,37 +164,31 @@ export const useTicketStore = defineStore("ticket", () => {
     } finally {
       isAddingComment.value = false;
     }
-  }
+  };
 
-  // === GETTERS ===
+  // Computed
   const sortedTickets = computed(() => {
-    // Keep the same sorting logic as before, but on tickets
     return [...tickets.value].sort((a, b) => {
-      return (
-        new Date(b.lastRepliedAt).getTime() -
-        new Date(a.lastRepliedAt).getTime()
-      );
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
   });
 
-  // Removed unreadCount, adminMessages, clientMessages as they don't directly map
-
-  // === RETURN ===
+  // Return store properties and methods
   return {
     // State
     tickets,
     currentTicket,
     isLoadingList,
     isLoadingDetails,
-    isCreatingTicket,
     isAddingComment,
+    isCreatingTicket,
     error,
     // Actions
     fetchTickets,
     fetchTicketDetails,
     createTicket,
     addComment,
-    // Getters
+    // Computed
     sortedTickets,
   };
 });

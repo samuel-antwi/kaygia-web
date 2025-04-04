@@ -1,115 +1,87 @@
-import { PrismaClient } from "@prisma/client";
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
 import bcrypt from "bcrypt";
 
-// Define the expected payload type
-interface ChangePasswordPayload {
-  currentPassword?: string;
-  newPassword?: string;
-  confirmPassword?: string;
-}
+// Validation schema for password change
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Password confirmation is required"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 export default defineEventHandler(async (event) => {
+  const session = await getUserSession(event);
+  if (!session?.user?.email) {
+    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+  }
+
+  const body = await readBody(event);
+  const validation = changePasswordSchema.safeParse(body);
+  if (!validation.success) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        "Invalid input: " +
+        validation.error.errors.map((e) => e.message).join(", "),
+    });
+  }
+
+  const db = getDb(event);
+
   try {
-    // 1. Check user authentication
-    const session = await getUserSession(event);
-    if (!session || !session.user?.email) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: "Authentication required",
-      });
+    // Get user with current password hash
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true, passwordHash: true },
+    });
+
+    if (!user || !user.passwordHash) {
+      throw createError({ statusCode: 404, statusMessage: "User not found" });
     }
 
-    // 2. Parse the request body
-    const body = await readBody<ChangePasswordPayload>(event);
-
-    // 3. Validate input
-    if (!body.currentPassword || !body.newPassword || !body.confirmPassword) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: "All password fields are required.",
-      });
-    }
-
-    if (body.newPassword.length < 8) {
+    // Verify current password
+    const isValid = await bcrypt.compare(
+      validation.data.currentPassword,
+      user.passwordHash
+    );
+    if (!isValid) {
       throw createError({
         statusCode: 400,
-        statusMessage: "New password must be at least 8 characters long.",
+        statusMessage: "Current password is incorrect",
       });
     }
 
-    if (body.newPassword !== body.confirmPassword) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: "New passwords do not match.",
-      });
-    }
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(validation.data.newPassword, 10);
 
-    const prisma = new PrismaClient();
+    // Update password
+    await db
+      .update(users)
+      .set({
+        passwordHash: newPasswordHash,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, user.id));
 
-    try {
-      // 4. Fetch the user including their current password hash
-      const user = await prisma.user.findUnique({
-        where: {
-          email: session.user.email,
-        },
-      });
-
-      if (!user || !user.passwordHash) {
-        // Should not happen if user is logged in via password, but handle defensively
-        throw createError({
-          statusCode: 404,
-          statusMessage: "User not found or password not set.",
-        });
-      }
-
-      // 5. Verify the current password
-      const isCurrentPasswordValid = await bcrypt.compare(
-        body.currentPassword,
-        user.passwordHash
-      );
-
-      if (!isCurrentPasswordValid) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: "Incorrect current password.",
-        });
-      }
-
-      // 6. Hash the new password
-      const newPasswordHash = await bcrypt.hash(body.newPassword, 10); // Salt rounds = 10
-
-      // 7. Update the user's password hash in the database
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          passwordHash: newPasswordHash,
-        },
-      });
-
-      // 8. Return success response
-      // No need to update session here as password isn't stored in session
-      return {
-        success: true,
-        message: "Password updated successfully.",
-      };
-    } finally {
-      // Ensure Prisma client is disconnected
-      await prisma.$disconnect();
-    }
-  } catch (error: any) {
-    console.error("Error changing password:", error);
-
-    // Use createError for proper HTTP error handling
-    if (!error.statusCode) {
-      throw createError({
-        statusCode: 500,
-        statusMessage:
-          error.message || "An error occurred while changing the password",
-      });
-    } else {
-      throw error;
-    }
+    return {
+      success: true,
+      message: "Password updated successfully",
+    };
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Failed to change password",
+    });
   }
 });

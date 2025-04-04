@@ -1,5 +1,8 @@
 import { defineEventHandler } from "h3";
-import { Role } from "@prisma/client"; // Explicit import for clarity
+import { getDb } from "~/server/utils/db";
+import { supportTickets, users, ticketComments } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { roleEnum } from "~/server/db/schema";
 
 export default defineEventHandler(async (event) => {
   // --- START DEBUG LOGGING ---
@@ -13,7 +16,7 @@ export default defineEventHandler(async (event) => {
   // const user = event.context.userSession?.user; // Previous method
   const user = session?.user; // Get user from the awaited session object
 
-  if (!user || user.role !== Role.ADMIN) {
+  if (!user || user.role !== "ADMIN") {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Admin access required.",
@@ -21,37 +24,41 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 2. Fetch all tickets from the database
-    const tickets = await prisma.supportTicket.findMany({
-      orderBy: {
-        createdAt: "desc", // Show newest first
-      },
-      include: {
+    const db = getDb(event);
+    const tickets = await db.query.supportTickets.findMany({
+      orderBy: (tickets, { desc }) => [desc(tickets.createdAt)],
+      with: {
         client: {
-          select: {
+          columns: {
             id: true,
             name: true,
             email: true,
           },
         },
-        _count: {
-          // Include the count of comments
-          select: { comments: true },
-        },
+        comments: true,
       },
     });
 
-    // 3. Return the tickets
+    // Transform the data to match the expected format
+    const transformedTickets = tickets.map((ticket) => ({
+      ...ticket,
+      _count: {
+        comments: ticket.comments.length,
+      },
+      // Remove the comments array since we only need the count
+      comments: undefined,
+    }));
+
     return {
       success: true,
-      tickets,
+      tickets: transformedTickets,
     };
   } catch (error: any) {
     console.error("[API][Admin] Error fetching tickets:", error);
     throw createError({
       statusCode: 500,
       statusMessage: "Internal Server Error: Could not fetch tickets.",
-      data: error.message, // Optional: include error message in development?
+      data: error.message,
     });
   }
 });

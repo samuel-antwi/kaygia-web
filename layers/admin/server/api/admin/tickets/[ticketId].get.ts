@@ -1,5 +1,7 @@
 import { defineEventHandler, getRouterParam } from "h3";
-import { Role } from "@prisma/client";
+import { getDb } from "~/server/utils/db";
+import { supportTickets, users, ticketComments } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
   const ticketId = getRouterParam(event, "ticketId");
@@ -12,10 +14,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const session = await getUserSession(event);
-
   const user = session?.user;
 
-  if (!user || user.role !== Role.ADMIN) {
+  if (!user || user.role !== "ADMIN") {
     console.warn(
       `[API][Admin][${ticketId}] Unauthorized access attempt. User found: ${!!user}, Role: ${user?.role}`
     );
@@ -26,36 +27,29 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 2. Fetch the specific ticket with client and comments (including comment author)
-    const ticket = await prisma.supportTicket.findUnique({
-      where: {
-        id: ticketId,
-      },
-      include: {
+    const db = getDb(event);
+    const ticket = await db.query.supportTickets.findFirst({
+      where: eq(supportTickets.id, ticketId),
+      with: {
         client: {
-          // Include the client user details
-          select: {
+          columns: {
             id: true,
             name: true,
             email: true,
           },
         },
         comments: {
-          // Include all comments for this ticket
-          orderBy: {
-            createdAt: "asc", // Show comments in chronological order
-          },
-          include: {
+          with: {
             user: {
-              // Include the author of each comment
-              select: {
+              columns: {
                 id: true,
                 name: true,
                 email: true,
-                role: true, // Include role to differentiate admin/client comments
+                role: true,
               },
             },
           },
+          orderBy: (comments, { asc }) => [asc(comments.createdAt)],
         },
       },
     });
@@ -67,17 +61,13 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // 3. Return the detailed ticket data
     return {
       success: true,
       ticket,
     };
   } catch (error: any) {
-    // Handle potential Prisma errors (e.g., invalid ID format) or other issues
-    if (
-      error.code === "P2023" ||
-      error.message.includes("Malformed ObjectID")
-    ) {
+    // Handle potential errors
+    if (error.message?.includes("invalid input syntax")) {
       console.warn(`[API][Admin][${ticketId}] Invalid ticket ID format.`);
       throw createError({
         statusCode: 400,

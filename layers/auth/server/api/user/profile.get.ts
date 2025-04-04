@@ -1,7 +1,11 @@
 import { H3Event } from "h3";
+import { getDb } from "~/server/utils/db";
+import { users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
+    const db = getDb(event);
     // Get user session
     const session = await getUserSession(event);
 
@@ -17,9 +21,9 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     // Find user by email and explicitly select needed fields
-    const user = await prisma.user.findUnique({
-      where: { email: userEmail },
-      select: {
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, userEmail),
+      columns: {
         id: true,
         email: true,
         name: true,

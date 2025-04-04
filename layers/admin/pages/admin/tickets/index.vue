@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import {
-  type SupportTicket,
-  type User as ClientUser,
-  type TicketStatus,
-} from "@prisma/client";
 import { AlertTriangle, Loader2 } from "lucide-vue-next";
+import { Role } from "../../../types/role"; // Import local Role enum
+import type { InferSelectModel } from "drizzle-orm";
+import type { supportTickets, users } from "~/server/db/schema";
 
 definePageMeta({
   layout: "admin",
 });
 
+const { user, loading } = useAuth();
+
 // Define the expected structure of a ticket returned by our admin API
 // Includes the client details and comment count
-interface AdminTicket extends Omit<SupportTicket, "clientId"> {
-  client: Pick<ClientUser, "id" | "name" | "email"> | null;
+interface AdminTicket
+  extends Omit<InferSelectModel<typeof supportTickets>, "clientId"> {
+  client: Pick<InferSelectModel<typeof users>, "id" | "name" | "email"> | null;
   _count: {
     comments: number;
   };
@@ -27,6 +28,7 @@ interface ApiResponse {
   message?: string; // Optional error message
 }
 
+// Fetch tickets data
 const { data, pending, error, refresh } = await useFetch<ApiResponse>(
   "/api/admin/tickets",
   {
@@ -35,35 +37,34 @@ const { data, pending, error, refresh } = await useFetch<ApiResponse>(
   }
 );
 
-// Computed property for easier access to tickets, handles potential null/undefined data
-const tickets = computed(() => data.value?.tickets ?? []);
+// Computed property for easier access to the tickets array
+const tickets = computed(() => data.value?.tickets || []);
 
-// Utility to format date (can be extracted later)
-function formatDate(dateString: string | Date): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
+// Function to format date
+const formatDate = (date: string | Date) => {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj.toLocaleDateString("en-US", {
     year: "numeric",
+    month: "short",
+    day: "numeric",
   });
-}
+};
 
-// Utility to get status variant (updated based on schema)
-function getStatusVariant(status: TicketStatus): string {
+// Function to get status color class
+const getStatusColor = (status: string) => {
   switch (status) {
     case "OPEN":
-      return "bg-blue-100 text-blue-800";
+      return "text-green-600 dark:text-green-400";
     case "PENDING":
-      return "bg-yellow-100 text-yellow-800";
+      return "text-yellow-600 dark:text-yellow-400";
     case "RESOLVED":
-      return "bg-cyan-100 text-cyan-800";
+      return "text-blue-600 dark:text-blue-400";
     case "CLOSED":
-      return "bg-green-100 text-green-800";
+      return "text-gray-600 dark:text-gray-400";
     default:
-      console.warn(`Unknown ticket status: ${status}`);
-      return "bg-gray-100 text-gray-800";
+      return "text-gray-600 dark:text-gray-400";
   }
-}
+};
 
 // Function to navigate to ticket detail page
 function viewTicket(ticketId: string) {
@@ -73,87 +74,132 @@ function viewTicket(ticketId: string) {
 
 <template>
   <div>
-    <h2 class="text-2xl font-semibold mb-4">Manage Tickets</h2>
-
-    <!-- Loading State -->
-    <div v-if="pending" class="flex items-center justify-center py-10">
-      <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
-      <p class="ml-2 text-muted-foreground">Loading tickets...</p>
-    </div>
-
-    <!-- Error State -->
-    <div
-      v-else-if="error"
-      class="p-4 bg-red-50 border border-red-200 rounded-md"
-    >
-      <div class="flex items-center">
-        <AlertTriangle class="h-5 w-5 text-red-500 mr-2" />
-        <p class="text-red-700 font-medium">Error loading tickets:</p>
+    <!-- Only show content if user is loaded and confirmed ADMIN -->
+    <div v-if="!loading && user && user.role === Role.ADMIN">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold">Support Tickets</h1>
       </div>
-      <p class="text-red-600 mt-1 text-sm">
-        {{ error.message || "An unknown error occurred." }}
-      </p>
-      <Button @click="refresh" variant="outline" size="sm" class="mt-3"
-        >Retry</Button
-      >
-    </div>
 
-    <!-- Data Loaded State -->
-    <div v-else-if="tickets.length > 0">
-      <Card>
-        <CardContent class="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Subject</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead class="text-center">Comments</TableHead>
-                <TableHead class="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow v-for="ticket in tickets" :key="ticket.id">
-                <TableCell class="font-medium">{{ ticket.subject }}</TableCell>
-                <TableCell
-                  >{{ ticket.client?.name || "N/A" }}
-                  <span class="text-xs text-muted-foreground"
-                    >({{ ticket.client?.email || "-" }})</span
-                  ></TableCell
+      <!-- Loading state -->
+      <div v-if="pending" class="text-center py-8">
+        <Loader2 class="h-8 w-8 animate-spin mx-auto" />
+        <p class="mt-2 text-gray-600 dark:text-gray-400">Loading tickets...</p>
+      </div>
+
+      <!-- Error state -->
+      <div
+        v-else-if="error"
+        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6"
+      >
+        <div class="flex items-center space-x-2 text-red-600 dark:text-red-400">
+          <AlertTriangle class="h-5 w-5" />
+          <p class="font-medium">Error loading tickets</p>
+        </div>
+        <p class="mt-1 text-red-500 dark:text-red-300">
+          {{ error.message }}
+        </p>
+      </div>
+
+      <!-- Tickets table -->
+      <div v-else class="bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div class="overflow-x-auto">
+          <table
+            class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+          >
+            <thead class="bg-gray-50 dark:bg-gray-900/50">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
-                <TableCell>
-                  <Badge
-                    :class="getStatusVariant(ticket.status)"
-                    variant="outline"
+                  Subject
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
+                  Client
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
+                  Created
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                >
+                  Comments
+                </th>
+                <th scope="col" class="relative px-6 py-3">
+                  <span class="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr
+                v-for="ticket in tickets"
+                :key="ticket.id"
+                class="hover:bg-gray-50 dark:hover:bg-gray-900/50"
+              >
+                <td class="px-6 py-4">
+                  <div
+                    class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                  >
+                    {{ ticket.subject }}
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900 dark:text-gray-100">
+                    {{ ticket.client?.name || "Unknown" }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ ticket.client?.email }}
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="text-sm font-medium"
+                    :class="getStatusColor(ticket.status)"
                   >
                     {{ ticket.status }}
-                  </Badge>
-                </TableCell>
-                <TableCell>{{ formatDate(ticket.createdAt) }}</TableCell>
-                <TableCell class="text-center">{{
-                  ticket._count?.comments ?? 0
-                }}</TableCell>
-                <TableCell class="text-right">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    @click="viewTicket(ticket.id)"
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  {{ formatDate(ticket.createdAt) }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  {{ ticket._count?.comments || 0 }}
+                </td>
+                <td class="px-6 py-4 text-right text-sm font-medium">
+                  <NuxtLink
+                    :to="`/admin/tickets/${ticket.id}`"
+                    class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
                   >
                     View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                  </NuxtLink>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-
-    <!-- No Data State -->
-    <div v-else class="text-center py-10 border border-dashed rounded-md">
-      <p class="text-muted-foreground">No tickets found.</p>
-      <!-- Optional: Add a button to create a ticket if admins can do that -->
+    <!-- Loading state -->
+    <div v-else-if="loading" class="text-center py-8">
+      <Loader2 class="h-8 w-8 animate-spin mx-auto" />
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Loading...</p>
+    </div>
+    <!-- Unauthorized state -->
+    <div v-else>
+      <p>Access Denied. Redirecting...</p>
     </div>
   </div>
 </template>

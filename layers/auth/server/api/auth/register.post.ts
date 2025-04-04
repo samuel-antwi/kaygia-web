@@ -2,10 +2,15 @@ import { H3Event } from "h3";
 import * as bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import { sendVerificationEmail } from "~/utils/email";
+import { getDb } from "~/server/utils/db";
+import { users, emailVerifications } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
     const { email, password, name, company } = await readBody(event);
+    const db = getDb(event);
 
     // Validate required fields
     if (!email || !password) {
@@ -16,8 +21,8 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, email),
     });
 
     if (existingUser) {
@@ -32,16 +37,19 @@ export default defineEventHandler(async (event: H3Event) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // Create new user
-    const newUser = await prisma.user.create({
-      data: {
+    const userId = uuidv4();
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        id: userId,
         email,
         name,
         company,
         passwordHash,
         role: "CLIENT", // Default role for new users
         emailVerified: false, // Email not verified by default
-      },
-    });
+      })
+      .returning();
 
     // Generate a verification token
     const token = randomBytes(32).toString("hex");
@@ -51,12 +59,11 @@ export default defineEventHandler(async (event: H3Event) => {
     expiresAt.setHours(expiresAt.getHours() + 24);
 
     // Create a verification record
-    await prisma.emailVerification.create({
-      data: {
-        token,
-        expiresAt,
-        userId: newUser.id,
-      },
+    await db.insert(emailVerifications).values({
+      id: uuidv4(),
+      token,
+      expiresAt,
+      userId: newUser.id,
     });
 
     // Generate verification URL

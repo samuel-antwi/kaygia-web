@@ -1,5 +1,6 @@
 import type { User } from "~/layers/auth/types/user"; // Adjust path as needed
-import { Role } from "@prisma/client"; // Import Role
+import { Role } from "~/layers/admin/types/role"; // Import local Role enum
+import { useUserState } from "~/composables/useUserState";
 
 // Define the expected success response shape explicitly
 interface ProfileResponseSuccess {
@@ -18,7 +19,7 @@ type ProfileResponse = ProfileResponseSuccess | ProfileResponseError;
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   const { initAuth, loading, loggedIn } = useAuth();
-  const userState = useState<User | null>("user"); // Get direct access to the user state
+  const { user: userState } = useUserState(); // Use the new composable
 
   // 1. Initialize the core session status
   await initAuth(); // This now just calls fetchSession and sets loading

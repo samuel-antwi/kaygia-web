@@ -1,9 +1,13 @@
 import * as bcrypt from "bcrypt";
 import { H3Event } from "h3";
+import { getDb } from "~/server/utils/db";
+import { users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
     const { email, password } = await readBody(event);
+    const db = getDb(event);
 
     // Validate required fields
     if (!email || !password) {
@@ -14,8 +18,8 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     // Find user by email with passwordHash
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.email, email),
     });
 
     if (!existingUser) {
@@ -65,10 +69,10 @@ export default defineEventHandler(async (event: H3Event) => {
     };
 
     // Update last login timestamp
-    await prisma.user.update({
-      where: { id: existingUser.id },
-      data: { lastLoggedIn: new Date() },
-    });
+    await db
+      .update(users)
+      .set({ lastLoggedIn: new Date() })
+      .where(eq(users.id, existingUser.id));
 
     // Set the auth session using nuxt-auth-utils
     await setUserSession(event, {

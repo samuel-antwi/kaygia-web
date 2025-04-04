@@ -1,85 +1,56 @@
-import { PrismaClient } from "@prisma/client";
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { projects, users } from "~/server/db/schema";
+import { and, eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
+  const session = await getUserSession(event);
+  if (!session?.user?.email) {
+    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+  }
+
+  const projectId = event.context.params?.id;
+  if (!projectId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Project ID is required",
+    });
+  }
+
+  const db = getDb(event);
+
   try {
-    // Check user authentication
-    const session = await getUserSession(event);
-    if (!session) {
-      return {
-        success: false,
-        error: "Authentication required",
-        statusCode: 401,
-      };
-    }
-
-    // Get project ID from URL
-    const id = getRouterParam(event, "id");
-    if (!id) {
-      return {
-        success: false,
-        error: "Project ID is required",
-        statusCode: 400,
-      };
-    }
-
-    const prisma = new PrismaClient();
-
-    // Get user from session
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user?.email as string,
-      },
+    // First get the user
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
 
     if (!user) {
-      await prisma.$disconnect();
-      return {
-        success: false,
-        error: "User not found",
-        statusCode: 404,
-      };
+      throw createError({ statusCode: 404, statusMessage: "User not found" });
     }
 
-    // Fetch the specific project
-    const project = await prisma.project.findUnique({
-      where: {
-        id,
-      },
+    // Then get their project with security check
+    const project = await db.query.projects.findFirst({
+      where: and(eq(projects.id, projectId), eq(projects.clientId, user.id)),
     });
 
-    // Close Prisma connection
-    await prisma.$disconnect();
-
-    // Check if project exists
     if (!project) {
-      return {
-        success: false,
-        error: "Project not found",
+      throw createError({
         statusCode: 404,
-      };
+        statusMessage: "Project not found",
+      });
     }
 
-    // Verify user is the project owner or admin
-    if (project.clientId !== user.id) {
-      return {
-        success: false,
-        error: "You do not have permission to view this project",
-        statusCode: 403,
-      };
-    }
-
-    // Return success with project
     return {
       success: true,
       project,
     };
-  } catch (error: any) {
-    console.error("Error fetching project:", error);
-
-    return {
-      success: false,
-      error: error.message || "An error occurred while fetching the project",
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw createError({
       statusCode: 500,
-    };
+      statusMessage: "Failed to fetch project",
+    });
   }
 });

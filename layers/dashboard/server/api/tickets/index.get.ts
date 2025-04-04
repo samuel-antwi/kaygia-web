@@ -1,3 +1,8 @@
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { supportTickets, users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+
 export default defineEventHandler(async (event) => {
   // Get user session from event context (populated by nuxt-auth-utils)
   const session = await getUserSession(event);
@@ -10,15 +15,17 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const db = getDb(event);
+
   // Fetch user from DB based on session email to get their ID
   let user;
   try {
-    user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
+    user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
   } catch (dbError) {
-    console.error("Prisma Error fetching user:", dbError);
+    console.error("Database Error fetching user:", dbError);
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not fetch user data",
@@ -36,31 +43,35 @@ export default defineEventHandler(async (event) => {
 
   // Fetch tickets for the user
   try {
-    const tickets = await prisma.supportTicket.findMany({
-      where: {
-        clientId: user.id,
-      },
-      orderBy: {
-        lastRepliedAt: "desc", // Show most recently active tickets first
-      },
-      select: {
+    const tickets = await db.query.supportTickets.findMany({
+      where: eq(supportTickets.clientId, user.id),
+      orderBy: (tickets, { desc }) => [desc(tickets.lastRepliedAt)],
+      columns: {
         id: true,
         subject: true,
         status: true,
         createdAt: true,
         updatedAt: true,
         lastRepliedAt: true,
-        _count: {
-          // Include comment count
-          select: { comments: true },
-        },
-        // Maybe include last comment snippet later if needed
+      },
+      with: {
+        comments: true,
       },
     });
 
-    return { success: true, tickets };
+    // Transform the data to match the expected format
+    const transformedTickets = tickets.map((ticket) => ({
+      ...ticket,
+      _count: {
+        comments: ticket.comments.length,
+      },
+      // Remove the comments array since we only need the count
+      comments: undefined,
+    }));
+
+    return { success: true, tickets: transformedTickets };
   } catch (dbError) {
-    console.error("Prisma Error fetching tickets:", dbError);
+    console.error("Database Error fetching tickets:", dbError);
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not fetch support tickets",

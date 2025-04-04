@@ -1,25 +1,38 @@
 // New empty file content, old file will be deleted
 
 import { MessagesSquare, UserCircle } from "lucide-vue-next";
-import type { TicketStatus } from "@prisma/client";
+import { computed } from "vue";
+import type { InferSelectModel } from "drizzle-orm";
+import type { supportTickets } from "~/server/db/schema";
 
-export const useTicketUtils = () => {
-  // Format date
-  const formatDate = (dateString: string | Date | undefined | null): string => {
-    if (!dateString) return "";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "";
-      return date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      });
-    } catch (e) {
-      console.error("Error formatting date:", dateString, e);
-      return "";
+export function useTicketUtils() {
+  // Function to format date
+  function formatDate(date: string | Date): string {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return dateObj.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  // Function to get status color class
+  function getStatusColor(
+    status: InferSelectModel<typeof supportTickets>["status"]
+  ) {
+    switch (status) {
+      case "OPEN":
+        return "text-green-600 dark:text-green-400";
+      case "PENDING":
+        return "text-yellow-600 dark:text-yellow-400";
+      case "RESOLVED":
+        return "text-blue-600 dark:text-blue-400";
+      case "CLOSED":
+        return "text-gray-600 dark:text-gray-400";
+      default:
+        return "text-gray-600 dark:text-gray-400";
     }
-  };
+  }
 
   // Format time
   const formatTime = (dateString: string | Date | undefined | null): string => {
@@ -48,7 +61,9 @@ export const useTicketUtils = () => {
   };
 
   // Helper to get badge variant based on status
-  const getStatusBadgeVariant = (status: TicketStatus) => {
+  const getStatusBadgeVariant = (
+    status: InferSelectModel<typeof supportTickets>["status"]
+  ) => {
     switch (status) {
       case "OPEN":
       case "PENDING":
@@ -67,6 +82,7 @@ export const useTicketUtils = () => {
     formatTime,
     getSenderIcon,
     getSenderName,
-    getStatusBadgeVariant, // Export the new helper
+    getStatusBadgeVariant,
+    getStatusColor,
   };
-};
+}

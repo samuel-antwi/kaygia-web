@@ -1,10 +1,15 @@
 import { H3Event } from "h3";
 import { randomBytes } from "crypto";
 import { sendVerificationEmail } from "~/utils/email";
+import { getDb } from "~/server/utils/db";
+import { users, emailVerifications } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
     const { email } = await readBody(event);
+    const db = getDb(event);
 
     // Validate required fields
     if (!email) {
@@ -15,8 +20,8 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
     });
 
     if (!user) {
@@ -44,12 +49,11 @@ export default defineEventHandler(async (event: H3Event) => {
     expiresAt.setHours(expiresAt.getHours() + 24);
 
     // Create a new verification record
-    await prisma.emailVerification.create({
-      data: {
-        token,
-        expiresAt,
-        userId: user.id,
-      },
+    await db.insert(emailVerifications).values({
+      id: uuidv4(),
+      token,
+      expiresAt,
+      userId: user.id,
     });
 
     // Generate verification URL

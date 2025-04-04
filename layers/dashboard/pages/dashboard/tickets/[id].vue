@@ -148,7 +148,11 @@ const goBack = () => {
           <CardDescription>
             Ticket opened on {{ formatDate(currentTicket.createdAt) }} at
             {{ formatTime(currentTicket.createdAt) }} by
-            {{ currentTicket.client.name || currentTicket.client.email }}
+            {{
+              currentTicket.client?.name ||
+              currentTicket.client?.email ||
+              "Unknown Client"
+            }}
           </CardDescription>
         </CardHeader>
       </Card>

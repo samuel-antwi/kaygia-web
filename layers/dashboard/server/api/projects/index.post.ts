@@ -1,77 +1,84 @@
-import { PrismaClient } from "@prisma/client";
-import type { CreateProjectPayload } from "../../../types/project";
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { projects, users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
+import type {
+  ProjectType,
+  ProjectStatus,
+} from "~/layers/dashboard/types/project";
+
+// Validation schema for new project
+const createProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
+  description: z.string().optional(),
+  status: z
+    .enum(["PLANNING", "IN_PROGRESS", "COMPLETED", "ON_HOLD"])
+    .default("PLANNING"),
+  type: z.enum(["WEB", "MOBILE", "DESKTOP", "OTHER"]).default("WEB"),
+  requirements: z.string().optional(),
+});
 
 export default defineEventHandler(async (event) => {
+  const session = await getUserSession(event);
+  if (!session?.user?.email) {
+    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+  }
+
+  const body = await readBody(event);
+  const validation = createProjectSchema.safeParse(body);
+  if (!validation.success) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        "Invalid input: " +
+        validation.error.errors.map((e) => e.message).join(", "),
+    });
+  }
+
+  const db = getDb(event);
+
   try {
-    // Check user authentication
-    const session = await getUserSession(event);
-    if (!session) {
-      return {
-        success: false,
-        error: "Authentication required",
-        statusCode: 401,
-      };
-    }
-
-    const prisma = new PrismaClient();
-
-    // Get user from session
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user?.email as string,
-      },
+    // First get the user
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
 
     if (!user) {
-      await prisma.$disconnect();
-      return {
-        success: false,
-        error: "User not found",
-        statusCode: 404,
-      };
-    }
-
-    // Parse the request body
-    const body = await readBody<CreateProjectPayload>(event);
-
-    // Validate required fields
-    if (!body.title || !body.type) {
-      await prisma.$disconnect();
-      return {
-        success: false,
-        error: "Title and project type are required",
-        statusCode: 400,
-      };
+      throw createError({ statusCode: 404, statusMessage: "User not found" });
     }
 
     // Create the project
-    const project = await prisma.project.create({
-      data: {
-        title: body.title,
-        description: body.description || null,
-        type: body.type,
-        status: "PENDING", // Default status for new projects
+    const now = new Date();
+    const [newProject] = await db
+      .insert(projects)
+      .values({
+        id: uuidv4(),
+        title: validation.data.name,
+        type: validation.data.type as ProjectType,
+        status: "PENDING" as ProjectStatus,
+        description: validation.data.description || null,
+        requirements: validation.data.requirements || null,
+        budget: null,
         clientId: user.id,
-        budget: body.budget || null,
-        requirements: body.requirements || null,
-      },
-    });
+        createdAt: now,
+        updatedAt: now,
+        startDate: null,
+        endDate: null,
+      })
+      .returning();
 
-    // Close Prisma connection
-    await prisma.$disconnect();
-
-    // Return success with the created project
     return {
       success: true,
-      project,
+      project: newProject,
     };
-  } catch (error: any) {
-    console.error("Error creating project:", error);
-
-    return {
-      success: false,
-      error: error.message || "An error occurred while creating the project",
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw createError({
       statusCode: 500,
-    };
+      statusMessage: "Failed to create project",
+    });
   }
 });

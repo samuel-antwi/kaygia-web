@@ -1,4 +1,9 @@
 import { z } from "zod";
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { supportTickets, users, ticketComments } from "~/server/db/schema";
+import { eq, and } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
 // Zod schema for input validation
 const addCommentSchema = z.object({
@@ -11,14 +16,17 @@ export default defineEventHandler(async (event) => {
   if (!session?.user?.email) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }
+
+  const db = getDb(event);
+
   let user;
   try {
-    user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
+    user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
   } catch (dbError) {
-    console.error("Prisma Error fetching user:", dbError);
+    console.error("Database Error fetching user:", dbError);
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not fetch user",
@@ -50,15 +58,15 @@ export default defineEventHandler(async (event) => {
   // 4. Verify Ticket Exists and Belongs to User
   let ticket;
   try {
-    ticket = await prisma.supportTicket.findUnique({
-      where: {
-        id: ticketId,
-        clientId: user.id, // Ensure user owns the ticket
-      },
-      select: { id: true, status: true }, // Select only needed fields
+    ticket = await db.query.supportTickets.findFirst({
+      where: and(
+        eq(supportTickets.id, ticketId),
+        eq(supportTickets.clientId, user.id)
+      ),
+      columns: { id: true, status: true },
     });
   } catch (dbError) {
-    console.error("Prisma Error verifying ticket ownership:", dbError);
+    console.error("Database Error verifying ticket ownership:", dbError);
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error verifying ticket",
@@ -82,38 +90,54 @@ export default defineEventHandler(async (event) => {
 
   // 5. Create Comment and Update Ticket Timestamp in Transaction
   try {
-    const [newComment, _updatedTicket] = await prisma.$transaction([
+    const now = new Date();
+    const [newComment] = await db.transaction(async (tx) => {
       // Create the new comment
-      prisma.ticketComment.create({
-        data: {
+      const comment = await tx
+        .insert(ticketComments)
+        .values({
+          id: uuidv4(),
           content: content,
           ticketId: ticket.id,
           userId: user.id,
-          sender: "CLIENT", // Comment is from the client
-        },
-        // Include user details in the response for immediate display
-        include: {
-          user: {
-            select: { name: true, id: true },
-          },
-        },
-      }),
+          sender: "CLIENT",
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
+
       // Update the ticket's lastRepliedAt and potentially status
-      prisma.supportTicket.update({
-        where: { id: ticket.id },
-        data: {
-          lastRepliedAt: new Date(),
+      await tx
+        .update(supportTickets)
+        .set({
+          lastRepliedAt: now,
+          updatedAt: now,
           // If admin replies, status might change to PENDING,
           // if client replies, status might change from PENDING back to OPEN
           // For now, if client replies, ensure it's not stuck in PENDING
           status: ticket.status === "PENDING" ? "OPEN" : ticket.status,
+        })
+        .where(eq(supportTickets.id, ticket.id));
+
+      // Include user details in the response for immediate display
+      const commentWithUser = await tx.query.ticketComments.findFirst({
+        where: eq(ticketComments.id, comment[0].id),
+        with: {
+          user: {
+            columns: { name: true, id: true },
+          },
         },
-      }),
-    ]);
+      });
+
+      return [commentWithUser];
+    });
 
     return { success: true, comment: newComment };
   } catch (dbError) {
-    console.error("Prisma Error creating comment or updating ticket:", dbError);
+    console.error(
+      "Database Error creating comment or updating ticket:",
+      dbError
+    );
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not add comment",

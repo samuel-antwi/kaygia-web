@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watchEffect } from "vue";
-import { Role } from "@prisma/client"; // Import Role enum
+import { Role } from "../../types/role"; // Import local Role enum
 
 // Ensure middleware runs for this page (it does if global)
 definePageMeta({

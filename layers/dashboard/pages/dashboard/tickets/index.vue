@@ -196,7 +196,12 @@ const onSubmit = handleSubmit(async (values) => {
                     {{ ticket.subject }}
                   </h4>
                   <p class="text-sm text-muted-foreground sm:hidden">
-                    {{ ticket.status }} - {{ formatDate(ticket.lastRepliedAt) }}
+                    {{ ticket.status }} -
+                    {{
+                      ticket.lastRepliedAt
+                        ? formatDate(ticket.lastRepliedAt)
+                        : "No reply yet"
+                    }}
                   </p>
                 </div>
                 <div class="w-full sm:w-24 text-left sm:text-center">
@@ -207,8 +212,14 @@ const onSubmit = handleSubmit(async (values) => {
                 <div
                   class="w-full sm:w-32 text-left sm:text-right text-sm text-muted-foreground"
                 >
-                  {{ formatDate(ticket.lastRepliedAt) }}
-                  {{ formatTime(ticket.lastRepliedAt) }}
+                  {{
+                    ticket.lastRepliedAt
+                      ? formatDate(ticket.lastRepliedAt)
+                      : "No reply yet"
+                  }}
+                  {{
+                    ticket.lastRepliedAt ? formatTime(ticket.lastRepliedAt) : ""
+                  }}
                 </div>
               </div>
             </div>

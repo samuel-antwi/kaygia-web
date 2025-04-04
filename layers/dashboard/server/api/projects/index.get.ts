@@ -1,59 +1,42 @@
-import { PrismaClient } from "@prisma/client";
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { projects, users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
+  const session = await getUserSession(event);
+  if (!session?.user?.email) {
+    throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
+  }
+
+  const db = getDb(event);
+
   try {
-    // Check user authentication
-    const session = await getUserSession(event);
-    if (!session) {
-      return {
-        success: false,
-        error: "Authentication required",
-        statusCode: 401,
-      };
-    }
-
-    const prisma = new PrismaClient();
-
-    // Get user from session
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user?.email as string,
-      },
+    // First get the user
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
 
     if (!user) {
-      return {
-        success: false,
-        error: "User not found",
-        statusCode: 404,
-      };
+      throw createError({ statusCode: 404, statusMessage: "User not found" });
     }
 
-    // Fetch projects for user
-    const projects = await prisma.project.findMany({
-      where: {
-        clientId: user.id,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
+    // Then get their projects
+    const userProjects = await db.query.projects.findMany({
+      where: eq(projects.clientId, user.id),
+      orderBy: (projects, { desc }) => [desc(projects.createdAt)],
     });
 
-    // Close Prisma connection
-    await prisma.$disconnect();
-
-    // Return success with projects
     return {
       success: true,
-      projects,
+      projects: userProjects,
     };
-  } catch (error: any) {
-    console.error("Error fetching projects:", error);
-
-    return {
-      success: false,
-      error: error.message || "An error occurred while fetching projects",
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw createError({
       statusCode: 500,
-    };
+      statusMessage: "Failed to fetch projects",
+    });
   }
 });

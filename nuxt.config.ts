@@ -56,22 +56,24 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    externals: {
-      external: ["@prisma/client"],
+    esbuild: {
+      options: {
+        target: "esnext",
+      },
     },
   },
 
-  hooks: {
-    "vite:extendConfig": (config: UserConfig) => {
-      config.optimizeDeps = config.optimizeDeps || {};
-      config.optimizeDeps.exclude = config.optimizeDeps.exclude || [];
-      config.optimizeDeps.exclude.push("@prisma/client");
+  build: {
+    transpile: ["trpc-nuxt"],
+  },
 
-      config.resolve = config.resolve || {};
-      config.resolve.alias = config.resolve.alias || {};
-      (config.resolve.alias as Record<string, string>)[
-        ".prisma/client/index-browser"
-      ] = "@prisma/client/index-browser";
+  // Remove Prisma-specific configuration
+  vite: {
+    optimizeDeps: {
+      exclude: [],
+    },
+    define: {
+      "window.global": {},
     },
   },
 });

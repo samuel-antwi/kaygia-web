@@ -1,4 +1,9 @@
 import { z } from "zod";
+import { defineEventHandler } from "h3";
+import { getDb } from "~/server/utils/db";
+import { supportTickets, users, ticketComments } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
 // Zod schema for input validation
 const createTicketSchema = z.object({
@@ -17,14 +22,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }
 
+  const db = getDb(event);
+
   let user;
   try {
-    user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
+    user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
   } catch (dbError) {
-    console.error("Prisma Error fetching user:", dbError);
+    console.error("Database Error fetching user:", dbError);
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not fetch user",
@@ -51,32 +58,37 @@ export default defineEventHandler(async (event) => {
 
   // 3. Create Ticket and Initial Comment in a Transaction
   try {
-    const newTicket = await prisma.$transaction(async (tx) => {
+    const now = new Date();
+    const ticketId = uuidv4();
+
+    const [newTicket] = await db.transaction(async (tx) => {
       // Create the ticket
-      const ticket = await tx.supportTicket.create({
-        data: {
+      const [ticket] = await tx
+        .insert(supportTickets)
+        .values({
+          id: ticketId,
           subject: subject,
+          description: content, // Use initial content as description
           clientId: user.id,
-          status: "OPEN", // Default status
-          // lastRepliedAt will default to now()
-        },
-      });
+          status: "OPEN",
+          createdAt: now,
+          updatedAt: now,
+          lastRepliedAt: now,
+        })
+        .returning();
 
       // Create the initial comment from the client
-      await tx.ticketComment.create({
-        data: {
-          content: content,
-          ticketId: ticket.id,
-          userId: user.id, // Comment is from the client
-          sender: "CLIENT", // Mark sender as CLIENT
-        },
+      await tx.insert(ticketComments).values({
+        id: uuidv4(),
+        content: content,
+        ticketId: ticketId,
+        userId: user.id,
+        sender: "CLIENT",
+        createdAt: now,
+        updatedAt: now,
       });
 
-      // We don't explicitly update lastRepliedAt here,
-      // relying on potential future triggers or batch updates if high precision is needed.
-      // For now, the ticket's createdAt/updatedAt can approximate activity start.
-
-      return ticket; // Return the created ticket
+      return [ticket];
     });
 
     // Return only essential ticket info on creation
@@ -90,7 +102,7 @@ export default defineEventHandler(async (event) => {
       },
     };
   } catch (dbError) {
-    console.error("Prisma Error creating ticket/comment:", dbError);
+    console.error("Database Error creating ticket/comment:", dbError);
     throw createError({
       statusCode: 500,
       statusMessage: "Server Error: Could not create support ticket",

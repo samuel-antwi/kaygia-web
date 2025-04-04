@@ -1,13 +1,7 @@
-// Middleware should check session directly, not rely on potentially unloaded user state
-// import { Role } from '@prisma/client'; // Role check moved to page
-
 // Define routes that are part of the admin section
 const ADMIN_ROUTE_PREFIX = "/admin";
 
-// Remove Prisma client - middleware shouldn't access DB directly
-// const prisma = new PrismaClient();
-
-import { Role } from "@prisma/client"; // Role might not be needed here anymore
+import { Role } from "../types/role"; // Import local Role enum
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
   // Only apply this middleware to routes starting with the admin prefix

@@ -1,109 +1,124 @@
-import { PrismaClient } from "@prisma/client";
-import type { UpdateProjectPayload } from "../../../types/project";
+import { defineEventHandler, getRouterParam } from "h3";
+import { getDb } from "~/server/utils/db";
+import { projects, users } from "~/server/db/schema";
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+
+// Define the validation schema for project updates
+const updateProjectSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  type: z
+    .enum([
+      "WEBSITE",
+      "E_COMMERCE",
+      "WEB_APP",
+      "MOBILE_APP",
+      "BRANDING",
+      "MARKETING",
+      "OTHER",
+    ])
+    .optional(),
+  status: z
+    .enum([
+      "PENDING",
+      "APPROVED",
+      "IN_PROGRESS",
+      "REVIEW",
+      "COMPLETED",
+      "CANCELLED",
+    ])
+    .optional(),
+  requirements: z.string().optional(),
+  budget: z.number().positive().optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+});
 
 export default defineEventHandler(async (event) => {
   try {
-    // Check user authentication
+    const projectId = getRouterParam(event, "id");
+    if (!projectId) {
+      return {
+        success: false,
+        message: "Project ID is required",
+      };
+    }
+
+    // Get the user session
     const session = await getUserSession(event);
-    if (!session) {
+    if (!session?.user) {
       return {
         success: false,
-        error: "Authentication required",
-        statusCode: 401,
+        message: "Authentication required",
       };
     }
 
-    // Get project ID from URL
-    const id = getRouterParam(event, "id");
-    if (!id) {
+    // Get request body
+    const body = await readBody(event);
+
+    // Validate the request body
+    const validation = updateProjectSchema.safeParse(body);
+    if (!validation.success) {
       return {
         success: false,
-        error: "Project ID is required",
-        statusCode: 400,
+        message: "Invalid project data",
+        errors: validation.error.errors,
       };
     }
 
-    const prisma = new PrismaClient();
+    // Initialize database connection
+    const db = getDb(event);
 
-    // Get user from session
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user?.email as string,
-      },
+    // First get the user
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, session.user.email),
+      columns: { id: true },
     });
 
     if (!user) {
-      await prisma.$disconnect();
-      return {
-        success: false,
-        error: "User not found",
-        statusCode: 404,
-      };
+      throw createError({ statusCode: 404, statusMessage: "User not found" });
     }
 
-    // First check if the project exists and user has permission
-    const existingProject = await prisma.project.findUnique({
-      where: {
-        id,
-      },
+    // Check if project exists and belongs to user
+    const existingProject = await db.query.projects.findFirst({
+      where: and(eq(projects.id, projectId), eq(projects.clientId, user.id)),
     });
 
     if (!existingProject) {
-      await prisma.$disconnect();
-      return {
-        success: false,
-        error: "Project not found",
+      throw createError({
         statusCode: 404,
-      };
+        statusMessage: "Project not found",
+      });
     }
 
-    // Verify user is the project owner or admin
-    if (existingProject.clientId !== user.id) {
-      await prisma.$disconnect();
-      return {
-        success: false,
-        error: "You do not have permission to update this project",
-        statusCode: 403,
-      };
-    }
+    // Extract date fields and other data separately
+    const { startDate, endDate, ...otherData } = validation.data;
 
-    // Parse the request body
-    const body = await readBody<UpdateProjectPayload>(event);
+    // Prepare update data with proper date types
+    const updateData = {
+      ...otherData,
+      updatedAt: new Date(),
+      ...(startDate && { startDate: new Date(startDate) }),
+      ...(endDate && { endDate: new Date(endDate) }),
+    };
 
     // Update the project
-    const project = await prisma.project.update({
-      where: {
-        id,
-      },
-      data: {
-        title: body.title !== undefined ? body.title : undefined,
-        description:
-          body.description !== undefined ? body.description : undefined,
-        status: body.status !== undefined ? body.status : undefined,
-        startDate: body.startDate !== undefined ? body.startDate : undefined,
-        endDate: body.endDate !== undefined ? body.endDate : undefined,
-        budget: body.budget !== undefined ? body.budget : undefined,
-        requirements:
-          body.requirements !== undefined ? body.requirements : undefined,
-        updatedAt: new Date(), // Update the timestamp
-      },
-    });
+    const [updatedProject] = await db
+      .update(projects)
+      .set(updateData)
+      .where(eq(projects.id, projectId))
+      .returning();
 
-    // Close Prisma connection
-    await prisma.$disconnect();
-
-    // Return success with the updated project
     return {
       success: true,
-      project,
+      project: updatedProject,
     };
   } catch (error: any) {
     console.error("Error updating project:", error);
-
     return {
       success: false,
-      error: error.message || "An error occurred while updating the project",
-      statusCode: 500,
+      message: error.message || "Failed to update project",
     };
   }
 });

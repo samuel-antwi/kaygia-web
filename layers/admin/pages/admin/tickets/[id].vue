@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useFetch } from "#app";
-import {
-  type SupportTicket,
-  type TicketComment,
-  type User as PrismaUser,
-  type TicketStatus,
-} from "@prisma/client";
+import type { InferSelectModel } from "drizzle-orm";
+import type { supportTickets, ticketComments, users } from "~/server/db/schema";
+import { ticketStatusEnum } from "~/server/db/schema";
+import { Role } from "../../../types/role"; // Import local Role enum
 import {
   AlertTriangle,
   Loader2,
@@ -29,13 +27,21 @@ definePageMeta({
 });
 
 // Define the structure for a comment with its author details
-interface CommentWithUser extends TicketComment {
-  user: Pick<PrismaUser, "id" | "name" | "email" | "role"> | null;
+interface CommentWithUser extends InferSelectModel<typeof ticketComments> {
+  user:
+    | (Pick<InferSelectModel<typeof users>, "id" | "name" | "email"> & {
+        role: Role;
+      })
+    | null;
 }
 
 // Define the structure for the ticket details returned by the API
-interface DetailedTicket extends Omit<SupportTicket, "clientId" | "comments"> {
-  client: Pick<PrismaUser, "id" | "name" | "email"> | null;
+interface DetailedTicket
+  extends Omit<
+    InferSelectModel<typeof supportTickets>,
+    "clientId" | "comments"
+  > {
+  client: Pick<InferSelectModel<typeof users>, "id" | "name" | "email"> | null;
   comments: CommentWithUser[];
 }
 
@@ -50,7 +56,7 @@ interface ApiSingleTicketResponse {
 interface ApiCommentResponse {
   success: boolean;
   message?: string;
-  comment?: TicketComment;
+  comment?: InferSelectModel<typeof ticketComments>;
 }
 
 // Define valid statuses as a constant array
@@ -171,7 +177,7 @@ async function updateStatus(
     typeof value === "string" &&
     VALID_STATUSES.includes(value as (typeof VALID_STATUSES)[number])
   ) {
-    const newStatus = value as TicketStatus; // Type assertion is safe here due to the check above
+    const newStatus = value as (typeof ticketStatusEnum.enumValues)[number];
     // Actual API call logic will go here
     console.log("Updating status to:", newStatus);
   } else {

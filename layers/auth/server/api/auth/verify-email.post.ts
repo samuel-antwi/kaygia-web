@@ -1,8 +1,12 @@
 import { H3Event } from "h3";
+import { getDb } from "~/server/utils/db";
+import { users, emailVerifications } from "~/server/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
     const { token } = await readBody(event);
+    const db = getDb(event);
 
     // Validate required fields
     if (!token) {
@@ -13,9 +17,11 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     // Find the verification record
-    const verification = await prisma.emailVerification.findUnique({
-      where: { token },
-      include: { user: true },
+    const verification = await db.query.emailVerifications.findFirst({
+      where: eq(emailVerifications.token, token),
+      with: {
+        user: true,
+      },
     });
 
     if (!verification) {
@@ -42,16 +48,16 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     // Mark the user as verified
-    await prisma.user.update({
-      where: { id: verification.userId },
-      data: { emailVerified: true },
-    });
+    await db
+      .update(users)
+      .set({ emailVerified: true })
+      .where(eq(users.id, verification.userId));
 
     // Mark the token as used
-    await prisma.emailVerification.update({
-      where: { id: verification.id },
-      data: { used: true },
-    });
+    await db
+      .update(emailVerifications)
+      .set({ used: true })
+      .where(eq(emailVerifications.id, verification.id));
 
     return {
       success: true,

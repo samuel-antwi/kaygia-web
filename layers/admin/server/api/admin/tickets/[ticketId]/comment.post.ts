@@ -1,5 +1,8 @@
 import { defineEventHandler, getRouterParam, readBody } from "h3";
-import { Role } from "@prisma/client";
+import { getDb } from "~/server/utils/db";
+import { supportTickets, ticketComments } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 
 export default defineEventHandler(async (event) => {
   const ticketId = getRouterParam(event, "ticketId");
@@ -15,7 +18,7 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
   const user = session?.user;
 
-  if (!user || user.role !== Role.ADMIN) {
+  if (!user || user.role !== "ADMIN") {
     console.warn(
       `[API][Admin][${ticketId}/comment] Unauthorized attempt. User: ${user?.id}, Role: ${user?.role}`
     );
@@ -37,53 +40,58 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // 3. Use Prisma transaction to create comment AND update ticket timestamps
-    const newComment = await prisma.$transaction(async (tx) => {
+    const db = getDb(event);
+    const now = new Date();
+
+    // First check if ticket exists
+    const ticket = await db.query.supportTickets.findFirst({
+      where: eq(supportTickets.id, ticketId),
+    });
+
+    if (!ticket) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Not Found: Ticket does not exist.",
+      });
+    }
+
+    // Create comment and update ticket in a transaction
+    const [newComment] = await db.transaction(async (tx) => {
       // Create the comment
-      const createdComment = await tx.ticketComment.create({
-        data: {
+      const comment = await tx
+        .insert(ticketComments)
+        .values({
+          id: uuidv4(),
           content: content,
           ticketId: ticketId,
-          userId: user.id, // Link comment to the logged-in admin user
+          userId: user.id,
           sender: "ADMIN",
-        },
-      });
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning();
 
-      // Update the parent ticket's timestamps
-      await tx.supportTicket.update({
-        where: { id: ticketId },
-        data: {
-          updatedAt: new Date(), // Explicitly set update time
-          lastRepliedAt: new Date(), // Update last reply time
-        },
-      });
+      // Update the ticket timestamps
+      await tx
+        .update(supportTickets)
+        .set({
+          updatedAt: now,
+          lastRepliedAt: now,
+        })
+        .where(eq(supportTickets.id, ticketId));
 
-      return createdComment;
+      return comment;
     });
 
     // 4. Return success response
     return {
       success: true,
       message: "Comment added successfully.",
-      comment: newComment, // Optionally return the created comment
+      comment: newComment,
     };
   } catch (error: any) {
-    // Handle potential errors (e.g., ticket not found during update)
-    if (error.code === "P2025") {
-      // Prisma code for record not found on update/delete
-      console.error(
-        `[API][Admin][${ticketId}/comment] Failed to find ticket ${ticketId} during transaction.`
-      );
-      throw createError({
-        statusCode: 404,
-        statusMessage: "Not Found: Ticket does not exist.",
-      });
-    }
-    // Handle invalid ID format for comment creation (less likely here, but good practice)
-    if (
-      error.code === "P2023" ||
-      error.message.includes("Malformed ObjectID")
-    ) {
+    // Handle potential errors
+    if (error.message?.includes("invalid input syntax")) {
       console.warn(
         `[API][Admin][${ticketId}/comment] Invalid ticket ID format.`
       );
