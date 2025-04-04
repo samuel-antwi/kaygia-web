@@ -13,10 +13,15 @@ import type {
 const createProjectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   description: z.string().optional(),
-  status: z
-    .enum(["PLANNING", "IN_PROGRESS", "COMPLETED", "ON_HOLD"])
-    .default("PLANNING"),
-  type: z.enum(["WEB", "MOBILE", "DESKTOP", "OTHER"]).default("WEB"),
+  type: z.enum([
+    "WEBSITE",
+    "E_COMMERCE",
+    "WEB_APP",
+    "MOBILE_APP",
+    "BRANDING",
+    "MARKETING",
+    "OTHER",
+  ]),
   requirements: z.string().optional(),
 });
 
