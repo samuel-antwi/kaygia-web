@@ -1,7 +1,5 @@
 import { defineEventHandler } from "h3";
-import { PrismaClient, Role } from "@prisma/client"; // Explicit import for clarity
-
-const prisma = new PrismaClient();
+import { Role } from "@prisma/client"; // Explicit import for clarity
 
 export default defineEventHandler(async (event) => {
   // --- START DEBUG LOGGING ---
@@ -16,9 +14,6 @@ export default defineEventHandler(async (event) => {
   const user = session?.user; // Get user from the awaited session object
 
   if (!user || user.role !== Role.ADMIN) {
-    console.warn(
-      `[API][Admin] Unauthorized access attempt. User found via session: ${!!user}. User role: ${user?.role}` // Updated log message
-    );
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Admin access required.",

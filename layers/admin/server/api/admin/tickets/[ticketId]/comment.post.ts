@@ -1,7 +1,5 @@
 import { defineEventHandler, getRouterParam, readBody } from "h3";
-import { PrismaClient, Role, CommentSender } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { Role, CommentSender } from "@prisma/client";
 
 export default defineEventHandler(async (event) => {
   const ticketId = getRouterParam(event, "ticketId");

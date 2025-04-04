@@ -1,10 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { H3Event } from "h3";
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcrypt";
 import { sendPasswordChangedEmail } from "~/utils/email";
-
-// Initialize Prisma client
-const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
