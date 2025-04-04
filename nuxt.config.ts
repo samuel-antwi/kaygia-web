@@ -12,8 +12,10 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "shadcn-nuxt",
     "@nuxtjs/color-mode",
-    "nuxt-auth-utils",
     "@pinia/nuxt",
+    "@nuxt/image",
+    "@vee-validate/nuxt",
+    "nuxt-auth-utils",
   ],
 
   css: ["~/assets/css/tailwind.css"],
@@ -48,6 +50,15 @@ export default defineNuxtConfig({
       SUPABASE_URL: process.env.SUPABASE_URL,
       NUXT_PUBLIC_SITE_URL:
         process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    },
+  },
+
+  nitro: {
+    externals: {
+      external: ["@prisma/client", ".prisma/client/index-browser"],
+    },
+    prerender: {
+      ignore: ["/prisma/"],
     },
   },
 });
