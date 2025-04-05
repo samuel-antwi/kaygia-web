@@ -11,7 +11,7 @@ import type {
 
 // Validation schema for new project
 const createProjectSchema = z.object({
-  name: z.string().min(1, "Project name is required"),
+  title: z.string().min(1, "Project title is required"),
   description: z.string().optional(),
   type: z.enum([
     "WEBSITE",
@@ -22,6 +22,7 @@ const createProjectSchema = z.object({
     "MARKETING",
     "OTHER",
   ]),
+  budget: z.number().optional(),
   requirements: z.string().optional(),
 });
 
@@ -32,8 +33,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event);
+  console.log("Received project data:", body);
   const validation = createProjectSchema.safeParse(body);
   if (!validation.success) {
+    console.log("Validation errors:", validation.error.errors);
     throw createError({
       statusCode: 400,
       statusMessage:
@@ -61,12 +64,12 @@ export default defineEventHandler(async (event) => {
       .insert(projects)
       .values({
         id: uuidv4(),
-        title: validation.data.name,
+        title: validation.data.title,
         type: validation.data.type as ProjectType,
         status: "PENDING" as ProjectStatus,
         description: validation.data.description || null,
         requirements: validation.data.requirements || null,
-        budget: null,
+        budget: validation.data.budget || null,
         clientId: user.id,
         createdAt: now,
         updatedAt: now,
