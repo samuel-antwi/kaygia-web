@@ -39,11 +39,23 @@ This document tracks the implementation progress for the Admin UI layer.
     - [x] Added toast notifications for successful actions (comment added, status changed) and errors.
     - [x] Implemented automatic status changes when admin replies (sets to PENDING when not CLOSED).
 
+**III. User Management (Admin Side):**
+
+- **API Endpoints:**
+  - [x] `GET /api/admin/users`: List all users with basic information.
+  - [x] `GET /api/admin/users/[userId]`: Get specific user details, including stats on their tickets and projects.
+  - [x] `PUT /api/admin/users/[userId]/role`: Update a user's role (promote/demote between ADMIN and CLIENT).
+- **UI Components:**
+  - [x] User List Page (`layers/admin/pages/admin/users/index.vue`): Displays all users in a table with search functionality.
+  - [x] User Detail Page (`layers/admin/pages/admin/users/[id].vue`):
+    - [x] Shows user profile information (name, email, role, joined date).
+    - [x] Displays statistics about the user's tickets and projects.
+    - [x] Allows admin to change the user's role with proper UI feedback.
+    - [x] Shows recent tickets and projects for the user.
+    - [x] Includes toast notifications for successful role changes and errors.
+
 ## ⏳ To Do / Next Steps
 
-- **User Management:**
-  - [ ] Define API endpoints for listing users, viewing user details, potentially updating roles.
-  - [ ] Create UI pages/components (`layers/admin/pages/admin/users/...`) for user management.
 - **Project Management:**
   - [ ] Define necessary API endpoints for admin view/management of projects.
   - [ ] Create UI pages/components for project management.
