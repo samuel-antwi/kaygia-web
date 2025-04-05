@@ -46,9 +46,12 @@ watchEffect(() => {
 const filteredTickets = computed(() => {
   if (!searchQuery.value) return sortedTickets.value;
   const query = searchQuery.value.toLowerCase();
-  // Adapt filter logic if needed (e.g., search by status?)
+
   return sortedTickets.value.filter((ticket) => {
-    return ticket.subject.toLowerCase().includes(query);
+    return (
+      ticket.subject.toLowerCase().includes(query) ||
+      ticket.ticketNumber.includes(query.replace(/[^0-9]/g, "")) // Allow searching by ticket number, strip non-numeric chars
+    );
   });
 });
 
@@ -120,7 +123,7 @@ const onSubmit = handleSubmit(async (values) => {
             <Input
               v-model="searchQuery"
               type="text"
-              placeholder="Search by subject..."
+              placeholder="Search by subject or ticket #..."
               class="pr-8"
             />
             <Search
@@ -194,6 +197,9 @@ const onSubmit = handleSubmit(async (values) => {
                 <div class="flex-1 min-w-0">
                   <h4 class="font-medium mb-1 sm:mb-0 truncate">
                     {{ ticket.subject }}
+                    <Badge variant="outline" class="ml-2">
+                      #{{ ticket.ticketNumber }}
+                    </Badge>
                   </h4>
                   <p class="text-sm text-muted-foreground sm:hidden">
                     {{ ticket.status }} -

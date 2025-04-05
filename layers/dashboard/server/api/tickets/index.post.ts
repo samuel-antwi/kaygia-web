@@ -61,12 +61,33 @@ export default defineEventHandler(async (event) => {
     const now = new Date();
     const ticketId = uuidv4();
 
+    // Generate a random 5-digit ticket number
+    const generateTicketNumber = async () => {
+      // Generate a random 5-digit number
+      const randomNum = Math.floor(10000 + Math.random() * 90000).toString();
+
+      // Check if this number is already used
+      const existingTicket = await db.query.supportTickets.findFirst({
+        where: eq(supportTickets.ticketNumber, randomNum),
+      });
+
+      // If there's a collision, generate a new one recursively
+      if (existingTicket) {
+        return generateTicketNumber();
+      }
+
+      return randomNum;
+    };
+
+    const ticketNumber = await generateTicketNumber();
+
     const [newTicket] = await db.transaction(async (tx) => {
       // Create the ticket
       const [ticket] = await tx
         .insert(supportTickets)
         .values({
           id: ticketId,
+          ticketNumber, // Add the generated 5-digit number
           subject: subject,
           description: content, // Use initial content as description
           clientId: user.id,
@@ -96,6 +117,7 @@ export default defineEventHandler(async (event) => {
       success: true,
       ticket: {
         id: newTicket.id,
+        ticketNumber: newTicket.ticketNumber,
         subject: newTicket.subject,
         status: newTicket.status,
         createdAt: newTicket.createdAt,

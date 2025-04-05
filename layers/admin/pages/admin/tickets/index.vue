@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { AlertTriangle, Loader2 } from "lucide-vue-next";
+import { AlertTriangle, Loader2, Search } from "lucide-vue-next";
 import { Role } from "../../../types/role"; // Import local Role enum
 import type { InferSelectModel } from "drizzle-orm";
 import type { supportTickets, users } from "~/server/db/schema";
@@ -28,6 +28,9 @@ interface ApiResponse {
   message?: string; // Optional error message
 }
 
+// Search query
+const searchQuery = ref("");
+
 // Fetch tickets data
 const { data, pending, error, refresh } = await useFetch<ApiResponse>(
   "/api/admin/tickets",
@@ -38,7 +41,22 @@ const { data, pending, error, refresh } = await useFetch<ApiResponse>(
 );
 
 // Computed property for easier access to the tickets array
-const tickets = computed(() => data.value?.tickets || []);
+const allTickets = computed(() => data.value?.tickets || []);
+
+// Filtered tickets based on search query
+const tickets = computed(() => {
+  if (!searchQuery.value.trim()) return allTickets.value;
+
+  const query = searchQuery.value.toLowerCase().trim();
+
+  return allTickets.value.filter(
+    (ticket) =>
+      ticket.subject.toLowerCase().includes(query) ||
+      ticket.ticketNumber?.includes(query) ||
+      ticket.client?.name?.toLowerCase().includes(query) ||
+      ticket.client?.email?.toLowerCase().includes(query)
+  );
+});
 
 // Function to format date
 const formatDate = (date: string | Date) => {
@@ -70,6 +88,11 @@ const getStatusColor = (status: string) => {
 function viewTicket(ticketId: string) {
   navigateTo(`/admin/tickets/${ticketId}`);
 }
+
+// Reset search
+function clearSearch() {
+  searchQuery.value = "";
+}
 </script>
 
 <template>
@@ -90,6 +113,30 @@ function viewTicket(ticketId: string) {
           </span>
           <span v-else>Refresh</span>
         </Button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="relative mb-6">
+        <div class="relative">
+          <Search
+            class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
+          />
+          <Input
+            v-model="searchQuery"
+            type="search"
+            placeholder="Search by ticket number, subject, or client..."
+            class="pl-8 w-full md:w-1/2 lg:w-1/3"
+          />
+          <Button
+            v-if="searchQuery"
+            variant="ghost"
+            size="sm"
+            class="absolute right-2 top-1.5"
+            @click="clearSearch"
+          >
+            Clear
+          </Button>
+        </div>
       </div>
 
       <!-- Loading state -->
@@ -129,13 +176,27 @@ function viewTicket(ticketId: string) {
 
       <!-- No Tickets State -->
       <div
-        v-else-if="tickets.length === 0"
+        v-else-if="allTickets.length === 0"
         class="text-center py-8 border border-dashed rounded-lg"
       >
         <h3 class="mt-4 text-lg font-semibold">No tickets available</h3>
         <p class="text-muted-foreground mt-2">
           There are no support tickets in the system.
         </p>
+      </div>
+
+      <!-- No Search Results -->
+      <div
+        v-else-if="tickets.length === 0"
+        class="text-center py-8 border border-dashed rounded-lg"
+      >
+        <h3 class="mt-4 text-lg font-semibold">No matching tickets</h3>
+        <p class="text-muted-foreground mt-2">
+          No tickets match your search for "{{ searchQuery }}".
+        </p>
+        <Button @click="clearSearch" variant="outline" size="sm" class="mt-4">
+          Clear Search
+        </Button>
       </div>
 
       <!-- Tickets table using Shadcn components -->
@@ -145,6 +206,7 @@ function viewTicket(ticketId: string) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Ticket #</TableHead>
                   <TableHead>Subject</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Status</TableHead>
@@ -161,6 +223,9 @@ function viewTicket(ticketId: string) {
                   @click="viewTicket(ticket.id)"
                 >
                   <TableCell class="font-medium">
+                    {{ ticket.ticketNumber || "N/A" }}
+                  </TableCell>
+                  <TableCell>
                     {{ ticket.subject }}
                   </TableCell>
                   <TableCell>

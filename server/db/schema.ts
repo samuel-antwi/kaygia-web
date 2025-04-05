@@ -68,6 +68,7 @@ export const projects = pgTable("projects", {
 
 export const supportTickets = pgTable("support_tickets", {
   id: text("id").primaryKey().notNull(),
+  ticketNumber: text("ticket_number").notNull().unique(),
   subject: text("subject").notNull(),
   description: text("description").notNull(),
   status: ticketStatusEnum("status").default("OPEN").notNull(),

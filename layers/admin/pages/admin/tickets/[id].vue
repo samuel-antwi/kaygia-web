@@ -22,6 +22,12 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { NuxtLink } from "#components";
 
 definePageMeta({
   layout: "admin",
@@ -343,176 +349,159 @@ watch(
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left Column: Comments -->
       <div class="lg:col-span-2 space-y-4">
-        <h2 class="text-2xl font-semibold">{{ ticket.subject }}</h2>
-
-        <!-- Comment List -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Conversation</CardTitle>
-          </CardHeader>
-          <CardContent class="space-y-4">
-            <div
-              v-if="ticket.comments && ticket.comments.length > 0"
-              class="space-y-4"
-            >
-              <div
-                v-for="comment in ticket.comments"
-                :key="comment.id"
-                class="flex gap-3"
-              >
-                <Avatar class="mt-1">
-                  <AvatarFallback
-                    :class="
-                      comment.sender === 'ADMIN'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    "
-                  >
-                    {{ comment.user?.name?.charAt(0)?.toUpperCase() || "U" }}
-                  </AvatarFallback>
-                </Avatar>
-                <div
-                  class="flex-1 p-3 rounded-md"
-                  :class="
-                    comment.sender === 'ADMIN' ? 'bg-primary/10' : 'bg-muted/70'
-                  "
-                >
-                  <div class="flex justify-between items-center mb-1">
-                    <p class="text-sm font-medium">
-                      {{ comment.user?.name || "Unknown User" }}
-                      <span
-                        v-if="comment.sender === 'ADMIN'"
-                        class="text-xs text-primary/80 ml-1"
-                        >(Admin)</span
-                      >
-                      <span v-else class="text-xs text-muted-foreground ml-1"
-                        >(Client)</span
-                      >
-                    </p>
-                    <p class="text-xs text-muted-foreground">
-                      {{ formatDate(comment.createdAt) }}
-                    </p>
-                  </div>
-                  <p class="text-sm whitespace-pre-wrap">
-                    {{ comment.content }}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <p v-else class="text-sm text-muted-foreground text-center py-4">
-              No comments yet.
-            </p>
-          </CardContent>
-        </Card>
-
-        <!-- Add Comment Form -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Add Reply</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              v-model="newComment"
-              placeholder="Type your reply here..."
-              class="min-h-[100px] mb-3"
-              :disabled="isSubmitting"
-            />
-            <!-- Display Comment Error -->
-            <p v-if="commentError" class="text-red-600 text-sm mb-3">
-              Error: {{ commentError }}
-            </p>
-            <Button
-              @click="addComment"
-              :disabled="!newComment.trim() || isSubmitting"
-            >
-              <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-              <Send v-else class="mr-2 h-4 w-4" />
-              Send Reply
-            </Button>
-          </CardContent>
-        </Card>
+        <div class="flex items-center">
+          <h2 class="text-2xl font-semibold">{{ ticket.subject }}</h2>
+          <Badge variant="outline" class="ml-3">
+            #{{ ticket.ticketNumber || "N/A" }}
+          </Badge>
+        </div>
+        <p class="text-muted-foreground mt-1">
+          Opened {{ formatDate(ticket.createdAt) }} by
+          {{ ticket.client?.name || "Unknown" }}
+        </p>
       </div>
 
-      <!-- Right Column: Ticket Details & Actions -->
+      <!-- Right Column: Ticket Details -->
       <div class="lg:col-span-1 space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ticket Details</CardTitle>
-          </CardHeader>
-          <CardContent class="space-y-3 text-sm">
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">Status:</span>
-              <Badge
-                :class="getStatusVariant(ticket.status)"
-                variant="outline"
-                class="flex items-center gap-1"
-              >
-                <component :is="getStatusIcon(ticket.status)" class="h-3 w-3" />
-                {{ ticket.status }}
-              </Badge>
-            </div>
-            <Separator />
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">Client:</span>
-              <span>{{ ticket.client?.name || "N/A" }}</span>
-            </div>
-            <div>
-              <span class="text-muted-foreground block">Email:</span>
-              <span>{{ ticket.client?.email || "N/A" }}</span>
-            </div>
-            <Separator />
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">Created:</span>
-              <span>{{ formatDate(ticket.createdAt) }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-muted-foreground">Last Updated:</span>
-              <span>{{ formatDate(ticket.updatedAt) }}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <div class="flex items-center gap-3">
+          <Badge
+            :class="[getStatusVariant(ticket.status)]"
+            class="flex items-center gap-1 h-8 text-xs"
+          >
+            <component :is="getStatusIcon(ticket.status)" class="h-3 w-3" />
+            {{ ticket.status }}
+          </Badge>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Actions</CardTitle>
-          </CardHeader>
-          <CardContent class="space-y-2">
-            <p class="text-sm text-muted-foreground mb-2">
-              Change ticket status:
-            </p>
-            <!-- Status error message -->
-            <p v-if="statusError" class="text-sm text-red-600 mb-2">
+          <Select
+            :model-value="ticket.status"
+            @update:model-value="handleStatusUpdate"
+            :disabled="isUpdatingStatus"
+          >
+            <SelectTrigger class="w-32">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="status in VALID_STATUSES"
+                :key="status"
+                :value="status"
+                :disabled="status === ticket.status"
+              >
+                {{ status }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <!-- Show loading indicator while status is being updated -->
+        <div
+          v-if="isUpdatingStatus"
+          class="flex justify-center items-center py-2"
+        >
+          <Loader2 class="h-5 w-5 animate-spin text-primary" />
+          <span class="ml-2 text-sm">Updating status...</span>
+        </div>
+
+        <!-- Show error if status update failed -->
+        <div
+          v-if="statusError"
+          class="p-4 bg-destructive/10 border border-destructive rounded-md"
+        >
+          <div class="flex items-center">
+            <AlertTriangle class="h-5 w-5 text-destructive mr-2" />
+            <p class="text-sm font-medium text-destructive">
               {{ statusError }}
             </p>
-            <div class="relative">
-              <Select
-                v-model="currentStatus"
-                @update:modelValue="handleStatusUpdate"
-              >
-                <SelectTrigger :disabled="isUpdatingStatus">
-                  <SelectValue placeholder="Select status..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="status in VALID_STATUSES"
-                    :key="status"
-                    :value="status"
-                  >
-                    {{ status }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <!-- Loading indicator overlay when updating status -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment List -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Conversation</CardTitle>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <div
+            v-if="ticket.comments && ticket.comments.length > 0"
+            class="space-y-4"
+          >
+            <div
+              v-for="comment in ticket.comments"
+              :key="comment.id"
+              class="flex gap-3"
+            >
+              <Avatar class="mt-1">
+                <AvatarFallback
+                  :class="
+                    comment.sender === 'ADMIN'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  "
+                >
+                  {{ comment.user?.name?.charAt(0)?.toUpperCase() || "U" }}
+                </AvatarFallback>
+              </Avatar>
               <div
-                v-if="isUpdatingStatus"
-                class="absolute inset-0 flex items-center justify-center bg-background/50 rounded"
+                class="flex-1 p-3 rounded-md"
+                :class="
+                  comment.sender === 'ADMIN' ? 'bg-primary/10' : 'bg-muted/70'
+                "
               >
-                <Loader2 class="h-4 w-4 animate-spin" />
+                <div class="flex justify-between items-center mb-1">
+                  <p class="text-sm font-medium">
+                    {{ comment.user?.name || "Unknown User" }}
+                    <span
+                      v-if="comment.sender === 'ADMIN'"
+                      class="text-xs text-primary/80 ml-1"
+                      >(Admin)</span
+                    >
+                    <span v-else class="text-xs text-muted-foreground ml-1"
+                      >(Client)</span
+                    >
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ formatDate(comment.createdAt) }}
+                  </p>
+                </div>
+                <p class="text-sm whitespace-pre-wrap">
+                  {{ comment.content }}
+                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <p v-else class="text-sm text-muted-foreground text-center py-4">
+            No comments yet.
+          </p>
+        </CardContent>
+      </Card>
+
+      <!-- Add Comment Form -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Add Reply</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            v-model="newComment"
+            placeholder="Type your reply here..."
+            class="min-h-[100px] mb-3"
+            :disabled="isSubmitting"
+          />
+          <!-- Display Comment Error -->
+          <p v-if="commentError" class="text-red-600 text-sm mb-3">
+            Error: {{ commentError }}
+          </p>
+          <Button
+            @click="addComment"
+            :disabled="!newComment.trim() || isSubmitting"
+          >
+            <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
+            <Send v-else class="mr-2 h-4 w-4" />
+            Send Reply
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>

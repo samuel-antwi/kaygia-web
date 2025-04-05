@@ -48,6 +48,7 @@ export default defineEventHandler(async (event) => {
       orderBy: (tickets, { desc }) => [desc(tickets.lastRepliedAt)],
       columns: {
         id: true,
+        ticketNumber: true,
         subject: true,
         status: true,
         createdAt: true,

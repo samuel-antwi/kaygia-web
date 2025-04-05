@@ -3,26 +3,35 @@ import postgres from "postgres";
 import * as schema from "../server/db/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+import * as dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 async function main() {
   // Initialize the database connection
-  const connectionString = process.env.DATABASE_URL!;
+  const connectionString = process.env.DIRECT_URL!;
+
+  if (!connectionString) {
+    console.error("DIRECT_URL environment variable is not set");
+    process.exit(1);
+  }
+
+  console.log("Connecting to database...");
   const client = postgres(connectionString);
   const db = drizzle(client, { schema });
 
-  const targetUserId = "cm8thak9x000dc9vmsmv805mm"; // Target specific user
-
-  // Find the specific user by ID
-  const user = await db.query.users.findFirst({
-    where: eq(schema.users.id, targetUserId),
-  });
+  // Find any user in the database
+  const user = await db.query.users.findFirst();
 
   if (!user) {
     console.error(
-      `User with ID ${targetUserId} not found. Cannot create sample ticket.`
+      "No users found in the database. Cannot create sample ticket."
     );
     return;
   }
+
+  console.log(`Found user with ID: ${user.id}`);
 
   // Create a sample support ticket and initial admin comment in a transaction
   try {
@@ -32,6 +41,7 @@ async function main() {
         .insert(schema.supportTickets)
         .values({
           id: uuidv4(),
+          ticketNumber: Math.floor(10000 + Math.random() * 90000).toString(), // Generate a 5-digit ticket number
           subject: "Welcome to Kaygia Support!",
           description: "", // Required field
           clientId: user.id,

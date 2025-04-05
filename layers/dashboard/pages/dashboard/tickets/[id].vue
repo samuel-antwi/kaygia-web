@@ -138,9 +138,12 @@ const goBack = () => {
           <div
             class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"
           >
-            <CardTitle class="text-2xl break-words">{{
-              currentTicket.subject
-            }}</CardTitle>
+            <CardTitle class="text-2xl break-words">
+              {{ currentTicket.subject }}
+              <Badge variant="outline" class="ml-2 text-sm">
+                #{{ currentTicket.ticketNumber }}
+              </Badge>
+            </CardTitle>
             <Badge :variant="getStatusBadgeVariant(currentTicket.status)">
               {{ currentTicket.status }}
             </Badge>
