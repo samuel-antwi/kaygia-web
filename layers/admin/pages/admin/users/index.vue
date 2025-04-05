@@ -4,6 +4,7 @@ import { AlertTriangle, Loader2, Search, UserCog } from "lucide-vue-next";
 import type { InferSelectModel } from "drizzle-orm";
 import type { users as usersSchema } from "~/server/db/schema";
 import { useToast } from "@/components/ui/toast/use-toast";
+import { UserPlus } from "lucide-vue-next";
 
 definePageMeta({
   layout: "admin",
@@ -114,6 +115,12 @@ const viewUser = (userId: string) => {
         </span>
         <span v-else>Refresh</span>
       </Button>
+      <NuxtLink to="/admin/users/create">
+        <Button>
+          <UserPlus class="h-4 w-4 mr-2" />
+          Add User
+        </Button>
+      </NuxtLink>
     </div>
 
     <!-- Loading State -->

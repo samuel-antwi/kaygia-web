@@ -113,10 +113,10 @@ This document tracks the implementation progress for the Admin UI layer.
     - [x] Create API endpoint for manually verifying emails
     - [x] Create API endpoint for resending verification emails
     - [x] Add UI controls in user detail page
-  - [ ] **User Creation:** Enable admins to create new user accounts
-    - [ ] Create form component for adding new users
-    - [ ] Add API endpoint for admin user creation
-    - [ ] Implement validation and feedback
+  - [x] **User Creation:** Enable admins to create new user accounts
+    - [x] Create form component for adding new users
+    - [x] Add API endpoint for admin user creation
+    - [x] Implement validation and feedback
   - [ ] **User Profile Editing:** Allow admins to edit user profile information
     - [ ] Create form for editing user details
     - [ ] Create API endpoint for updating user profiles
