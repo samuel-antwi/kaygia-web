@@ -20,6 +20,7 @@ interface AdminUser {
   createdAt: Date;
   updatedAt: Date;
   lastLoggedIn: Date | null;
+  active: boolean;
 }
 
 // Define the expected API response structure
@@ -194,6 +195,7 @@ const viewUser = (userId: string) => {
                 <TableHead>Role</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Account</TableHead>
                 <TableHead class="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -227,6 +229,18 @@ const viewUser = (userId: string) => {
                     "
                   >
                     {{ user.emailVerified ? "Verified" : "Unverified" }}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    :variant="user.active ? 'default' : 'outline'"
+                    :class="
+                      user.active
+                        ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                        : 'bg-red-100 text-red-800 hover:bg-red-100'
+                    "
+                  >
+                    {{ user.active ? "Active" : "Inactive" }}
                   </Badge>
                 </TableCell>
                 <TableCell class="text-right">

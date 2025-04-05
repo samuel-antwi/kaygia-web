@@ -9,6 +9,7 @@ interface UserProfileProps {
     email: string;
     role: string;
     emailVerified: boolean;
+    active: boolean;
     createdAt: Date | string;
     company: string | null;
   };

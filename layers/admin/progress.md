@@ -96,8 +96,46 @@ This document tracks the implementation progress for the Admin UI layer.
 ## ⏳ To Do / Next Steps
 
 - **Code Quality:**
+
   - [ ] Review and remove `console.log` statements added during debugging.
   - [ ] Continue to refactor larger components into smaller, reusable pieces.
+
+- **Enhanced User Management:**
+  - [x] **Password Reset Initiation:** Add ability for admins to trigger password resets on behalf of users
+    - [x] Create API endpoint for admin-initiated password reset
+    - [x] Add UI button in user detail page to trigger password reset
+    - [x] Implement notification for both admin and user
+  - [x] **Account Activation/Deactivation:** Implement suspension functionality for user accounts
+    - [x] Add "active" field to user schema
+    - [x] Create API endpoint for toggling account status
+    - [x] Add UI controls in user detail page
+  - [ ] **Email Verification Management:** Allow admins to manage email verification
+    - [ ] Create API endpoint for manually verifying emails
+    - [ ] Create API endpoint for resending verification emails
+    - [ ] Add UI controls in user detail page
+  - [ ] **User Creation:** Enable admins to create new user accounts
+    - [ ] Create form component for adding new users
+    - [ ] Add API endpoint for admin user creation
+    - [ ] Implement validation and feedback
+  - [ ] **User Profile Editing:** Allow admins to edit user profile information
+    - [ ] Create form for editing user details
+    - [ ] Create API endpoint for updating user profiles
+    - [ ] Add validation and error handling
+  - [ ] **Bulk Actions:** Add ability to perform actions on multiple users
+    - [ ] Implement user selection in user list
+    - [ ] Create bulk action dropdown with common operations
+    - [ ] Add API endpoints for bulk operations
+  - [ ] **Advanced Filtering:** Enhance user search with more filters
+    - [ ] Add filter by role, status, date joined
+    - [ ] Implement saved filters functionality
+  - [ ] **Audit Log:** Track admin actions on user accounts
+    - [ ] Create schema for audit logging
+    - [ ] Implement logging for all admin actions
+    - [ ] Create UI for viewing audit history
+  - [ ] **User Deletion/GDPR Compliance:** Implement proper user deletion
+    - [ ] Add soft-delete functionality
+    - [ ] Create data anonymization process
+    - [ ] Add confirmation and security checks
 
 ## 📝 Architecture & Development Guidelines
 

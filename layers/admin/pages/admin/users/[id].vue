@@ -5,6 +5,8 @@ import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-vue-next";
 // Import the user components
 import UserProfile from "../../../components/users/UserProfile.vue";
 import RoleManagement from "../../../components/users/RoleManagement.vue";
+import PasswordManagement from "../../../components/users/PasswordManagement.vue";
+import AccountStatusManagement from "../../../components/users/AccountStatusManagement.vue";
 import UserStats from "../../../components/users/UserStats.vue";
 import RecentItems from "../../../components/users/RecentItems.vue";
 
@@ -27,6 +29,7 @@ interface UserWithStats {
   email: string;
   role: string;
   emailVerified: boolean;
+  active: boolean;
   createdAt: Date;
   updatedAt: Date;
   lastLoggedIn: Date | null;
@@ -116,13 +119,19 @@ const user = computed(() => data.value?.user);
 
     <!-- User Data Loaded State -->
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Left Column: User Profile and Role Management -->
+      <!-- Left Column: User Profile, Role Management, Password Management, Account Status -->
       <div class="lg:col-span-1 space-y-4">
         <!-- User Profile Component -->
         <UserProfile :user="user" />
 
         <!-- Role Management Component -->
         <RoleManagement :user="user" :on-role-changed="refresh" />
+
+        <!-- Password Management Component -->
+        <PasswordManagement :user="user" />
+
+        <!-- Account Status Management Component -->
+        <AccountStatusManagement :user="user" :on-status-changed="refresh" />
       </div>
 
       <!-- Right Column: Stats and Recent Items -->

@@ -17,28 +17,40 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
-    // Find user by email with passwordHash
-    const existingUser = await db.query.users.findFirst({
+    // Check if the user exists
+    const user = await db.query.users.findFirst({
       where: eq(users.email, email),
+      columns: {
+        id: true,
+        email: true,
+        name: true,
+        passwordHash: true,
+        role: true,
+        active: true,
+        company: true,
+        lastLoggedIn: true,
+        emailVerified: true,
+      },
     });
 
-    if (!existingUser) {
+    if (!user || !user.passwordHash) {
       return {
         success: false,
         error: "Invalid email or password",
       };
     }
 
-    // Check if password hash exists
-    if (!existingUser.passwordHash) {
+    // Check if account is active
+    if (!user.active) {
       return {
         success: false,
-        error: "Account requires password reset",
+        error:
+          "Your account has been deactivated. Please contact support for assistance.",
       };
     }
 
     // Compare password with hash
-    const passMatch = await bcrypt.compare(password, existingUser.passwordHash);
+    const passMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!passMatch) {
       return {
@@ -48,31 +60,31 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     // Check if email is verified
-    if (!existingUser.emailVerified) {
+    if (!user.emailVerified) {
       return {
         success: false,
         error:
           "Email not verified. Please verify your email before logging in.",
         needsVerification: true,
-        email: existingUser.email,
+        email: user.email,
       };
     }
 
     // Get user data for session
     const userData = {
-      id: existingUser.id,
-      email: existingUser.email,
-      name: existingUser.name,
-      company: existingUser.company,
-      role: existingUser.role,
-      lastLoggedIn: existingUser.lastLoggedIn,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      company: user.company,
+      role: user.role,
+      lastLoggedIn: user.lastLoggedIn,
     };
 
     // Update last login timestamp
     await db
       .update(users)
       .set({ lastLoggedIn: new Date() })
-      .where(eq(users.id, existingUser.id));
+      .where(eq(users.id, user.id));
 
     // Set the auth session using nuxt-auth-utils
     await setUserSession(event, {

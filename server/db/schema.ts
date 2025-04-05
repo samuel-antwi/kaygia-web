@@ -47,6 +47,7 @@ export const users = pgTable("users", {
   lastLoggedIn: timestamp("last_logged_in"),
   role: roleEnum("role").default("CLIENT").notNull(),
   emailVerified: boolean("email_verified").default(false).notNull(),
+  active: boolean("active").default(true).notNull(),
 });
 
 export const projects = pgTable("projects", {

@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
         email: true,
         role: true,
         emailVerified: true,
+        active: true,
         createdAt: true,
         updatedAt: true,
         // Exclude password hash and other sensitive data
