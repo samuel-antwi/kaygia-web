@@ -152,3 +152,20 @@ export const ticketCommentsRelations = relations(ticketComments, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const passwordResetsRelations = relations(passwordResets, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResets.userId],
+    references: [users.id],
+  }),
+}));
+
+export const emailVerificationsRelations = relations(
+  emailVerifications,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [emailVerifications.userId],
+      references: [users.id],
+    }),
+  })
+);

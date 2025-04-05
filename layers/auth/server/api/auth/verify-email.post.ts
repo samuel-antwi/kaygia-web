@@ -10,6 +10,9 @@ export default defineEventHandler(async (event: H3Event) => {
 
     // Validate required fields
     if (!token) {
+      console.warn(
+        "Email verification failed: Token is missing from request body."
+      );
       return {
         success: false,
         error: "Token is required",
@@ -25,6 +28,9 @@ export default defineEventHandler(async (event: H3Event) => {
     });
 
     if (!verification) {
+      console.warn(
+        `Email verification failed: Invalid token provided: ${token}`
+      );
       return {
         success: false,
         error: "Invalid verification token",
@@ -33,6 +39,9 @@ export default defineEventHandler(async (event: H3Event) => {
 
     // Check if token is expired
     if (verification.expiresAt < new Date()) {
+      console.warn(
+        `Email verification failed: Token expired: ${token}, ExpiresAt: ${verification.expiresAt}`
+      );
       return {
         success: false,
         error: "Verification token has expired",
@@ -41,6 +50,7 @@ export default defineEventHandler(async (event: H3Event) => {
 
     // Check if token is already used
     if (verification.used) {
+      console.warn(`Email verification failed: Token already used: ${token}`);
       return {
         success: false,
         error: "Verification token has already been used",
