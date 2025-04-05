@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     "@nuxtjs/color-mode",
     "nuxt-auth-utils",
     "@pinia/nuxt",
+    "@nuxt/fonts",
   ],
 
   css: ["~/assets/css/tailwind.css"],

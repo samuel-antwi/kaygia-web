@@ -74,8 +74,8 @@ const onSubmit = form.handleSubmit(async (values) => {
       return;
     }
 
-    // Navigate to dashboard on success
-    navigateTo("/");
+    // Navigate to check email page on success
+    navigateTo("/auth/check-email");
   } catch (err: any) {
     error.value = err?.message || "Registration failed. Please try again.";
   } finally {
