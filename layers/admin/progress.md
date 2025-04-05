@@ -54,13 +54,57 @@ This document tracks the implementation progress for the Admin UI layer.
     - [x] Shows recent tickets and projects for the user.
     - [x] Includes toast notifications for successful role changes and errors.
 
+**IV. Component Architecture:**
+
+- **Component Refactoring:**
+  - [x] Refactored large page components into smaller, reusable components following the single responsibility principle.
+  - [x] Created dedicated component directories to organize related UI components.
+  - [x] Extracted shared logic into composables for reuse across components.
+  - [x] Implemented a modular structure for the User Detail page:
+    - [x] `UserProfile.vue`: Shows basic user information.
+    - [x] `RoleManagement.vue`: Handles user role changes with proper feedback.
+    - [x] `UserStats.vue`: Displays statistics about user's tickets and projects.
+    - [x] `RecentItems.vue`: Reusable component for displaying recent tickets or projects.
+  - [x] Created the `useFormatting` composable for date formatting and status color functions.
+
 ## ⏳ To Do / Next Steps
 
 - **Project Management:**
+
   - [ ] Define necessary API endpoints for admin view/management of projects.
   - [ ] Create UI pages/components for project management.
+
 - **Admin Dashboard (`layers/admin/pages/admin/index.vue`):**
+
   - [ ] Enhance the placeholder dashboard page with useful summaries (e.g., count of open tickets, recent activity).
+
 - **Code Quality:**
   - [ ] Review and remove `console.log` statements added during debugging.
-  - [ ] Extract reusable utility functions (like `formatDate`, `getStatusVariant`) into composables if appropriate.
+  - [ ] Continue to refactor larger components into smaller, reusable pieces.
+
+## 📝 Architecture & Development Guidelines
+
+We follow these principles in our component architecture:
+
+1. **Small, Modular Components:**
+
+   - Keep components focused on a single responsibility
+   - Aim for components under 150 lines of code
+   - Break large page components into smaller, reusable pieces
+
+2. **Component Organization:**
+
+   - Group related components in dedicated directories
+   - Follow consistent naming conventions for component files
+   - Create index files to simplify imports when appropriate
+
+3. **Code Reusability:**
+
+   - Extract shared logic into composables
+   - Create reusable UI components for common patterns
+   - Avoid code duplication across similar components
+
+4. **Component Structure:**
+   - Follow the standard template: script setup with TypeScript, then template, then scoped styles
+   - Organize script section in a consistent order (imports, types, props, emits, etc.)
+   - Keep templates clean and readable with proper indentation

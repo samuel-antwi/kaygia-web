@@ -73,129 +73,132 @@ function viewTicket(ticketId: string) {
 </script>
 
 <template>
-  <div>
+  <div class="container mx-auto py-6 space-y-6">
     <!-- Only show content if user is loaded and confirmed ADMIN -->
     <div v-if="!loading && user && user.role === Role.ADMIN">
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold">Support Tickets</h1>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Support Tickets</h1>
+          <p class="text-muted-foreground">
+            View and manage all support tickets
+          </p>
+        </div>
+        <Button @click="refresh" variant="outline" size="sm">
+          <span v-if="pending">
+            <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+            Refreshing
+          </span>
+          <span v-else>Refresh</span>
+        </Button>
       </div>
 
       <!-- Loading state -->
-      <div v-if="pending" class="text-center py-8">
-        <Loader2 class="h-8 w-8 animate-spin mx-auto" />
-        <p class="mt-2 text-gray-600 dark:text-gray-400">Loading tickets...</p>
+      <div v-if="pending" class="flex items-center justify-center py-8">
+        <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+        <p class="ml-3 text-muted-foreground">Loading tickets...</p>
       </div>
 
       <!-- Error state -->
       <div
         v-else-if="error"
-        class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6"
+        class="p-6 bg-destructive/10 border border-destructive/20 rounded-lg"
       >
-        <div class="flex items-center space-x-2 text-red-600 dark:text-red-400">
-          <AlertTriangle class="h-5 w-5" />
-          <p class="font-medium">Error loading tickets</p>
+        <div class="flex items-center">
+          <AlertTriangle class="h-6 w-6 text-destructive mr-3" />
+          <div>
+            <p class="font-semibold text-destructive">Error Loading Tickets</p>
+            <p class="text-destructive/90 mt-1 text-sm">
+              {{
+                error?.data?.statusMessage ||
+                error?.data?.message ||
+                error?.message ||
+                "Could not load tickets data."
+              }}
+            </p>
+          </div>
         </div>
-        <p class="mt-1 text-red-500 dark:text-red-300">
-          {{ error.message }}
+        <Button
+          @click="refresh"
+          variant="outline"
+          size="sm"
+          class="mt-4 border-destructive/40 text-destructive"
+        >
+          Retry
+        </Button>
+      </div>
+
+      <!-- No Tickets State -->
+      <div
+        v-else-if="tickets.length === 0"
+        class="text-center py-8 border border-dashed rounded-lg"
+      >
+        <h3 class="mt-4 text-lg font-semibold">No tickets available</h3>
+        <p class="text-muted-foreground mt-2">
+          There are no support tickets in the system.
         </p>
       </div>
 
-      <!-- Tickets table -->
-      <div v-else class="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <div class="overflow-x-auto">
-          <table
-            class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
-          >
-            <thead class="bg-gray-50 dark:bg-gray-900/50">
-              <tr>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+      <!-- Tickets table using Shadcn components -->
+      <div v-else>
+        <Card>
+          <CardContent class="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Comments</TableHead>
+                  <TableHead class="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="ticket in tickets"
+                  :key="ticket.id"
+                  class="cursor-pointer hover:bg-muted/50"
+                  @click="viewTicket(ticket.id)"
                 >
-                  Subject
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                >
-                  Client
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                >
-                  Created
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                >
-                  Comments
-                </th>
-                <th scope="col" class="relative px-6 py-3">
-                  <span class="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-              <tr
-                v-for="ticket in tickets"
-                :key="ticket.id"
-                class="hover:bg-gray-50 dark:hover:bg-gray-900/50"
-              >
-                <td class="px-6 py-4">
-                  <div
-                    class="text-sm font-medium text-gray-900 dark:text-gray-100"
-                  >
+                  <TableCell class="font-medium">
                     {{ ticket.subject }}
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="text-sm text-gray-900 dark:text-gray-100">
-                    {{ ticket.client?.name || "Unknown" }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ ticket.client?.email }}
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span
-                    class="text-sm font-medium"
-                    :class="getStatusColor(ticket.status)"
-                  >
-                    {{ ticket.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                  {{ formatDate(ticket.createdAt) }}
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                  {{ ticket._count?.comments || 0 }}
-                </td>
-                <td class="px-6 py-4 text-right text-sm font-medium">
-                  <NuxtLink
-                    :to="`/admin/tickets/${ticket.id}`"
-                    class="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
-                  >
-                    View
-                  </NuxtLink>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>{{ ticket.client?.name || "Unknown" }}</div>
+                    <div class="text-sm text-muted-foreground">
+                      {{ ticket.client?.email }}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      class="text-sm font-medium"
+                      :class="getStatusColor(ticket.status)"
+                    >
+                      {{ ticket.status }}
+                    </span>
+                  </TableCell>
+                  <TableCell>{{ formatDate(ticket.createdAt) }}</TableCell>
+                  <TableCell>{{ ticket._count?.comments || 0 }}</TableCell>
+                  <TableCell class="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      @click.stop="viewTicket(ticket.id)"
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </div>
     <!-- Loading state -->
     <div v-else-if="loading" class="text-center py-8">
       <Loader2 class="h-8 w-8 animate-spin mx-auto" />
-      <p class="mt-2 text-gray-600 dark:text-gray-400">Loading...</p>
+      <p class="mt-2 text-muted-foreground">Loading...</p>
     </div>
     <!-- Unauthorized state -->
     <div v-else>
@@ -205,35 +208,5 @@ function viewTicket(ticketId: string) {
 </template>
 
 <style scoped>
-/* Add component-specific styles if needed */
-.bg-blue-100 {
-  background-color: #dbeafe;
-}
-.text-blue-800 {
-  color: #1e40af;
-}
-.bg-yellow-100 {
-  background-color: #fef9c3;
-}
-.text-yellow-800 {
-  color: #854d0e;
-}
-.bg-cyan-100 {
-  background-color: #cffafe;
-}
-.text-cyan-800 {
-  color: #155e75;
-}
-.bg-green-100 {
-  background-color: #dcfce7;
-}
-.text-green-800 {
-  color: #166534;
-}
-.bg-gray-100 {
-  background-color: #f3f4f6;
-}
-.text-gray-800 {
-  color: #1f2937;
-}
+/* No longer need custom table styles as we're using Shadcn components */
 </style>
