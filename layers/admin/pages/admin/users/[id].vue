@@ -7,6 +7,7 @@ import UserProfile from "../../../components/users/UserProfile.vue";
 import RoleManagement from "../../../components/users/RoleManagement.vue";
 import PasswordManagement from "../../../components/users/PasswordManagement.vue";
 import AccountStatusManagement from "../../../components/users/AccountStatusManagement.vue";
+import EmailVerificationManagement from "../../../components/users/EmailVerificationManagement.vue";
 import UserStats from "../../../components/users/UserStats.vue";
 import RecentItems from "../../../components/users/RecentItems.vue";
 
@@ -132,6 +133,12 @@ const user = computed(() => data.value?.user);
 
         <!-- Account Status Management Component -->
         <AccountStatusManagement :user="user" :on-status-changed="refresh" />
+
+        <!-- Email Verification Management Component -->
+        <EmailVerificationManagement
+          :user="user"
+          :on-verification-changed="refresh"
+        />
       </div>
 
       <!-- Right Column: Stats and Recent Items -->

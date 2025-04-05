@@ -109,10 +109,10 @@ This document tracks the implementation progress for the Admin UI layer.
     - [x] Add "active" field to user schema
     - [x] Create API endpoint for toggling account status
     - [x] Add UI controls in user detail page
-  - [ ] **Email Verification Management:** Allow admins to manage email verification
-    - [ ] Create API endpoint for manually verifying emails
-    - [ ] Create API endpoint for resending verification emails
-    - [ ] Add UI controls in user detail page
+  - [x] **Email Verification Management:** Allow admins to manage email verification
+    - [x] Create API endpoint for manually verifying emails
+    - [x] Create API endpoint for resending verification emails
+    - [x] Add UI controls in user detail page
   - [ ] **User Creation:** Enable admins to create new user accounts
     - [ ] Create form component for adding new users
     - [ ] Add API endpoint for admin user creation
