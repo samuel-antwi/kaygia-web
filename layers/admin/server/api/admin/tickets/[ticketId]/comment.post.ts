@@ -71,23 +71,40 @@ export default defineEventHandler(async (event) => {
         })
         .returning();
 
-      // Update the ticket timestamps
+      // Determine if we should update the status
+      // Update to PENDING if current status is not CLOSED
+      const updateData = {
+        updatedAt: now,
+        lastRepliedAt: now,
+      };
+
+      // Only change status if ticket is not CLOSED
+      if (ticket.status !== "CLOSED") {
+        // @ts-expect-error - We're adding status conditionally
+        updateData.status = "PENDING";
+      }
+
+      // Update the ticket timestamps and possibly status
       await tx
         .update(supportTickets)
-        .set({
-          updatedAt: now,
-          lastRepliedAt: now,
-        })
+        .set(updateData)
         .where(eq(supportTickets.id, ticketId));
 
       return comment;
     });
 
+    // Determine if we changed the status (for response message)
+    const statusChanged =
+      ticket.status !== "CLOSED" && ticket.status !== "PENDING";
+
     // 4. Return success response
     return {
       success: true,
-      message: "Comment added successfully.",
+      message: statusChanged
+        ? "Comment added successfully. Ticket status changed to PENDING."
+        : "Comment added successfully.",
       comment: newComment,
+      statusChanged: statusChanged,
     };
   } catch (error: any) {
     // Handle potential errors

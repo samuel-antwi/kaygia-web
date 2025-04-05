@@ -37,11 +37,10 @@ This document tracks the implementation progress for the Admin UI layer.
     - [x] Implemented frontend logic to call the status update API when the dropdown selection changes.
     - [x] Re-enabled and fixed typing for the status `<Select>` component.
     - [x] Added toast notifications for successful actions (comment added, status changed) and errors.
+    - [x] Implemented automatic status changes when admin replies (sets to PENDING when not CLOSED).
 
 ## ⏳ To Do / Next Steps
 
-- **Ticket Management:**
-  - [ ] Consider adding automatic status changes based on workflow (e.g., set to PENDING when admin replies).
 - **User Management:**
   - [ ] Define API endpoints for listing users, viewing user details, potentially updating roles.
   - [ ] Create UI pages/components (`layers/admin/pages/admin/users/...`) for user management.

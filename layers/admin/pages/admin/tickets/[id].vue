@@ -58,6 +58,7 @@ interface ApiCommentResponse {
   success: boolean;
   message?: string;
   comment?: InferSelectModel<typeof ticketComments>;
+  statusChanged?: boolean;
 }
 
 // Define the API response structure for updating a ticket status
@@ -166,12 +167,14 @@ async function addComment() {
       newComment.value = ""; // Clear the textarea
       await refresh(); // Refresh the ticket data to show the new comment
 
-      // Show success toast
+      // Show success toast with status change info if applicable
       toast({
         title: "Reply Sent",
-        description: "Your reply has been added successfully",
+        description: response.statusChanged
+          ? "Your reply has been added successfully. Ticket status automatically changed to PENDING."
+          : "Your reply has been added successfully",
         variant: "default",
-        duration: 3000,
+        duration: 5000,
       });
     } else {
       // Should ideally not happen if API throws error on failure, but handle just in case
