@@ -24,6 +24,7 @@ This document tracks the implementation progress for the Admin UI layer.
   - [x] `GET /api/admin/tickets`: List all support tickets (for admins).
   - [x] `GET /api/admin/tickets/[ticketId]`: Get specific ticket details, including client and comments with authors.
   - [x] `POST /api/admin/tickets/[ticketId]/comment`: Allow admin to add a comment to a ticket.
+  - [x] `PUT /api/admin/tickets/[ticketId]/status`: Update ticket status.
 - **UI Components:**
   - [x] Ticket List Page (`layers/admin/pages/admin/tickets/index.vue`): Displays all tickets in a table, fetches data from API.
   - [x] Ticket Detail Page (`layers/admin/pages/admin/tickets/[id].vue`):
@@ -33,14 +34,13 @@ This document tracks the implementation progress for the Admin UI layer.
     - [x] Connects the "Add Reply" form to the `POST .../comment` API endpoint.
     - [x] Refreshes data automatically after a comment is successfully added.
     - [x] Displays API errors if comment submission fails.
+    - [x] Implemented frontend logic to call the status update API when the dropdown selection changes.
+    - [x] Re-enabled and fixed typing for the status `<Select>` component.
+    - [x] Added toast notifications for successful actions (comment added, status changed) and errors.
 
 ## ⏳ To Do / Next Steps
 
 - **Ticket Management:**
-  - [ ] Implement API Endpoint: Update ticket status (`PUT /api/admin/tickets/[ticketId]/status`).
-  - [ ] Implement frontend logic in Ticket Detail Page (`.../[id].vue`) to call the status update API when the dropdown selection changes.
-  - [ ] Re-enable and fix typing for the status `<Select>` component in the Ticket Detail Page.
-  - [ ] Consider adding visual feedback (e.g., toast notifications) for successful actions (comment added, status changed).
   - [ ] Consider adding automatic status changes based on workflow (e.g., set to PENDING when admin replies).
 - **User Management:**
   - [ ] Define API endpoints for listing users, viewing user details, potentially updating roles.

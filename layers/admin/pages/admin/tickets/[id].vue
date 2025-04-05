@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useFetch } from "#app";
 import type { InferSelectModel } from "drizzle-orm";
 import type { supportTickets, ticketComments, users } from "~/server/db/schema";
 import { ticketStatusEnum } from "~/server/db/schema";
 import { Role } from "../../../types/role"; // Import local Role enum
+import { useToast } from "@/components/ui/toast/use-toast";
 import {
   AlertTriangle,
   Loader2,
@@ -59,8 +60,17 @@ interface ApiCommentResponse {
   comment?: InferSelectModel<typeof ticketComments>;
 }
 
+// Define the API response structure for updating a ticket status
+interface ApiStatusUpdateResponse {
+  success: boolean;
+  message?: string;
+  ticket?: InferSelectModel<typeof supportTickets>;
+}
+
 // Define valid statuses as a constant array
-const VALID_STATUSES = ["OPEN", "PENDING", "RESOLVED", "CLOSED"] as const;
+const VALID_STATUSES = Object.freeze(
+  ticketStatusEnum.enumValues
+) as readonly string[];
 
 const route = useRoute();
 const ticketId = computed(() => route.params.id as string);
@@ -130,6 +140,10 @@ function getStatusIcon(status?: string) {
 const newComment = ref("");
 const isSubmitting = ref(false);
 const commentError = ref<string | null>(null); // Add state for comment errors
+const isUpdatingStatus = ref(false);
+const statusError = ref<string | null>(null);
+const currentStatus = ref<string | null>(null);
+const { toast } = useToast();
 
 // --- Actions ---
 async function addComment() {
@@ -151,42 +165,120 @@ async function addComment() {
     if (response.success) {
       newComment.value = ""; // Clear the textarea
       await refresh(); // Refresh the ticket data to show the new comment
-      // Optionally: scroll to bottom or show success toast
+
+      // Show success toast
+      toast({
+        title: "Reply Sent",
+        description: "Your reply has been added successfully",
+        variant: "default",
+        duration: 3000,
+      });
     } else {
       // Should ideally not happen if API throws error on failure, but handle just in case
-      commentError.value = response.message || "An unknown error occurred.";
+      const errorMessage = response.message || "An unknown error occurred.";
+      commentError.value = errorMessage;
       console.error("API call succeeded but returned success: false", response);
+
+      // Show error toast
+      toast({
+        title: "Failed to Send",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 3000,
+      });
     }
   } catch (err: any) {
     // Extract error message from the $fetch error response
-    commentError.value =
+    const errorMessage =
       err.data?.statusMessage ||
       err.data?.message ||
       err.message ||
       "Failed to send reply.";
+
+    commentError.value = errorMessage;
+
+    // Show error toast
+    toast({
+      title: "Error",
+      description: errorMessage,
+      variant: "destructive",
+      duration: 3000,
+    });
   } finally {
     isSubmitting.value = false;
   }
 }
 
-// Update status function (placeholder for now)
-async function updateStatus(
-  value: string | number | boolean | object | null | undefined
-) {
-  if (
-    typeof value === "string" &&
-    VALID_STATUSES.includes(value as (typeof VALID_STATUSES)[number])
-  ) {
-    const newStatus = value as (typeof ticketStatusEnum.enumValues)[number];
-    // Actual API call logic will go here
-    console.log("Updating status to:", newStatus);
-  } else {
-    console.warn(
-      "Received invalid value from Select for status update:",
-      value
+// Update status function
+async function handleStatusUpdate() {
+  if (!currentStatus.value || !ticketId.value) return;
+
+  isUpdatingStatus.value = true;
+  statusError.value = null;
+
+  try {
+    // Call the status update API endpoint
+    const response = await $fetch<ApiStatusUpdateResponse>(
+      `/api/admin/tickets/${ticketId.value}/status`,
+      {
+        method: "PUT",
+        body: { status: currentStatus.value },
+      }
     );
+
+    if (response.success) {
+      await refresh();
+      // Show success toast notification
+      toast({
+        title: "Status Updated",
+        description: `Ticket status changed to ${currentStatus.value}`,
+        variant: "default",
+        duration: 3000,
+      });
+    } else {
+      const errorMessage = response.message || "Failed to update status.";
+      statusError.value = errorMessage;
+
+      // Show error toast
+      toast({
+        title: "Update Failed",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  } catch (err: any) {
+    const errorMessage =
+      err.data?.statusMessage ||
+      err.data?.message ||
+      err.message ||
+      "Failed to update ticket status.";
+
+    statusError.value = errorMessage;
+    console.error("Error updating ticket status:", err);
+
+    // Show error toast
+    toast({
+      title: "Error",
+      description: errorMessage,
+      variant: "destructive",
+      duration: 3000,
+    });
+  } finally {
+    isUpdatingStatus.value = false;
   }
 }
+
+// Watch for ticket data changes to update current status
+watch(
+  () => ticket.value?.status,
+  (newStatus) => {
+    if (newStatus) {
+      currentStatus.value = newStatus;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -385,23 +477,36 @@ async function updateStatus(
             <p class="text-sm text-muted-foreground mb-2">
               Change ticket status:
             </p>
-            <Select
-              @update:modelValue="updateStatus"
-              :defaultValue="ticket.status"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="status in VALID_STATUSES"
-                  :key="status"
-                  :value="status"
-                >
-                  {{ status }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <!-- Status error message -->
+            <p v-if="statusError" class="text-sm text-red-600 mb-2">
+              {{ statusError }}
+            </p>
+            <div class="relative">
+              <Select
+                v-model="currentStatus"
+                @update:modelValue="handleStatusUpdate"
+              >
+                <SelectTrigger :disabled="isUpdatingStatus">
+                  <SelectValue placeholder="Select status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="status in VALID_STATUSES"
+                    :key="status"
+                    :value="status"
+                  >
+                    {{ status }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <!-- Loading indicator overlay when updating status -->
+              <div
+                v-if="isUpdatingStatus"
+                class="absolute inset-0 flex items-center justify-center bg-background/50 rounded"
+              >
+                <Loader2 class="h-4 w-4 animate-spin" />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
