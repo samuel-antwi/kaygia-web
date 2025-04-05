@@ -40,6 +40,8 @@ export const useAuth = () => {
       if (!registerResponse.success) {
         throw new Error(registerResponse.error || "Failed to sign up");
       }
+
+      return { success: true };
     } catch (err: any) {
       error.value = err?.message || "Failed to sign up";
       return { success: false, error: error.value };

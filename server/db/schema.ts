@@ -55,7 +55,7 @@ export const projects = pgTable("projects", {
   description: text("description"),
   status: projectStatusEnum("status").default("PENDING").notNull(),
   clientId: text("client_id")
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -72,7 +72,7 @@ export const supportTickets = pgTable("support_tickets", {
   description: text("description").notNull(),
   status: ticketStatusEnum("status").default("OPEN").notNull(),
   clientId: text("client_id")
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -83,10 +83,10 @@ export const ticketComments = pgTable("ticket_comments", {
   id: text("id").primaryKey().notNull(),
   content: text("content").notNull(),
   ticketId: text("ticket_id")
-    .references(() => supportTickets.id)
+    .references(() => supportTickets.id, { onDelete: "cascade" })
     .notNull(),
   userId: text("user_id")
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   sender: commentSenderEnum("sender").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -97,7 +97,7 @@ export const passwordResets = pgTable("password_resets", {
   id: text("id").primaryKey().notNull(),
   token: text("token").notNull(),
   userId: text("user_id")
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false).notNull(),
@@ -108,7 +108,7 @@ export const emailVerifications = pgTable("email_verifications", {
   id: text("id").primaryKey().notNull(),
   token: text("token").notNull(),
   userId: text("user_id")
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false).notNull(),
