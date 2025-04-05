@@ -140,7 +140,7 @@ function viewTicket(ticketId: string) {
 
       <!-- Tickets table using Shadcn components -->
       <div v-else>
-        <Card>
+        <Card class="rounded-md">
           <CardContent class="p-0">
             <Table>
               <TableHeader>

@@ -5,7 +5,7 @@ import {
   User,
   Settings,
   LayoutDashboard,
-  MessageSquare,
+  Ticket,
   Users,
   Sun,
   Moon,
@@ -13,6 +13,7 @@ import {
   PanelLeftClose,
   Menu,
   MoreVertical,
+  FolderKanban,
 } from "lucide-vue-next";
 // Note: Assuming Button, Avatar, DropdownMenu etc. are globally available via shadcn-vue auto-imports
 
@@ -82,8 +83,9 @@ function toggleSidebar() {
 // TODO: Adjust paths once admin pages are created
 const adminNavItems = [
   { name: "Admin Dashboard", icon: LayoutDashboard, path: "/admin" },
-  { name: "Manage Tickets", icon: MessageSquare, path: "/admin/tickets" },
+  { name: "Manage Tickets", icon: Ticket, path: "/admin/tickets" },
   { name: "Manage Users", icon: Users, path: "/admin/users" },
+  { name: "Manage Projects", icon: FolderKanban, path: "/admin/projects" },
   // Add other admin sections as needed
 ];
 

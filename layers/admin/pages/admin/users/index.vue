@@ -184,7 +184,7 @@ const viewUser = (userId: string) => {
 
     <!-- Users List Table -->
     <div v-else>
-      <Card>
+      <Card class="rounded-md">
         <CardContent class="p-0">
           <Table>
             <TableHeader>

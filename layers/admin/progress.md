@@ -54,7 +54,21 @@ This document tracks the implementation progress for the Admin UI layer.
     - [x] Shows recent tickets and projects for the user.
     - [x] Includes toast notifications for successful role changes and errors.
 
-**IV. Component Architecture:**
+**IV. Project Management (Admin Side):**
+
+- **API Endpoints:**
+  - [x] `GET /api/admin/projects`: List all projects with client information.
+  - [x] `GET /api/admin/projects/[id]`: Get specific project details, including client info.
+  - [x] `PUT /api/admin/projects/[id]/status`: Update a project's status.
+- **UI Components:**
+  - [x] Project List Page (`layers/admin/pages/admin/projects/index.vue`): Displays all projects in a searchable table.
+  - [x] Project Detail Page (`layers/admin/pages/admin/projects/[id].vue`):
+    - [x] Shows comprehensive project information (title, description, requirements, dates, budget).
+    - [x] Displays client information with a link to the client's profile.
+    - [x] Allows admin to change a project's status with proper feedback.
+    - [x] Includes toast notifications for successful status changes and errors.
+
+**V. Component Architecture:**
 
 - **Component Refactoring:**
   - [x] Refactored large page components into smaller, reusable components following the single responsibility principle.
@@ -68,11 +82,6 @@ This document tracks the implementation progress for the Admin UI layer.
   - [x] Created the `useFormatting` composable for date formatting and status color functions.
 
 ## ⏳ To Do / Next Steps
-
-- **Project Management:**
-
-  - [ ] Define necessary API endpoints for admin view/management of projects.
-  - [ ] Create UI pages/components for project management.
 
 - **Admin Dashboard (`layers/admin/pages/admin/index.vue`):**
 
