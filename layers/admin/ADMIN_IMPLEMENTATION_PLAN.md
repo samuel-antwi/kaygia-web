@@ -25,10 +25,10 @@ Key sections planned:
 ### Phase 1: Setup & Role-Based Access Control (RBAC)
 
 1.  **Schema Update:**
-    - Add `ADMIN` role to the `Role` enum in `prisma/schema.prisma`.
+    - Add `ADMIN` role to the `Role` enum in `server/db/schema.ts`.
     - **Status:** Pending.
 2.  **Database Migration:**
-    - Run `npx prisma migrate dev --name add-admin-role` to apply schema changes.
+    - Run `npx drizzle-kit generate:pg` and then `npx drizzle-kit push:pg` to apply schema changes.
     - **Status:** Pending.
 3.  **Assign Admin Role:**
     - Manually update the database to assign the `ADMIN` role to designated user(s).

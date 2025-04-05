@@ -18,7 +18,7 @@
   - Connected all auth forms to backend endpoints
   - Password hashing with bcrypt implemented
   - Complete password reset flow with email notifications implemented
-- **Database setup with Prisma**
+- **Database setup with Drizzle ORM**
   - Schema defined for User, Project, ContactMessage, and PasswordReset models
   - Connected to Supabase PostgreSQL database
 - **Email integration**
@@ -82,7 +82,7 @@
      - [x] User session management
      - [x] Password hashing
      - [x] Email integration for password reset
-   - [x] Database integration with Prisma
+   - [x] Database integration with Drizzle ORM
      - [x] Prisma schema definition
      - [x] Basic user model with password hashing
      - [x] Project model for client projects
@@ -134,7 +134,7 @@
 ## 🔄 Recent Changes
 
 - (2023-03-28) Implemented password reset functionality with email notifications
-  - Created PasswordReset model in Prisma schema
+  - Created PasswordReset model in the database schema
   - Set up email system with Resend
   - Created reset and complete-reset API endpoints
   - Built a secure token-based password reset flow
@@ -144,8 +144,8 @@
 - (2023-07-02) Added auth plugin to initialize auth state on app load
 - (2023-07-02) Updated dashboard layout to display user information and handle logout
 - (2023-07-01) Implemented password hashing for security
-- (2023-07-01) Created Prisma schema for users, projects, and contact messages
-- (2023-07-01) Connected Prisma to Supabase PostgreSQL database
+- (2023-07-01) Created database schema for users, projects, and contact messages using Drizzle ORM
+- (2023-07-01) Connected Drizzle ORM to Supabase PostgreSQL database
 - (2023-07-01) Implemented nuxt-auth-utils integration for authentication
 - (2023-07-01) Created API routes for login, register, logout, and password reset
 - (2023-07-01) Updated the useAuth composable to use nuxt-auth-utils
@@ -166,7 +166,7 @@
    - ~~Set up nuxt-auth-utils configuration~~ ✅
    - ~~Connect auth flows to nuxt-auth-utils~~ ✅
    - ~~Connect frontend forms to backend APIs~~ ✅
-3. ~~Set up database connections with Prisma~~ ✅
+3. ~~Set up database connections with Drizzle ORM~~ ✅
 4. ~~Implement dashboard features~~ ✅
    - [x] ~~Project listing view~~ ✅
    - [x] ~~Project status components~~ ✅

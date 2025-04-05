@@ -18,7 +18,7 @@
 ### 1.3 Database and Authentication
 
 - [ ] Set up Supabase project
-- [ ] Configure Prisma with Supabase PostgreSQL
+- [ ] Configure Drizzle ORM with Supabase PostgreSQL
 - [ ] Implement initial database schema
 - [ ] Set up nuxt-auth-utils configuration
 
@@ -154,7 +154,7 @@
 
 1. **Technical Risks**
 
-   - Integration challenges between Supabase and Prisma
+   - Integration challenges between Supabase and Drizzle ORM
    - Performance issues with complex queries
    - SSR complications with nuxt-auth-utils
 
