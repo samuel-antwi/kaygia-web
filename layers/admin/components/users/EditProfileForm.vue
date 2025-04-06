@@ -17,6 +17,7 @@ const props = defineProps<{
     email: string;
     company?: string | null;
   };
+  dialog?: boolean; // Optional prop to indicate if this form is rendered in a dialog
 }>();
 
 const emit = defineEmits<{
@@ -108,7 +109,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div>
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div class="space-y-2">
         <Label for="name">Name</Label>
@@ -116,6 +117,7 @@ async function handleSubmit() {
           id="name"
           v-model="formData.name"
           :class="{ 'border-destructive': errors.name }"
+          placeholder="Enter user's name"
         />
         <p v-if="errors.name" class="text-sm text-destructive">
           {{ errors.name }}
@@ -129,6 +131,7 @@ async function handleSubmit() {
           type="email"
           v-model="formData.email"
           :class="{ 'border-destructive': errors.email }"
+          placeholder="Enter user's email"
         />
         <p v-if="errors.email" class="text-sm text-destructive">
           {{ errors.email }}
@@ -141,20 +144,30 @@ async function handleSubmit() {
           id="company"
           v-model="formData.company"
           :class="{ 'border-destructive': errors.company }"
+          placeholder="Enter user's company"
         />
         <p v-if="errors.company" class="text-sm text-destructive">
           {{ errors.company }}
         </p>
       </div>
 
-      <div class="flex justify-end space-x-2">
-        <Button variant="outline" type="button" @click="emit('cancel')">
-          <XIcon class="mr-2 h-4 w-4" />
+      <div class="flex justify-end space-x-2 pt-2">
+        <Button
+          variant="outline"
+          type="button"
+          @click="emit('cancel')"
+          :class="props.dialog ? 'min-w-[80px]' : ''"
+        >
+          <XIcon v-if="!props.dialog" class="mr-2 h-4 w-4" />
           Cancel
         </Button>
-        <Button type="submit" :disabled="isSubmitting">
+        <Button
+          type="submit"
+          :disabled="isSubmitting"
+          :class="props.dialog ? 'min-w-[80px]' : ''"
+        >
           <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-          <CheckIcon v-else class="mr-2 h-4 w-4" />
+          <CheckIcon v-else-if="!props.dialog" class="mr-2 h-4 w-4" />
           Save Changes
         </Button>
       </div>
