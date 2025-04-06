@@ -238,7 +238,7 @@ const goBack = () => {
               <Button
                 type="submit"
                 :disabled="isAddingComment || !commentFormValues.content"
-                class="gap-2"
+                class="gap-2 mt-3"
               >
                 <div
                   v-if="isAddingComment"
