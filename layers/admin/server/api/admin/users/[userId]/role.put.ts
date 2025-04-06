@@ -17,13 +17,24 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
   const adminUser = session?.user;
 
-  if (!adminUser || adminUser.role !== "ADMIN") {
+  if (!adminUser) {
     console.warn(
-      `[API][Admin][User:${userId}/role] Unauthorized attempt. User: ${adminUser?.id}, Role: ${adminUser?.role}`
+      `[API][Admin][User:${userId}/role] Unauthorized attempt. No user session.`
     );
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Admin access required.",
+    });
+  }
+
+  // Check if current user is a super admin
+  if (adminUser.role !== "SUPER_ADMIN") {
+    console.warn(
+      `[API][Admin][User:${userId}/role] Permission denied. User: ${adminUser.id}, Role: ${adminUser.role}`
+    );
+    throw createError({
+      statusCode: 403,
+      statusMessage: "Forbidden: Super Admin access required to change roles.",
     });
   }
 

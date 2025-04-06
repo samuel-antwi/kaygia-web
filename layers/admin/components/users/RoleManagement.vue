@@ -1,13 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { AlertTriangle, Loader2, UserCog, ShieldCheck } from "lucide-vue-next";
+import {
+  AlertTriangle,
+  Loader2,
+  UserCog,
+  ShieldCheck,
+  Key,
+} from "lucide-vue-next";
 
 interface RoleManagementProps {
   user: {
     id: string;
     name: string | null;
     email: string;
+    role: string;
+  };
+  currentUser: {
+    id: string;
     role: string;
   };
   onRoleChanged: () => Promise<void>;
@@ -19,12 +29,31 @@ const props = defineProps<RoleManagementProps>();
 const { toast } = useToast();
 const isChangingRole = ref(false);
 
+// Computed property to check if current user is a super admin
+const isSuperAdmin = computed(() => props.currentUser.role === "SUPER_ADMIN");
+
+// Computed property to check if we can manage roles
+const canManageRoles = computed(() => {
+  // Only super admins can change roles
+  return isSuperAdmin.value;
+});
+
 // Function to change user role
 const changeUserRole = async (newRole: string) => {
   if (!props.user || isChangingRole.value) return;
 
   // Don't do anything if trying to set the same role
   if (props.user.role === newRole) return;
+
+  // Only Super Admin can change roles
+  if (!canManageRoles.value) {
+    toast({
+      title: "Permission Denied",
+      description: "Only Super Admins can change user roles",
+      variant: "destructive",
+    });
+    return;
+  }
 
   isChangingRole.value = true;
 
@@ -41,7 +70,7 @@ const changeUserRole = async (newRole: string) => {
       await props.onRoleChanged();
       toast({
         title: "Role Updated",
-        description: `User ${props.user.name || props.user.email} is now an ${newRole}`,
+        description: `User ${props.user.name || props.user.email} is now a ${newRole}`,
         variant: "default",
         duration: 3000,
       });
@@ -82,7 +111,15 @@ const changeUserRole = async (newRole: string) => {
         Change user's role in the system:
       </p>
 
-      <div class="relative space-y-2">
+      <div
+        v-if="!canManageRoles"
+        class="text-sm p-4 border rounded-md bg-muted/30"
+      >
+        <AlertTriangle class="h-4 w-4 inline-block mr-2 text-amber-500" />
+        <span>Only Super Admins can change user roles</span>
+      </div>
+
+      <div v-else class="relative space-y-2">
         <Button
           variant="outline"
           size="sm"
@@ -113,6 +150,21 @@ const changeUserRole = async (newRole: string) => {
           <span v-if="props.user.role === 'ADMIN'"> (Current) </span>
         </Button>
 
+        <Button
+          variant="destructive"
+          size="sm"
+          class="w-full flex items-center justify-between"
+          :class="{ 'opacity-50': isChangingRole }"
+          :disabled="isChangingRole || props.user.role === 'SUPER_ADMIN'"
+          @click="changeUserRole('SUPER_ADMIN')"
+        >
+          <div class="flex items-center">
+            <Key class="h-4 w-4 mr-2" />
+            <span>Set as SUPER ADMIN</span>
+          </div>
+          <span v-if="props.user.role === 'SUPER_ADMIN'"> (Current) </span>
+        </Button>
+
         <!-- Loading spinner overlay -->
         <div
           v-if="isChangingRole"
@@ -122,12 +174,18 @@ const changeUserRole = async (newRole: string) => {
         </div>
       </div>
 
-      <Alert class="mt-2" variant="destructive">
+      <Alert class="mt-2" :variant="canManageRoles ? 'destructive' : 'default'">
         <AlertTriangle class="h-4 w-4" />
-        <AlertTitle>Warning</AlertTitle>
+        <AlertTitle>Important</AlertTitle>
         <AlertDescription>
-          Changing a user's role affects their permissions and access across the
-          system.
+          <p>
+            Changing a user's role affects their permissions and access across
+            the system.
+          </p>
+          <p v-if="canManageRoles" class="mt-1 font-semibold">
+            Super Admins have full control over the entire system including role
+            management.
+          </p>
         </AlertDescription>
       </Alert>
     </CardContent>

@@ -47,6 +47,12 @@ interface ApiResponse {
   message?: string;
 }
 
+// Define the current admin user structure
+interface CurrentUser {
+  id: string;
+  role: string;
+}
+
 const route = useRoute();
 const userId = computed(() => route.params.id as string);
 
@@ -58,6 +64,14 @@ const { data, pending, error, refresh } = await useFetch<ApiResponse>(
     server: true,
     watch: [userId],
   }
+);
+
+// Get current user session (admin)
+const { data: sessionData } = await useFetch<{ user: CurrentUser }>(
+  "/api/user/profile"
+);
+const currentUser = computed(
+  () => sessionData.value?.user || { id: "", role: "ADMIN" }
 );
 
 // Computed property for easier access to the user data
@@ -126,7 +140,11 @@ const user = computed(() => data.value?.user);
         <UserProfile :user="user" @refresh="refresh" />
 
         <!-- Role Management Component -->
-        <RoleManagement :user="user" :on-role-changed="refresh" />
+        <RoleManagement
+          :user="user"
+          :current-user="currentUser"
+          :on-role-changed="refresh"
+        />
 
         <!-- Password Management Component -->
         <PasswordManagement :user="user" />
