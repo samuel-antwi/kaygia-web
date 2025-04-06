@@ -188,4 +188,8 @@ alwaysApply: true
 You can access session like this in api endpoint without importing it
 const session = await getUserSession(event);
 
+If you are struggling importing certain files or compoents, always check how we have done it in other places. Example getUserSession, useToast etc
+
+Always import Lucide-vue icons in the component before you use them and remember we don't use nuxt icon so you can't use something like Icon, it won't work.
+
 
