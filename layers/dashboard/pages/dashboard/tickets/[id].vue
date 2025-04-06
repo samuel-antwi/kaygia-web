@@ -189,7 +189,7 @@ const goBack = () => {
               <div class="flex-1 space-y-1">
                 <div class="flex items-center justify-between">
                   <p class="text-sm font-medium">
-                    {{ getSenderName(comment.sender) }}
+                    {{ comment.user?.name || getSenderName(comment.sender) }}
                     <span
                       v-if="comment.userId === user?.id"
                       class="text-xs text-muted-foreground"

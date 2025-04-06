@@ -15,6 +15,7 @@ interface TicketListItem extends InferSelectModel<typeof supportTickets> {
 
 interface TicketComment extends InferSelectModel<typeof ticketComments> {
   user: Pick<InferSelectModel<typeof users>, "id" | "name" | "email"> | null;
+  senderName?: string;
 }
 
 interface TicketDetails extends InferSelectModel<typeof supportTickets> {
