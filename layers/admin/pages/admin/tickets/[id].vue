@@ -14,6 +14,9 @@ import {
   CheckCircle,
   Clock,
   ArrowLeft,
+  MessageSquare,
+  Calendar,
+  User,
 } from "lucide-vue-next";
 import {
   Select,
@@ -111,18 +114,19 @@ function formatDate(dateString: string | Date): string {
 
 // Accept string | undefined for status
 function getStatusVariant(status?: string): string {
-  if (!status) return "bg-gray-100 text-gray-800";
+  if (!status)
+    return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
   switch (status) {
     case "OPEN": // Use string literal
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100";
     case "PENDING": // Use string literal
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100";
     case "RESOLVED": // Use string literal
-      return "bg-cyan-100 text-cyan-800";
+      return "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100";
     case "CLOSED": // Use string literal
-      return "bg-green-100 text-green-800";
+      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
   }
 }
 
@@ -291,32 +295,36 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div class="container mx-auto px-4 py-6 max-w-7xl">
     <!-- Back Button -->
     <NuxtLink
       to="/admin/tickets"
-      class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+      class="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors mb-6 group"
     >
-      <ArrowLeft class="w-4 h-4 mr-1" />
+      <ArrowLeft
+        class="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform"
+      />
       Back to Tickets
     </NuxtLink>
 
     <!-- 1. Loading State -->
-    <div v-if="pending" class="flex items-center justify-center py-20">
-      <Loader2 class="h-10 w-10 animate-spin text-muted-foreground" />
-      <p class="ml-3 text-muted-foreground">Loading ticket details...</p>
+    <div v-if="pending" class="flex flex-col items-center justify-center py-20">
+      <Loader2 class="h-12 w-12 animate-spin text-primary mb-4" />
+      <p class="text-muted-foreground text-lg">Loading ticket details...</p>
     </div>
 
     <!-- 2. Error State -->
     <div
       v-else-if="error"
-      class="p-6 bg-red-50 border border-red-200 rounded-md"
+      class="p-8 bg-destructive/10 border border-destructive/20 rounded-lg shadow-sm"
     >
       <div class="flex items-center">
-        <AlertTriangle class="h-6 w-6 text-red-500 mr-3" />
+        <AlertTriangle class="h-8 w-8 text-destructive mr-4 flex-shrink-0" />
         <div>
-          <p class="text-red-700 font-semibold">Error Loading Ticket</p>
-          <p class="text-red-600 mt-1 text-sm">
+          <p class="text-destructive font-semibold text-lg">
+            Error Loading Ticket
+          </p>
+          <p class="text-destructive/80 mt-2">
             {{
               error?.data?.statusMessage ||
               error?.data?.message ||
@@ -326,89 +334,103 @@ watch(
           </p>
         </div>
       </div>
-      <Button @click="refresh" variant="outline" size="sm" class="mt-4"
-        >Retry</Button
-      >
+      <Button @click="refresh" variant="outline" size="sm" class="mt-6">
+        Retry
+      </Button>
     </div>
 
     <!-- 3. No Ticket Data State (after loading & no error) -->
     <div
       v-else-if="!ticket"
-      class="text-center py-10 border border-dashed rounded-md"
+      class="text-center py-16 border border-dashed rounded-lg bg-muted/30"
     >
-      <p class="text-muted-foreground">
+      <p class="text-muted-foreground text-lg mb-4">
         Ticket data could not be loaded or does not exist.
       </p>
-      <!-- Optionally add a retry button here too -->
-      <Button @click="refresh" variant="outline" size="sm" class="mt-3"
-        >Retry</Button
-      >
+      <Button @click="refresh" variant="outline" size="sm">Retry</Button>
     </div>
 
     <!-- 4. Data Loaded State (Final v-else) -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Left Column: Comments -->
-      <div class="lg:col-span-2 space-y-4">
-        <div class="flex items-center">
-          <h2 class="text-2xl font-semibold">{{ ticket.subject }}</h2>
-          <Badge variant="outline" class="ml-3">
-            #{{ ticket.ticketNumber || "N/A" }}
-          </Badge>
+    <div v-else>
+      <!-- Ticket Header -->
+      <div class="mb-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4"
+        >
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <h1 class="text-2xl md:text-3xl font-bold">
+                {{ ticket.subject }}
+              </h1>
+              <Badge variant="outline" class="text-xs md:text-sm h-6 px-2">
+                #{{ ticket.ticketNumber || "N/A" }}
+              </Badge>
+            </div>
+            <div
+              class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground"
+            >
+              <div class="flex items-center">
+                <Calendar class="h-4 w-4 mr-2" />
+                <span>{{ formatDate(ticket.createdAt) }}</span>
+              </div>
+              <div class="flex items-center">
+                <User class="h-4 w-4 mr-2" />
+                <span>{{ ticket.client?.name || "Unknown" }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 self-start md:self-center">
+            <Badge
+              :class="[getStatusVariant(ticket.status)]"
+              class="flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-full"
+            >
+              <component
+                :is="getStatusIcon(ticket.status)"
+                class="h-3.5 w-3.5"
+              />
+              {{ ticket.status }}
+            </Badge>
+
+            <Select
+              v-model="currentStatus"
+              @update:model-value="handleStatusUpdate"
+              :disabled="isUpdatingStatus"
+            >
+              <SelectTrigger class="w-36 h-9">
+                <SelectValue placeholder="Change Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="status in VALID_STATUSES"
+                  :key="status"
+                  :value="status"
+                  :disabled="status === ticket.status"
+                >
+                  {{ status }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <p class="text-muted-foreground mt-1">
-          Opened {{ formatDate(ticket.createdAt) }} by
-          {{ ticket.client?.name || "Unknown" }}
-        </p>
-      </div>
 
-      <!-- Right Column: Ticket Details -->
-      <div class="lg:col-span-1 space-y-4">
-        <div class="flex items-center gap-3">
-          <Badge
-            :class="[getStatusVariant(ticket.status)]"
-            class="flex items-center gap-1 h-8 text-xs"
-          >
-            <component :is="getStatusIcon(ticket.status)" class="h-3 w-3" />
-            {{ ticket.status }}
-          </Badge>
-
-          <Select
-            :model-value="ticket.status"
-            @update:model-value="handleStatusUpdate"
-            :disabled="isUpdatingStatus"
-          >
-            <SelectTrigger class="w-32">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                v-for="status in VALID_STATUSES"
-                :key="status"
-                :value="status"
-                :disabled="status === ticket.status"
-              >
-                {{ status }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <!-- Show loading indicator while status is being updated -->
+        <!-- Status Update Feedback -->
         <div
           v-if="isUpdatingStatus"
-          class="flex justify-center items-center py-2"
+          class="flex justify-center items-center py-2 bg-primary/5 rounded-md"
         >
-          <Loader2 class="h-5 w-5 animate-spin text-primary" />
-          <span class="ml-2 text-sm">Updating status...</span>
+          <Loader2 class="h-4 w-4 animate-spin text-primary mr-2" />
+          <span class="text-sm">Updating status...</span>
         </div>
 
-        <!-- Show error if status update failed -->
         <div
           v-if="statusError"
-          class="p-4 bg-destructive/10 border border-destructive rounded-md"
+          class="p-4 bg-destructive/10 border border-destructive/20 rounded-md mt-2"
         >
           <div class="flex items-center">
-            <AlertTriangle class="h-5 w-5 text-destructive mr-2" />
+            <AlertTriangle
+              class="h-5 w-5 text-destructive mr-2 flex-shrink-0"
+            />
             <p class="text-sm font-medium text-destructive">
               {{ statusError }}
             </p>
@@ -416,126 +438,287 @@ watch(
         </div>
       </div>
 
-      <!-- Comment List -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Conversation</CardTitle>
-        </CardHeader>
-        <CardContent class="space-y-4">
-          <div
-            v-if="ticket.comments && ticket.comments.length > 0"
-            class="space-y-4"
-          >
-            <div
-              v-for="comment in ticket.comments"
-              :key="comment.id"
-              class="flex gap-3"
-            >
-              <Avatar class="mt-1">
-                <AvatarFallback
-                  :class="
-                    comment.sender === 'ADMIN'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  "
-                >
-                  {{ comment.user?.name?.charAt(0)?.toUpperCase() || "U" }}
-                </AvatarFallback>
-              </Avatar>
+      <!-- Main Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column: Conversation -->
+        <div class="lg:col-span-2 space-y-6">
+          <Card class="shadow-sm border-muted/60">
+            <CardHeader class="pb-3 border-b">
+              <CardTitle class="flex items-center text-xl">
+                <MessageSquare class="h-5 w-5 mr-2" />
+                Conversation
+              </CardTitle>
+            </CardHeader>
+            <CardContent class="p-0">
               <div
-                class="flex-1 p-3 rounded-md"
-                :class="
-                  comment.sender === 'ADMIN' ? 'bg-primary/10' : 'bg-muted/70'
-                "
+                v-if="ticket.comments && ticket.comments.length > 0"
+                class="divide-y divide-border"
               >
-                <div class="flex justify-between items-center mb-1">
-                  <p class="text-sm font-medium">
-                    {{ comment.user?.name || "Unknown User" }}
-                    <span
-                      v-if="comment.sender === 'ADMIN'"
-                      class="text-xs text-primary/80 ml-1"
-                      >(Admin)</span
-                    >
-                    <span v-else class="text-xs text-muted-foreground ml-1"
-                      >(Client)</span
-                    >
-                  </p>
-                  <p class="text-xs text-muted-foreground">
-                    {{ formatDate(comment.createdAt) }}
+                <div
+                  v-for="comment in ticket.comments"
+                  :key="comment.id"
+                  class="p-5"
+                >
+                  <div class="flex gap-4">
+                    <Avatar class="h-10 w-10 border">
+                      <AvatarFallback
+                        :class="
+                          comment.sender === 'ADMIN'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        "
+                      >
+                        {{
+                          comment.user?.name?.charAt(0)?.toUpperCase() || "U"
+                        }}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div class="flex-1">
+                      <div
+                        class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mb-2"
+                      >
+                        <div class="flex items-center">
+                          <p class="font-medium">
+                            {{ comment.user?.name || "Unknown User" }}
+                          </p>
+                          <Badge
+                            variant="outline"
+                            :class="
+                              comment.sender === 'ADMIN'
+                                ? 'text-primary border-primary/30 bg-primary/5'
+                                : 'text-muted-foreground'
+                            "
+                            class="ml-2 text-xs h-5 px-1.5"
+                          >
+                            {{
+                              comment.sender === "ADMIN" ? "Admin" : "Client"
+                            }}
+                          </Badge>
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                          {{ formatDate(comment.createdAt) }}
+                        </p>
+                      </div>
+                      <div
+                        class="text-sm rounded-lg p-4"
+                        :class="
+                          comment.sender === 'ADMIN'
+                            ? 'bg-primary/5 dark:bg-primary/10'
+                            : 'bg-muted/50 dark:bg-muted/30'
+                        "
+                      >
+                        <p class="whitespace-pre-wrap">{{ comment.content }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-else
+                class="flex flex-col items-center justify-center py-12 px-4 text-center"
+              >
+                <MessageSquare
+                  class="h-12 w-12 text-muted-foreground/40 mb-4"
+                />
+                <p class="text-muted-foreground">No comments yet.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Add Comment Form -->
+          <Card class="shadow-sm border-muted/60">
+            <CardHeader class="pb-3 border-b">
+              <CardTitle class="text-xl">Add Reply</CardTitle>
+            </CardHeader>
+            <CardContent class="p-5">
+              <Textarea
+                v-model="newComment"
+                placeholder="Type your reply here..."
+                class="min-h-[120px] mb-4 resize-y"
+                :disabled="isSubmitting"
+              />
+              <!-- Display Comment Error -->
+              <div
+                v-if="commentError"
+                class="p-3 bg-destructive/10 border border-destructive/20 rounded-md mb-4"
+              >
+                <div class="flex items-center">
+                  <AlertTriangle
+                    class="h-4 w-4 text-destructive mr-2 flex-shrink-0"
+                  />
+                  <p class="text-sm text-destructive">
+                    {{ commentError }}
                   </p>
                 </div>
-                <p class="text-sm whitespace-pre-wrap">
-                  {{ comment.content }}
-                </p>
               </div>
-            </div>
-          </div>
-          <p v-else class="text-sm text-muted-foreground text-center py-4">
-            No comments yet.
-          </p>
-        </CardContent>
-      </Card>
+              <Button
+                @click="addComment"
+                :disabled="!newComment.trim() || isSubmitting"
+                class="w-full sm:w-auto"
+              >
+                <Loader2
+                  v-if="isSubmitting"
+                  class="mr-2 h-4 w-4 animate-spin"
+                />
+                <Send v-else class="mr-2 h-4 w-4" />
+                Send Reply
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
-      <!-- Add Comment Form -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Add Reply</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            v-model="newComment"
-            placeholder="Type your reply here..."
-            class="min-h-[100px] mb-3"
-            :disabled="isSubmitting"
-          />
-          <!-- Display Comment Error -->
-          <p v-if="commentError" class="text-red-600 text-sm mb-3">
-            Error: {{ commentError }}
-          </p>
-          <Button
-            @click="addComment"
-            :disabled="!newComment.trim() || isSubmitting"
-          >
-            <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-            <Send v-else class="mr-2 h-4 w-4" />
-            Send Reply
-          </Button>
-        </CardContent>
-      </Card>
+        <!-- Right Column: Ticket Info -->
+        <div class="lg:col-span-1">
+          <Card class="shadow-sm border-muted/60 sticky top-4">
+            <CardHeader class="pb-3 border-b">
+              <CardTitle class="text-xl">Ticket Information</CardTitle>
+            </CardHeader>
+            <CardContent class="p-5">
+              <div class="space-y-4">
+                <div>
+                  <h3 class="text-sm font-medium text-muted-foreground mb-1">
+                    Ticket Number
+                  </h3>
+                  <p class="font-mono">{{ ticket.ticketNumber || "N/A" }}</p>
+                </div>
+
+                <div>
+                  <h3 class="text-sm font-medium text-muted-foreground mb-1">
+                    Client
+                  </h3>
+                  <div class="flex items-center">
+                    <Avatar class="h-6 w-6 mr-2">
+                      <AvatarFallback class="text-xs">
+                        {{
+                          ticket.client?.name?.charAt(0)?.toUpperCase() || "?"
+                        }}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p>{{ ticket.client?.name || "Unknown" }}</p>
+                  </div>
+                  <p
+                    v-if="ticket.client?.email"
+                    class="text-sm text-muted-foreground mt-1"
+                  >
+                    {{ ticket.client.email }}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 class="text-sm font-medium text-muted-foreground mb-1">
+                    Created
+                  </h3>
+                  <p>{{ formatDate(ticket.createdAt) }}</p>
+                </div>
+
+                <div>
+                  <h3 class="text-sm font-medium text-muted-foreground mb-1">
+                    Status
+                  </h3>
+                  <Badge
+                    :class="[getStatusVariant(ticket.status)]"
+                    class="flex items-center gap-1.5 h-7 px-2.5 text-xs font-medium"
+                  >
+                    <component
+                      :is="getStatusIcon(ticket.status)"
+                      class="h-3.5 w-3.5"
+                    />
+                    {{ ticket.status }}
+                  </Badge>
+                </div>
+
+                <div v-if="ticket.comments?.length">
+                  <h3 class="text-sm font-medium text-muted-foreground mb-1">
+                    Activity
+                  </h3>
+                  <p class="text-sm">
+                    <span class="font-medium">{{
+                      ticket.comments.length
+                    }}</span>
+                    {{ ticket.comments.length === 1 ? "reply" : "replies" }}
+                  </p>
+                  <p class="text-sm text-muted-foreground mt-1">
+                    Last update:
+                    {{
+                      formatDate(
+                        ticket.comments[ticket.comments.length - 1].createdAt
+                      )
+                    }}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Tailwind classes added in getStatusVariant */
+/* Dark mode support for status badges */
 .bg-blue-100 {
   background-color: #dbeafe;
 }
 .text-blue-800 {
   color: #1e40af;
 }
-.bg-yellow-100 {
-  background-color: #fef9c3;
+.dark .bg-blue-900 {
+  background-color: rgba(30, 58, 138, 0.3);
 }
-.text-yellow-800 {
-  color: #854d0e;
+.dark .text-blue-100 {
+  color: #dbeafe;
 }
+
+.bg-amber-100 {
+  background-color: #fef3c7;
+}
+.text-amber-800 {
+  color: #92400e;
+}
+.dark .bg-amber-900 {
+  background-color: rgba(120, 53, 15, 0.3);
+}
+.dark .text-amber-100 {
+  color: #fef3c7;
+}
+
 .bg-cyan-100 {
   background-color: #cffafe;
-} /* Added for RESOLVED */
+}
 .text-cyan-800 {
   color: #155e75;
-} /* Added for RESOLVED */
-.bg-green-100 {
-  background-color: #dcfce7;
 }
-.text-green-800 {
-  color: #166534;
+.dark .bg-cyan-900 {
+  background-color: rgba(22, 78, 99, 0.3);
 }
+.dark .text-cyan-100 {
+  color: #cffafe;
+}
+
+.bg-emerald-100 {
+  background-color: #d1fae5;
+}
+.text-emerald-800 {
+  color: #065f46;
+}
+.dark .bg-emerald-900 {
+  background-color: rgba(6, 78, 59, 0.3);
+}
+.dark .text-emerald-100 {
+  color: #d1fae5;
+}
+
 .bg-gray-100 {
   background-color: #f3f4f6;
 }
 .text-gray-800 {
   color: #1f2937;
+}
+.dark .bg-gray-800 {
+  background-color: rgba(31, 41, 55, 0.3);
+}
+.dark .text-gray-200 {
+  color: #e5e7eb;
 }
 </style>
