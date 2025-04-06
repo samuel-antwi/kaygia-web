@@ -85,10 +85,7 @@ const initiatePasswordReset = async () => {
         <div>
           <Dialog v-model:open="dialogOpen">
             <DialogTrigger as-child>
-              <Button
-                variant="outline"
-                class="w-full flex justify-between items-center"
-              >
+              <Button class="flex justify-between items-center">
                 <span>Send Password Reset Email</span>
                 <KeyRound class="h-4 w-4 ml-2" />
               </Button>

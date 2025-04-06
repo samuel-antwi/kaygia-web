@@ -121,13 +121,13 @@ const resendVerificationEmail = async () => {
 
 <template>
   <Card>
-    <CardHeader>
-      <CardTitle class="flex items-center">
-        <span v-if="props.user.emailVerified">
+    <CardHeader class="flex flex-row">
+      <CardTitle>
+        <span v-if="props.user.emailVerified" class="flex items-center">
           <CheckCircle2 class="h-5 w-5 mr-2 text-green-600" />
           Email Status: Verified
         </span>
-        <span v-else>
+        <span v-else class="flex items-center">
           <Mail class="h-5 w-5 mr-2 text-orange-600" />
           Email Status: Not Verified
         </span>

@@ -75,16 +75,18 @@ const toggleAccountStatus = async () => {
 
 <template>
   <Card>
-    <CardHeader>
-      <CardTitle class="flex items-center">
-        <span v-if="props.user.active">
-          <UserCheck class="h-5 w-5 mr-2 text-green-600" />
-          Account Status: Active
-        </span>
-        <span v-else>
-          <UserX class="h-5 w-5 mr-2 text-red-600" />
-          Account Status: Inactive
-        </span>
+    <CardHeader class="flex">
+      <CardTitle>
+        <div>
+          <span v-if="props.user.active" class="flex items-center">
+            <UserCheck class="h-5 w-5 mr-2 text-green-600" />
+            Account Status: Active
+          </span>
+          <span v-else>
+            <UserX class="h-5 w-5 mr-2 text-red-600" />
+            Account Status: Inactive
+          </span>
+        </div>
       </CardTitle>
     </CardHeader>
     <CardContent class="space-y-4">
@@ -102,7 +104,7 @@ const toggleAccountStatus = async () => {
           <DialogTrigger as-child>
             <Button
               :variant="props.user.active ? 'destructive' : 'default'"
-              class="w-full flex justify-between items-center"
+              class="flex justify-between items-center"
             >
               <span v-if="props.user.active">Deactivate Account</span>
               <span v-else>Activate Account</span>
