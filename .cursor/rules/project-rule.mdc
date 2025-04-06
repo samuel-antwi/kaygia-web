@@ -80,7 +80,7 @@ alwaysApply: true
 - Use proper HTTP methods (GET, POST, PUT, DELETE)
 
 ### Database
-- Use Prisma for all database operations
+- Use Drizzle for all database operations
 - No direct SQL queries
 - Always include proper relations
 - Use meaningful model names

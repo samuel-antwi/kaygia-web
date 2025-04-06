@@ -83,7 +83,7 @@
      - [x] Password hashing
      - [x] Email integration for password reset
    - [x] Database integration with Drizzle ORM
-     - [x] Prisma schema definition
+     - [x] Drizle schema definition
      - [x] Basic user model with password hashing
      - [x] Project model for client projects
      - [x] Contact message model for contact form

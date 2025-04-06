@@ -17,7 +17,7 @@ The password reset system provides users with a secure way to regain access to t
 
 We use a separate `PasswordReset` table in the database to track password reset requests:
 
-```prisma
+```drizzle
 model PasswordReset {
   id        String   @id @default(cuid())
   token     String   @unique

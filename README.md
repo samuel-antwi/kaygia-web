@@ -16,7 +16,7 @@ A professional web development agency website built with Nuxt 3. This project in
 - [Nuxt 3](https://nuxt.com/) - Vue.js Framework
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - [shadcn-vue](https://github.com/radix-vue/shadcn-vue) - UI component library
-- [Prisma](https://www.prisma.io/) - TypeScript ORM
+- [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
 - [Supabase](https://supabase.io/) - PostgreSQL database
 - [nuxt-auth-utils](https://github.com/nuxt-modules/auth-utils) - Authentication utilities
 - [Resend](https://resend.com/) - Email API
@@ -61,10 +61,10 @@ NUXT_PUBLIC_SITE_URL=https://your-domain.com
 
 ### Database Setup
 
-Initialize the database schema:
+Run database migrations:
 
 ```bash
-npx prisma migrate dev
+npx drizzle-kit migrate
 ```
 
 ## Development Server

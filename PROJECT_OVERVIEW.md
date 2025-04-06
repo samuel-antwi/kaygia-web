@@ -19,7 +19,7 @@ The app has two main goals:
 | Icons        | `lucide-vue-next`                                        |
 | Composables  | `vueuse`                                                 |
 | Auth         | nuxt-auth-utils                                          |
-| ORM          | Prisma ORM                                               |
+| ORM          | Drizzle ORM                                              |
 | Database     | Supabase PostgreSQL                                      |
 | API          | Nuxt Server Routes (`/server/api`)                       |
 | Hosting      | Vercel, Netlify, or Supabase                             |
@@ -34,7 +34,7 @@ The project is structured into **three distinct layers**:
 ```
 .
 ├── layers/
-│   ├── core/    # Shared composables, plugins, Prisma, configs
+│   ├── core/    # Shared composables, plugins, Drizzle, configs
 │   ├── marketing/  # Public website (homepage, services, about)
 │   └── app/     # Client-side app (auth, dashboard, requests)
 ```
@@ -44,7 +44,7 @@ The project is structured into **three distinct layers**:
 ### 🔸 `core/`
 
 - Shared Tailwind config
-- Prisma setup
+- Drizzle ORM setup
 - Nuxt plugins (e.g. Supabase client)
 - Shared composables (`useAuth`, `useProjects`)
 - Constants, utils, types
@@ -76,7 +76,7 @@ The project is structured into **three distinct layers**:
 ### 🔹 Project Booking
 
 - Form with project details
-- Saved in Supabase via Prisma
+- Saved in Supabase via Drizzle ORM
 - Optional: Email notifications later
 
 ### 🔹 Auth

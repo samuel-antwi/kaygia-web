@@ -68,7 +68,6 @@ export default defineNuxtConfig({
     transpile: ["trpc-nuxt"],
   },
 
-  // Remove Prisma-specific configuration
   vite: {
     optimizeDeps: {
       exclude: [],

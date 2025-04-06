@@ -7,7 +7,7 @@ This document tracks the implementation progress for the Admin UI layer.
 **I. Core Setup & Access Control:**
 
 - [x] Created Admin Layer (`layers/admin` directory structure).
-- [x] Added `ADMIN` role to `prisma/schema.prisma`.
+- [x] Added `ADMIN` role to the database schema (managed by Drizzle).
 - [x] Implemented Admin-only Middleware (`layers/admin/middleware/admin-only.global.ts`) to protect admin routes.
 - [x] Created dedicated Admin Layout (`layouts/admin.vue`) with:
   - [x] Basic admin navigation sidebar.
