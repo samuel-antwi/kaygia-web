@@ -5,6 +5,16 @@ import type { InferSelectModel } from "drizzle-orm";
 import type { users as usersSchema } from "~/server/db/schema";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { UserPlus } from "lucide-vue-next";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 definePageMeta({
   layout: "admin",
@@ -86,7 +96,7 @@ const viewUser = (userId: string) => {
 </script>
 
 <template>
-  <div class="container mx-auto py-6 space-y-6">
+  <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-bold tracking-tight">User Management</h1>
@@ -97,8 +107,8 @@ const viewUser = (userId: string) => {
     </div>
 
     <!-- Search and filters -->
-    <div class="flex items-center space-x-2">
-      <div class="relative flex-1 max-w-sm">
+    <div class="flex flex-wrap gap-3 items-center">
+      <div class="relative flex-1 min-w-[200px]">
         <Search
           class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
         />
@@ -192,76 +202,78 @@ const viewUser = (userId: string) => {
 
     <!-- Users List Table -->
     <div v-else>
-      <Card class="rounded-md">
-        <CardContent class="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Account</TableHead>
-                <TableHead class="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow
-                v-for="user in filteredUsers"
-                :key="user.id"
-                class="cursor-pointer hover:bg-muted/50"
-                @click="viewUser(user.id)"
-              >
-                <TableCell class="font-medium">
-                  {{ user.name || "Unnamed User" }}
-                </TableCell>
-                <TableCell>{{ user.email }}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    :class="getRoleBadgeClass(user.role)"
-                  >
-                    {{ user.role }}
-                  </Badge>
-                </TableCell>
-                <TableCell>{{ formatDate(user.createdAt) }}</TableCell>
-                <TableCell>
-                  <Badge
-                    :variant="user.emailVerified ? 'default' : 'outline'"
-                    :class="
-                      user.emailVerified
-                        ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                        : 'bg-orange-100 text-orange-800 hover:bg-orange-100'
-                    "
-                  >
-                    {{ user.emailVerified ? "Verified" : "Unverified" }}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    :variant="user.active ? 'default' : 'outline'"
-                    :class="
-                      user.active
-                        ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                        : 'bg-red-100 text-red-800 hover:bg-red-100'
-                    "
-                  >
-                    {{ user.active ? "Active" : "Inactive" }}
-                  </Badge>
-                </TableCell>
-                <TableCell class="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    @click.stop="viewUser(user.id)"
-                  >
-                    View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+      <Card>
+        <CardContent class="px-0 overflow-x-auto">
+          <div class="min-w-[650px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Account</TableHead>
+                  <TableHead class="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="user in filteredUsers"
+                  :key="user.id"
+                  class="cursor-pointer hover:bg-muted/50"
+                  @click="viewUser(user.id)"
+                >
+                  <TableCell class="font-medium">
+                    {{ user.name || "Unnamed User" }}
+                  </TableCell>
+                  <TableCell>{{ user.email }}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      :class="getRoleBadgeClass(user.role)"
+                    >
+                      {{ user.role }}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{{ formatDate(user.createdAt) }}</TableCell>
+                  <TableCell>
+                    <Badge
+                      :variant="user.emailVerified ? 'default' : 'outline'"
+                      :class="
+                        user.emailVerified
+                          ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                          : 'bg-orange-100 text-orange-800 hover:bg-orange-100'
+                      "
+                    >
+                      {{ user.emailVerified ? "Verified" : "Unverified" }}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      :variant="user.active ? 'default' : 'outline'"
+                      :class="
+                        user.active
+                          ? 'bg-green-100 text-green-800 hover:bg-green-100'
+                          : 'bg-red-100 text-red-800 hover:bg-red-100'
+                      "
+                    >
+                      {{ user.active ? "Active" : "Inactive" }}
+                    </Badge>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      @click.stop="viewUser(user.id)"
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

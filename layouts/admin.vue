@@ -253,7 +253,7 @@ function isAdminRouteActive(path: string): boolean {
 
     <!-- Main Content Area -->
     <div
-      class="flex flex-1 flex-col transition-all duration-300 ease-in-out"
+      class="transition-all duration-300 ease-in-out w-full"
       :class="isSidebarCollapsed ? 'md:pl-[70px]' : 'md:pl-60'"
     >
       <!-- Header -->
@@ -302,9 +302,8 @@ function isAdminRouteActive(path: string): boolean {
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <main class="p-4 sm:p-6">
         <slot />
-        <!-- Where the admin page content will be rendered -->
       </main>
     </div>
   </div>

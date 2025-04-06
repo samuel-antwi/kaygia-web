@@ -4,6 +4,16 @@ import { AlertTriangle, Loader2, Search } from "lucide-vue-next";
 import { Role } from "../../../types/role"; // Import local Role enum
 import type { InferSelectModel } from "drizzle-orm";
 import type { supportTickets, users } from "~/server/db/schema";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 definePageMeta({
   layout: "admin",
@@ -96,17 +106,19 @@ function clearSearch() {
 </script>
 
 <template>
-  <div class="container mx-auto py-6 space-y-6">
+  <div class="space-y-6">
     <!-- Only show content if user is loaded and confirmed ADMIN -->
     <div v-if="!loading && user && user.role === Role.ADMIN">
-      <div class="flex justify-between items-center mb-6">
+      <div
+        class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6"
+      >
         <div>
           <h1 class="text-2xl font-bold tracking-tight">Support Tickets</h1>
           <p class="text-muted-foreground">
             View and manage all support tickets
           </p>
         </div>
-        <Button @click="refresh" variant="outline" size="sm">
+        <Button @click="refresh" variant="outline" size="sm" class="h-10">
           <span v-if="pending">
             <Loader2 class="mr-2 h-4 w-4 animate-spin" />
             Refreshing
@@ -117,7 +129,7 @@ function clearSearch() {
 
       <!-- Search Bar -->
       <div class="relative mb-6">
-        <div class="relative">
+        <div class="relative w-full">
           <Search
             class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
           />
@@ -125,7 +137,7 @@ function clearSearch() {
             v-model="searchQuery"
             type="search"
             placeholder="Search by ticket number, subject, or client..."
-            class="pl-8 w-full md:w-1/2 lg:w-1/3"
+            class="pl-8 w-full"
           />
           <Button
             v-if="searchQuery"
@@ -201,61 +213,63 @@ function clearSearch() {
 
       <!-- Tickets table using Shadcn components -->
       <div v-else>
-        <Card class="rounded-md">
-          <CardContent class="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ticket #</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Comments</TableHead>
-                  <TableHead class="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow
-                  v-for="ticket in tickets"
-                  :key="ticket.id"
-                  class="cursor-pointer hover:bg-muted/50"
-                  @click="viewTicket(ticket.id)"
-                >
-                  <TableCell class="font-medium">
-                    {{ ticket.ticketNumber || "N/A" }}
-                  </TableCell>
-                  <TableCell>
-                    {{ ticket.subject }}
-                  </TableCell>
-                  <TableCell>
-                    <div>{{ ticket.client?.name || "Unknown" }}</div>
-                    <div class="text-sm text-muted-foreground">
-                      {{ ticket.client?.email }}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      class="text-sm font-medium"
-                      :class="getStatusColor(ticket.status)"
-                    >
-                      {{ ticket.status }}
-                    </span>
-                  </TableCell>
-                  <TableCell>{{ formatDate(ticket.createdAt) }}</TableCell>
-                  <TableCell>{{ ticket._count?.comments || 0 }}</TableCell>
-                  <TableCell class="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      @click.stop="viewTicket(ticket.id)"
-                    >
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+        <Card>
+          <CardContent class="px-0 overflow-x-auto">
+            <div class="min-w-[650px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ticket #</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Comments</TableHead>
+                    <TableHead class="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
+                    v-for="ticket in tickets"
+                    :key="ticket.id"
+                    class="cursor-pointer hover:bg-muted/50"
+                    @click="viewTicket(ticket.id)"
+                  >
+                    <TableCell class="font-medium">
+                      {{ ticket.ticketNumber || "N/A" }}
+                    </TableCell>
+                    <TableCell>
+                      {{ ticket.subject }}
+                    </TableCell>
+                    <TableCell>
+                      <div>{{ ticket.client?.name || "Unknown" }}</div>
+                      <div class="text-sm text-muted-foreground">
+                        {{ ticket.client?.email }}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        class="text-sm font-medium"
+                        :class="getStatusColor(ticket.status)"
+                      >
+                        {{ ticket.status }}
+                      </span>
+                    </TableCell>
+                    <TableCell>{{ formatDate(ticket.createdAt) }}</TableCell>
+                    <TableCell>{{ ticket._count?.comments || 0 }}</TableCell>
+                    <TableCell class="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        @click.stop="viewTicket(ticket.id)"
+                      >
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>

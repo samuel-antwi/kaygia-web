@@ -116,7 +116,7 @@ const viewProject = (projectId: string) => {
 </script>
 
 <template>
-  <div class="container mx-auto py-6 space-y-6">
+  <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-bold tracking-tight">Project Management</h1>
@@ -125,8 +125,8 @@ const viewProject = (projectId: string) => {
     </div>
 
     <!-- Search and filters -->
-    <div class="flex items-center space-x-2">
-      <div class="relative flex-1 max-w-sm">
+    <div class="flex flex-wrap gap-3 items-center">
+      <div class="relative flex-1 min-w-[200px]">
         <Search
           class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground"
         />
@@ -214,56 +214,58 @@ const viewProject = (projectId: string) => {
 
     <!-- Projects List Table -->
     <div v-else>
-      <Card class="rounded-md">
-        <CardContent class="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Budget</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead class="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow
-                v-for="project in filteredProjects"
-                :key="project.id"
-                class="cursor-pointer hover:bg-muted/50"
-                @click="viewProject(project.id)"
-              >
-                <TableCell class="font-medium">
-                  {{ project.title }}
-                </TableCell>
-                <TableCell>
-                  <div>{{ project.client?.name || "Unknown" }}</div>
-                  <div class="text-sm text-muted-foreground">
-                    {{ project.client?.company || "No company" }}
-                  </div>
-                </TableCell>
-                <TableCell>{{ project.type }}</TableCell>
-                <TableCell>
-                  <Badge :variant="getStatusBadgeVariant(project.status)">
-                    {{ project.status }}
-                  </Badge>
-                </TableCell>
-                <TableCell>{{ formatCurrency(project.budget) }}</TableCell>
-                <TableCell>{{ formatDate(project.createdAt) }}</TableCell>
-                <TableCell class="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    @click.stop="viewProject(project.id)"
-                  >
-                    View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+      <Card>
+        <CardContent class="px-0 overflow-x-auto">
+          <div class="min-w-[650px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Budget</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead class="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="project in filteredProjects"
+                  :key="project.id"
+                  class="cursor-pointer hover:bg-muted/50"
+                  @click="viewProject(project.id)"
+                >
+                  <TableCell class="font-medium">
+                    {{ project.title }}
+                  </TableCell>
+                  <TableCell>
+                    <div>{{ project.client?.name || "Unknown" }}</div>
+                    <div class="text-sm text-muted-foreground">
+                      {{ project.client?.company || "No company" }}
+                    </div>
+                  </TableCell>
+                  <TableCell>{{ project.type }}</TableCell>
+                  <TableCell>
+                    <Badge :variant="getStatusBadgeVariant(project.status)">
+                      {{ project.status }}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{{ formatCurrency(project.budget) }}</TableCell>
+                  <TableCell>{{ formatDate(project.createdAt) }}</TableCell>
+                  <TableCell class="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      @click.stop="viewProject(project.id)"
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
