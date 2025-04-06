@@ -25,7 +25,7 @@ const projectStore = useProjectStore();
 const { projects, isLoading } = storeToRefs(projectStore);
 
 // Auth store for user information
-const { user } = useAuth();
+const { user, loading: authLoading } = useAuth();
 
 // Load projects on mount
 onMounted(async () => {
@@ -105,7 +105,8 @@ const stats = computed(() => [
   <div>
     <div class="mb-6">
       <h2 class="text-2xl sm:text-3xl font-bold mb-2">
-        Welcome back, {{ user?.name || "Client" }}!
+        <span v-if="authLoading">Welcome back!</span>
+        <span v-else>Welcome back, {{ user?.name || "Client" }}!</span>
       </h2>
       <p class="text-muted-foreground">
         Here's an overview of your projects and activities.

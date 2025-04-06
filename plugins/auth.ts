@@ -30,8 +30,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       // useFetch works correctly inside plugins
       const { data: profileDataRef, error: profileError } =
         await useFetch<ProfileResponse>("/api/user/profile", {
-          key: "user-profile-" + Date.now(), // Avoid caching issues during dev/test
+          key: "user-profile-plugin-" + Date.now(), // Avoid caching issues during dev/test
           headers: useRequestHeaders(["cookie"]), // Ensure cookie is forwarded server-side
+          cache: "no-store", // Disable caching to ensure fresh data
         });
 
       const profileData = profileDataRef.value; // Get the actual value
@@ -42,8 +43,13 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           profileError.value
         );
         userState.value = null; // Clear state on error
-      } else if (profileData && profileData.success === true) {
+      } else if (
+        profileData &&
+        "success" in profileData &&
+        profileData.success === true
+      ) {
         userState.value = profileData.user; // Now safe to access .user
+        console.log("[Auth Plugin] User profile loaded successfully"); // Debug log
       } else {
         console.error(
           "[Auth Plugin] Profile fetch failed or invalid response:",

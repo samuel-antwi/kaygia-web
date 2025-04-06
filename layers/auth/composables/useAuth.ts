@@ -88,6 +88,25 @@ export const useAuth = () => {
       // Get user data after login
       await initAuth();
 
+      // Explicitly fetch user profile to ensure user state is updated
+      try {
+        const { data: profileDataRef } = await useFetch<{
+          success: boolean;
+          user: User;
+          error?: string;
+        }>("/api/user/profile", {
+          key: "user-profile-login-" + Date.now(), // Avoid caching issues
+        });
+
+        const profileData = profileDataRef.value;
+        if (profileData && profileData.success && profileData.user) {
+          // Update the user state from useState directly
+          user.value = profileData.user;
+        }
+      } catch (profileError) {
+        console.error("[SignIn] Error fetching profile:", profileError);
+      }
+
       return { success: true };
     } catch (err: any) {
       error.value = err?.message || "Failed to sign in";

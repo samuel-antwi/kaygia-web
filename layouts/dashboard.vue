@@ -236,10 +236,13 @@ const navItems = [
             </AvatarFallback>
           </Avatar>
           <div :class="isSidebarCollapsed ? 'hidden' : ''">
-            <p class="text-sm font-medium">{{ user?.name || "User" }}</p>
-            <p class="text-xs text-muted-foreground">
-              {{ user?.email || "user@example.com" }}
-            </p>
+            <p v-if="authLoading" class="text-sm font-medium">Loading...</p>
+            <template v-else>
+              <p class="text-sm font-medium">{{ user?.name || "User" }}</p>
+              <p class="text-xs text-muted-foreground">
+                {{ user?.email || "user@example.com" }}
+              </p>
+            </template>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger class="ml-auto">
@@ -314,13 +317,22 @@ const navItems = [
                 <Button variant="ghost" class="relative h-8 w-8 rounded-full">
                   <Avatar class="h-8 w-8">
                     <AvatarFallback>
-                      <User class="h-4 w-4" />
+                      <User v-if="!authLoading" class="h-4 w-4" />
+                      <div
+                        v-else
+                        class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+                      ></div>
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  <div v-if="!authLoading">
+                    {{ user?.name || "My Account" }}
+                  </div>
+                  <div v-else>Loading...</div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem class="cursor-pointer">
                   <Settings class="mr-2 h-4 w-4" />
