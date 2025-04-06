@@ -1,6 +1,7 @@
-import { defineEventHandler, getRouterParam } from "h3";
+import { defineEventHandler, getRouterParam, createError } from "h3";
 import { getDb } from "~/server/utils/db";
 import { manageEmailVerification } from "~/server/utils/email-verification";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   const userId = getRouterParam(event, "userId");
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
   const adminUser = session?.user;
 
-  if (!adminUser || adminUser.role !== "ADMIN") {
+  if (!adminUser || !hasAdminAccess(adminUser.role)) {
     console.warn(
       `[API][Admin][User:${userId}/resend-verification] Unauthorized attempt. User: ${adminUser?.id}, Role: ${adminUser?.role}`
     );

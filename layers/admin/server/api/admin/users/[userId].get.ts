@@ -2,6 +2,7 @@ import { defineEventHandler, getRouterParam } from "h3";
 import { getDb } from "~/server/utils/db";
 import { users, supportTickets, projects } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   const userId = getRouterParam(event, "userId");
@@ -17,7 +18,7 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
   const adminUser = session?.user;
 
-  if (!adminUser || adminUser.role !== "ADMIN") {
+  if (!adminUser || !hasAdminAccess(adminUser.role)) {
     console.warn(
       `[API][Admin][User:${userId}] Unauthorized access attempt. User found: ${!!adminUser}, Role: ${adminUser?.role}`
     );

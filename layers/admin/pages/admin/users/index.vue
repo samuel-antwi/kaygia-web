@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 definePageMeta({
   layout: "admin",
@@ -84,7 +85,7 @@ const formatDate = (date: string | Date) => {
 
 // Function to get role badge class
 const getRoleBadgeClass = (role: string) => {
-  return role === "ADMIN"
+  return hasAdminAccess(role)
     ? "bg-primary/10 text-primary border-primary/20"
     : "bg-muted text-muted-foreground border-muted-foreground/20";
 };

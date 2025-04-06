@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watchEffect, ref } from "vue";
 import { Role } from "../../types/role";
+import { hasAdminAccess } from "../../utils/adminAccess";
 import {
   Ticket,
   Users,
@@ -99,7 +100,7 @@ const formatDate = (dateString: string) => {
 // Watch auth state for role check after loading
 watchEffect(() => {
   if (!loading.value && user.value) {
-    if (user.value.role !== Role.ADMIN) {
+    if (!hasAdminAccess(user.value.role)) {
       console.warn("[Admin Page Watcher] Role check FAILED. Redirecting...");
       router.push("/dashboard?error=unauthorized");
     } else {
@@ -122,7 +123,7 @@ watchEffect(() => {
     </div>
 
     <!-- Only show content if user is loaded and confirmed ADMIN -->
-    <div v-else-if="user && user.role === Role.ADMIN" class="space-y-6">
+    <div v-else-if="user && hasAdminAccess(user.role)" class="space-y-6">
       <div class="flex items-center justify-between">
         <h1 class="text-3xl font-bold">Admin Dashboard</h1>
         <div class="flex items-center gap-2">

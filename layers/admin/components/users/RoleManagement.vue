@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Key,
 } from "lucide-vue-next";
+import { hasAdminAccess } from "../../utils/adminAccess";
 
 interface RoleManagementProps {
   user: {

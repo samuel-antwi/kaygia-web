@@ -1,6 +1,7 @@
 import { defineEventHandler } from "h3";
 import { getDb } from "~/server/utils/db";
 import { projects } from "~/server/db/schema";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // Get the user session
@@ -8,7 +9,7 @@ export default defineEventHandler(async (event) => {
   const user = session?.user;
 
   // Verify admin role
-  if (!user || user.role !== "ADMIN") {
+  if (!user || !hasAdminAccess(user.role)) {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Admin access required.",

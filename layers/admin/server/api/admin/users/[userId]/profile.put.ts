@@ -3,6 +3,7 @@ import { getDb } from "~/server/utils/db";
 import { users } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { defineEventHandler, readBody, createError, getRouterParam } from "h3";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 // No need to explicitly import getUserSession in h3 endpoints
 // It's globally available in the server context
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
     const session = await getUserSession(event);
     const adminUser = session?.user;
 
-    if (!adminUser || adminUser.role !== "ADMIN") {
+    if (!adminUser || !hasAdminAccess(adminUser.role)) {
       throw createError({
         statusCode: 403,
         statusMessage: "Forbidden: Admin access required.",

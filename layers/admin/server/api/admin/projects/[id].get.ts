@@ -1,7 +1,8 @@
-import { defineEventHandler } from "h3";
+import { defineEventHandler, getRouterParam, createError } from "h3";
 import { getDb } from "~/server/utils/db";
 import { projects } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // Get project ID from params
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const user = session?.user;
 
   // Verify admin role
-  if (!user || user.role !== "ADMIN") {
+  if (!user || !hasAdminAccess(user.role)) {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Admin access required.",

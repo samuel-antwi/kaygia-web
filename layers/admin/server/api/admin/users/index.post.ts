@@ -1,11 +1,13 @@
-import { defineEventHandler, readBody } from "h3";
+import { defineEventHandler, readBody, createError } from "h3";
 import { z } from "zod";
 import { getDb } from "~/server/utils/db";
-import { users } from "~/server/db/schema";
-import { v4 as uuidv4 } from "uuid";
+import { users, roleEnum } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 import { hash } from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 import { sendVerificationEmail } from "~/utils/email";
 import { manageEmailVerification } from "~/server/utils/email-verification";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 // Define validation schema for user creation
 const userCreationSchema = z.object({
@@ -26,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
   const adminUser = session?.user;
 
-  if (!adminUser || adminUser.role !== "ADMIN") {
+  if (!adminUser || !hasAdminAccess(adminUser.role)) {
     console.warn(
       `[API][Admin][Users/Create] Unauthorized attempt. User: ${adminUser?.id}, Role: ${adminUser?.role}`
     );

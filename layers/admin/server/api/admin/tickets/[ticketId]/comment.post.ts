@@ -1,8 +1,9 @@
-import { defineEventHandler, getRouterParam, readBody } from "h3";
+import { defineEventHandler, getRouterParam, readBody, createError } from "h3";
 import { getDb } from "~/server/utils/db";
 import { supportTickets, ticketComments } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   const ticketId = getRouterParam(event, "ticketId");
@@ -18,7 +19,7 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
   const user = session?.user;
 
-  if (!user || user.role !== "ADMIN") {
+  if (!user || !hasAdminAccess(user.role)) {
     console.warn(
       `[API][Admin][${ticketId}/comment] Unauthorized attempt. User: ${user?.id}, Role: ${user?.role}`
     );

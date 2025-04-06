@@ -43,6 +43,7 @@ import RecentItems from "../../../components/users/RecentItems.vue";
 
 // Import Composables
 import { useFormatting } from "~/layers/admin/composables/useFormatting";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 definePageMeta({
   layout: "admin",
@@ -174,7 +175,7 @@ function handleProfileUpdated(updatedUser: any) {
           <Avatar class="h-24 w-24">
             <AvatarFallback
               :class="
-                user.role === 'ADMIN' || user.role === 'SUPER_ADMIN'
+                hasAdminAccess(user.role)
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted'
               "

@@ -1,4 +1,4 @@
-import { defineEventHandler } from "h3";
+import { defineEventHandler, createError } from "h3";
 import { getDb } from "~/server/utils/db";
 import {
   supportTickets,
@@ -7,6 +7,7 @@ import {
   projects,
 } from "~/server/db/schema";
 import { desc, and, or, eq, gte, sql } from "drizzle-orm";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
     const session = await getUserSession(event);
     const user = session?.user;
 
-    if (!user || user.role !== "ADMIN") {
+    if (!user || !hasAdminAccess(user.role)) {
       console.warn(
         `[API][Admin][Dashboard] Unauthorized access attempt. User found: ${!!user}, Role: ${user?.role}`
       );

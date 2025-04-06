@@ -2,6 +2,7 @@
 const ADMIN_ROUTE_PREFIX = "/admin";
 
 import { Role } from "../types/role"; // Import local Role enum
+import { hasAdminAccess } from "../utils/adminAccess";
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
   // Only apply this middleware to routes starting with the admin prefix
@@ -22,6 +23,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return navigateTo(
       "/auth/login?redirect=" + encodeURIComponent(to.fullPath)
     );
+  }
+
+  // Check if user has admin or super admin role
+  if (!hasAdminAccess(user.value.role)) {
+    return navigateTo("/dashboard?error=unauthorized");
   }
 
   return;

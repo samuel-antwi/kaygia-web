@@ -1,6 +1,10 @@
-import { defineEventHandler, getRouterParam } from "h3";
+import { defineEventHandler, getRouterParam, createError } from "h3";
 import { getDb } from "~/server/utils/db";
 import { createPasswordReset } from "~/server/utils/password-reset";
+import { users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { sendPasswordResetEmail } from "~/utils/email";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   const userId = getRouterParam(event, "userId");
@@ -16,7 +20,7 @@ export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
   const adminUser = session?.user;
 
-  if (!adminUser || adminUser.role !== "ADMIN") {
+  if (!adminUser || !hasAdminAccess(adminUser.role)) {
     console.warn(
       `[API][Admin][User:${userId}/reset-password] Unauthorized attempt. User: ${adminUser?.id}, Role: ${adminUser?.role}`
     );

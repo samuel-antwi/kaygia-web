@@ -3,6 +3,7 @@ import { getDb } from "~/server/utils/db";
 import { supportTickets, users, ticketComments } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { roleEnum } from "~/server/db/schema";
+import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // --- START DEBUG LOGGING ---
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
   // const user = event.context.userSession?.user; // Previous method
   const user = session?.user; // Get user from the awaited session object
 
-  if (!user || user.role !== "ADMIN") {
+  if (!user || !hasAdminAccess(user.role)) {
     throw createError({
       statusCode: 403,
       statusMessage: "Forbidden: Admin access required.",
