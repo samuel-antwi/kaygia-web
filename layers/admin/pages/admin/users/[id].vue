@@ -123,7 +123,7 @@ const user = computed(() => data.value?.user);
       <!-- Left Column: User Profile, Role Management, Password Management, Account Status -->
       <div class="lg:col-span-1 space-y-4">
         <!-- User Profile Component -->
-        <UserProfile :user="user" />
+        <UserProfile :user="user" @refresh="refresh" />
 
         <!-- Role Management Component -->
         <RoleManagement :user="user" :on-role-changed="refresh" />
