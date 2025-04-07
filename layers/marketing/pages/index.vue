@@ -96,12 +96,6 @@ useHead({
   <section class="sm:py-24 py-12 bg-gray-100">
     <div class="container mx-auto px-4">
       <div class="text-center mb-20">
-        <div
-          class="inline-flex items-center px-4 py-2 mb-4 rounded-full bg-muted text-muted-foreground text-sm font-medium"
-        >
-          <Paintbrush class="h-4 w-4 mr-2" />
-          <span>What We Offer</span>
-        </div>
         <h2 class="text-4xl md:text-5xl font-bold mb-6">Our Services</h2>
         <p class="text-xl text-muted-foreground max-w-3xl mx-auto">
           We offer comprehensive web development solutions tailored to your
