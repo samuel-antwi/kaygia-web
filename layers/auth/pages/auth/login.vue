@@ -16,6 +16,22 @@ definePageMeta({
   layout: "auth",
 });
 
+// Login sidebar features
+const loginFeatures = [
+  {
+    title: "Real-time Tracking",
+    description: "Monitor project progress with live updates and notifications",
+  },
+  {
+    title: "Team Communication",
+    description: "Seamless messaging and file sharing with your entire team",
+  },
+  {
+    title: "Change Management",
+    description: "Request and implement updates with our intuitive workflow",
+  },
+];
+
 // Form schema using Zod
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -102,128 +118,11 @@ const handleResend = () => {
 <template>
   <div class="flex min-h-screen bg-background">
     <!-- Left side with background image and glass effect -->
-    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-      <div
-        class="absolute inset-0 bg-gradient-to-br from-primary to-primary-foreground/90"
-      ></div>
-      <div
-        class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2064')] bg-cover bg-center opacity-20 mix-blend-overlay dark:opacity-10"
-      ></div>
-      <div class="absolute inset-0 backdrop-blur-sm"></div>
-
-      <div
-        class="relative z-10 flex flex-col justify-center px-12 w-full max-w-2xl mx-auto"
-      >
-        <div class="mb-8">
-          <div
-            class="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="h-6 w-6 text-white"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-              <path d="M2 17l10 5 10-5"></path>
-              <path d="M2 12l10 5 10-5"></path>
-            </svg>
-          </div>
-          <h1 class="text-5xl font-bold mb-4 text-white">Welcome Back</h1>
-          <p class="text-xl text-white/80 leading-relaxed">
-            Log in to your account to continue managing your projects and client
-            communications.
-          </p>
-        </div>
-
-        <div class="space-y-8 mt-8">
-          <div class="flex items-start space-x-4">
-            <div
-              class="rounded-full bg-white/10 backdrop-blur-md p-2 mt-1 flex-shrink-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-white font-medium text-lg">Real-time Tracking</h3>
-              <p class="text-white/70">
-                Monitor project progress with live updates and notifications
-              </p>
-            </div>
-          </div>
-
-          <div class="flex items-start space-x-4">
-            <div
-              class="rounded-full bg-white/10 backdrop-blur-md p-2 mt-1 flex-shrink-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-white font-medium text-lg">Team Communication</h3>
-              <p class="text-white/70">
-                Seamless messaging and file sharing with your entire team
-              </p>
-            </div>
-          </div>
-
-          <div class="flex items-start space-x-4">
-            <div
-              class="rounded-full bg-white/10 backdrop-blur-md p-2 mt-1 flex-shrink-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-white font-medium text-lg">Change Management</h3>
-              <p class="text-white/70">
-                Request and implement updates with our intuitive workflow
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthSidebar
+      title="Welcome Back"
+      description="Log in to your account to continue managing your projects and client communications."
+      :features="loginFeatures"
+    />
 
     <!-- Right side with form -->
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">

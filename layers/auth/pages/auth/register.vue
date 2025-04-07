@@ -17,6 +17,23 @@ definePageMeta({
   layout: "auth",
 });
 
+// Registration sidebar features
+const registerFeatures = [
+  {
+    title: "Free Dashboard Access",
+    description: "Access your project dashboard and monitor progress anytime",
+  },
+  {
+    title: "Easy Project Requests",
+    description:
+      "Submit and manage project requests with our intuitive interface",
+  },
+  {
+    title: "Secure Communication",
+    description: "Private and secure communication channels with your team",
+  },
+];
+
 // Form schema using Zod with explicit error messages
 const registerSchema = z
   .object({
@@ -98,134 +115,11 @@ const onSubmit = form.handleSubmit(async (values) => {
 <template>
   <div class="flex min-h-screen bg-background">
     <!-- Left side with background image and glass effect -->
-    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-      <div
-        class="absolute inset-0 bg-gradient-to-br from-primary to-primary-foreground/90"
-      ></div>
-      <div
-        class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2064')] bg-cover bg-center opacity-20 mix-blend-overlay dark:opacity-10"
-      ></div>
-      <div class="absolute inset-0 backdrop-blur-sm"></div>
-
-      <div
-        class="relative z-10 flex flex-col justify-center px-12 w-full max-w-2xl mx-auto"
-      >
-        <div class="mb-8">
-          <div
-            class="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="h-6 w-6 text-white"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-              <path d="M2 17l10 5 10-5"></path>
-              <path d="M2 12l10 5 10-5"></path>
-            </svg>
-          </div>
-          <h1 class="text-5xl font-bold mb-4 text-white">Join Our Platform</h1>
-          <p class="text-xl text-white/80 leading-relaxed">
-            Create an account to get started with our services and manage your
-            web development projects.
-          </p>
-        </div>
-
-        <div class="space-y-8 mt-8">
-          <div class="flex items-start space-x-4">
-            <div
-              class="rounded-full bg-white/10 backdrop-blur-md p-2 mt-1 flex-shrink-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-white font-medium text-lg">
-                Free Dashboard Access
-              </h3>
-              <p class="text-white/70">
-                Access your project dashboard and monitor progress anytime
-              </p>
-            </div>
-          </div>
-
-          <div class="flex items-start space-x-4">
-            <div
-              class="rounded-full bg-white/10 backdrop-blur-md p-2 mt-1 flex-shrink-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-white font-medium text-lg">
-                Easy Project Requests
-              </h3>
-              <p class="text-white/70">
-                Submit and manage project requests with our intuitive interface
-              </p>
-            </div>
-          </div>
-
-          <div class="flex items-start space-x-4">
-            <div
-              class="rounded-full bg-white/10 backdrop-blur-md p-2 mt-1 flex-shrink-0"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-white font-medium text-lg">
-                Secure Communication
-              </h3>
-              <p class="text-white/70">
-                Private and secure communication channels with your team
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AuthSidebar
+      title="Join Our Platform"
+      description="Create an account to get started with our services and manage your web development projects."
+      :features="registerFeatures"
+    />
 
     <!-- Right side with form -->
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
@@ -254,16 +148,25 @@ const onSubmit = form.handleSubmit(async (values) => {
           </AlertDescription>
         </Alert>
 
-        <form @submit="onSubmit" class="space-y-6">
+        <form
+          @submit="onSubmit"
+          class="space-y-6"
+          novalidate
+          aria-label="Registration form"
+        >
           <!-- Name field -->
           <FormField v-slot="{ componentField }" name="name">
             <FormItem>
-              <FormLabel>Contact Name</FormLabel>
+              <FormLabel for="name">Contact Name</FormLabel>
               <div class="relative">
                 <div
                   class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                  aria-hidden="true"
                 >
-                  <User class="h-5 w-5 text-muted-foreground" />
+                  <User
+                    class="h-5 w-5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <FormControl>
                   <Input
@@ -271,23 +174,28 @@ const onSubmit = form.handleSubmit(async (values) => {
                     v-bind="componentField"
                     type="text"
                     placeholder="John Doe"
-                    class="pl-12 h-12 text-base"
+                    class="pl-12 h-12 text-base focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                    aria-required="true"
                   />
                 </FormControl>
               </div>
-              <FormMessage />
+              <FormMessage role="alert" />
             </FormItem>
           </FormField>
 
           <!-- Company field -->
           <FormField v-slot="{ componentField }" name="company">
             <FormItem>
-              <FormLabel>Company Name</FormLabel>
+              <FormLabel for="company">Company Name</FormLabel>
               <div class="relative">
                 <div
                   class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                  aria-hidden="true"
                 >
-                  <Building2 class="h-5 w-5 text-muted-foreground" />
+                  <Building2
+                    class="h-5 w-5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <FormControl>
                   <Input
@@ -295,23 +203,28 @@ const onSubmit = form.handleSubmit(async (values) => {
                     v-bind="componentField"
                     type="text"
                     placeholder="Your Business Name"
-                    class="pl-12 h-12 text-base"
+                    class="pl-12 h-12 text-base focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                    aria-required="true"
                   />
                 </FormControl>
               </div>
-              <FormMessage />
+              <FormMessage role="alert" />
             </FormItem>
           </FormField>
 
           <!-- Email field -->
           <FormField v-slot="{ componentField }" name="email">
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel for="email">Email Address</FormLabel>
               <div class="relative">
                 <div
                   class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                  aria-hidden="true"
                 >
-                  <Mail class="h-5 w-5 text-muted-foreground" />
+                  <Mail
+                    class="h-5 w-5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <FormControl>
                   <Input
@@ -319,100 +232,125 @@ const onSubmit = form.handleSubmit(async (values) => {
                     v-bind="componentField"
                     type="email"
                     placeholder="name@example.com"
-                    class="pl-12 h-12 text-base"
+                    class="pl-12 h-12 text-base focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                    aria-required="true"
+                    autocomplete="email"
                   />
                 </FormControl>
               </div>
-              <FormMessage />
+              <FormMessage role="alert" />
             </FormItem>
           </FormField>
 
           <!-- Password field -->
           <FormField v-slot="{ componentField }" name="password">
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel for="password">Password</FormLabel>
               <div class="relative">
                 <div
                   class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                  aria-hidden="true"
                 >
-                  <Lock class="h-5 w-5 text-muted-foreground" />
+                  <Lock
+                    class="h-5 w-5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <FormControl>
                   <Input
                     id="password"
                     v-bind="componentField"
                     :type="showPassword ? 'text' : 'password'"
-                    class="pl-12 pr-12 h-12 text-base"
+                    class="pl-12 pr-12 h-12 text-base focus:ring-2 focus:ring-primary focus:ring-offset-1"
                     autocomplete="new-password"
+                    aria-required="true"
                   />
                 </FormControl>
                 <button
                   type="button"
                   @click="togglePasswordVisibility"
-                  class="absolute inset-y-0 right-0 flex items-center pr-4 cursor-pointer"
-                  tabindex="-1"
+                  class="absolute inset-y-0 right-0 flex items-center pr-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-md"
+                  tabindex="0"
+                  :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                  :aria-pressed="showPassword"
                 >
                   <Eye
                     v-if="!showPassword"
                     class="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-hidden="true"
                   />
                   <EyeOff
                     v-else
                     class="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-hidden="true"
                   />
                 </button>
               </div>
-              <p class="text-xs text-muted-foreground mt-1">
+              <p class="text-xs text-muted-foreground mt-1" id="password-hint">
                 Must be at least 8 characters long
               </p>
-              <FormMessage />
+              <FormMessage role="alert" />
             </FormItem>
           </FormField>
 
           <!-- Confirm Password field -->
           <FormField v-slot="{ componentField }" name="confirmPassword">
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel for="confirmPassword">Confirm Password</FormLabel>
               <div class="relative">
                 <div
                   class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                  aria-hidden="true"
                 >
-                  <Lock class="h-5 w-5 text-muted-foreground" />
+                  <Lock
+                    class="h-5 w-5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <FormControl>
                   <Input
                     id="confirmPassword"
                     v-bind="componentField"
                     :type="showConfirmPassword ? 'text' : 'password'"
-                    class="pl-12 pr-12 h-12 text-base"
+                    class="pl-12 pr-12 h-12 text-base focus:ring-2 focus:ring-primary focus:ring-offset-1"
                     autocomplete="new-password"
+                    aria-required="true"
                   />
                 </FormControl>
                 <button
                   type="button"
                   @click="toggleConfirmPasswordVisibility"
-                  class="absolute inset-y-0 right-0 flex items-center pr-4 cursor-pointer"
-                  tabindex="-1"
+                  class="absolute inset-y-0 right-0 flex items-center pr-4 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-md"
+                  tabindex="0"
+                  :aria-label="
+                    showConfirmPassword
+                      ? 'Hide confirm password'
+                      : 'Show confirm password'
+                  "
+                  :aria-pressed="showConfirmPassword"
                 >
                   <Eye
                     v-if="!showConfirmPassword"
                     class="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-hidden="true"
                   />
                   <EyeOff
                     v-else
                     class="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-hidden="true"
                   />
                 </button>
               </div>
-              <FormMessage />
+              <FormMessage role="alert" />
             </FormItem>
           </FormField>
 
           <!-- Register button -->
           <Button
             type="submit"
-            class="w-full h-12 text-base font-medium shadow-sm hover:shadow-md transition-all duration-200 mt-6"
+            class="w-full h-12 text-base font-medium shadow-sm hover:shadow-md transition-all duration-200 mt-6 focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             :disabled="loading"
+            aria-live="polite"
           >
             <span v-if="loading" class="flex items-center justify-center">
               <svg
@@ -420,6 +358,8 @@ const onSubmit = form.handleSubmit(async (values) => {
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
+                role="status"
               >
                 <circle
                   class="opacity-25"
