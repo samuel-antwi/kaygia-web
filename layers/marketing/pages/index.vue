@@ -17,7 +17,7 @@ definePageMeta({
 });
 
 const { $site = site } = useNuxtApp();
-
+const router = useRouter();
 // Add meta tags for SEO
 useHead({
   title: $site.seo.title,
@@ -86,6 +86,7 @@ useHead({
 
         <div class="flex flex-wrap gap-5">
           <Button
+            @click="router.push('/auth/login')"
             size="lg"
             class="px-8 h-14 rounded-xl font-medium text-base group"
           >
