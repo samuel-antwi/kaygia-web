@@ -57,25 +57,16 @@ function getNavIcon(name: string): FunctionalComponent<LucideProps> {
       <Menu class="h-5 w-5" />
     </Button>
 
-    <!-- Mobile menu drawer -->
-    <Drawer v-model:open="mobileMenuOpen" direction="right">
-      <DrawerContent class="w-[250px] sm:w-[300px]">
-        <DrawerHeader>
-          <DrawerTitle class="flex items-center gap-2">
+    <!-- Mobile menu sheet -->
+    <Sheet v-model:open="mobileMenuOpen">
+      <SheetContent side="right" class="w-[280px] sm:w-[350px] p-0">
+        <SheetHeader class="p-6 border-b">
+          <SheetTitle class="flex items-center gap-2">
             <span class="text-primary text-xl">{{ $site.name }}</span>
-            <span class="text-muted-foreground">{{ $site.nameSuffix }}</span>
-          </DrawerTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            @click="closeMenu"
-            class="absolute right-4 top-4"
-          >
-            <X class="h-4 w-4" />
-          </Button>
-        </DrawerHeader>
+          </SheetTitle>
+        </SheetHeader>
 
-        <div class="px-6 py-2">
+        <div class="px-6 py-4">
           <nav class="flex flex-col space-y-4">
             <NuxtLink
               v-for="item in $site.navigation.main"
@@ -98,7 +89,7 @@ function getNavIcon(name: string): FunctionalComponent<LucideProps> {
             </NuxtLink>
           </nav>
         </div>
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   </div>
 </template>

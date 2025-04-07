@@ -32,7 +32,7 @@ useHead({
 
 <template>
   <!-- Hero Section with Glassmorphism -->
-  <div class="relative min-h-[75vh] overflow-hidden">
+  <div class="relative sm:min-h-[75vh] min-h-[50vh] overflow-hidden">
     <!-- Hero Background with Overlay -->
     <div class="absolute inset-0 z-0">
       <img
@@ -42,21 +42,6 @@ useHead({
       />
       <div
         class="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-background/75 dark:from-background/90 dark:via-background/80 dark:to-background/70"
-      ></div>
-    </div>
-
-    <!-- Animated Shapes -->
-    <div
-      class="absolute inset-0 z-0 opacity-30 dark:opacity-20 overflow-hidden"
-    >
-      <div
-        class="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
-      ></div>
-      <div
-        class="absolute top-1/2 -left-20 w-80 h-80 bg-secondary/20 rounded-full blur-3xl"
-      ></div>
-      <div
-        class="absolute -bottom-20 right-1/3 w-72 h-72 bg-accent/20 rounded-full blur-3xl"
       ></div>
     </div>
 
