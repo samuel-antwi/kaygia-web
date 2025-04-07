@@ -32,7 +32,7 @@ useHead({
 
 <template>
   <!-- Hero Section with Glassmorphism -->
-  <div class="relative min-h-[85vh] overflow-hidden">
+  <div class="relative min-h-[75vh] overflow-hidden">
     <!-- Hero Background with Overlay -->
     <div class="absolute inset-0 z-0">
       <img
@@ -65,13 +65,6 @@ useHead({
       class="relative z-10 container mx-auto px-4 py-20 flex flex-col items-start justify-center h-full"
     >
       <div class="max-w-3xl">
-        <div
-          class="inline-flex items-center px-3 py-1.5 mb-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium"
-        >
-          <Star class="h-4 w-4 mr-2" />
-          <span>Award-winning web development agency</span>
-        </div>
-
         <h1
           class="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-foreground leading-tight"
         >
@@ -109,62 +102,9 @@ useHead({
             View Our Work
           </Button>
         </div>
-
-        <div class="mt-16 flex items-center gap-6">
-          <div class="flex -space-x-4">
-            <img
-              src="https://randomuser.me/api/portraits/women/44.jpg"
-              alt="Client"
-              class="w-12 h-12 rounded-full border-2 border-background"
-            />
-            <img
-              src="https://randomuser.me/api/portraits/men/32.jpg"
-              alt="Client"
-              class="w-12 h-12 rounded-full border-2 border-background"
-            />
-            <img
-              src="https://randomuser.me/api/portraits/women/68.jpg"
-              alt="Client"
-              class="w-12 h-12 rounded-full border-2 border-background"
-            />
-            <div
-              class="w-12 h-12 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center text-primary font-medium"
-            >
-              +50
-            </div>
-          </div>
-          <div class="text-sm">
-            <div class="font-medium">Trusted by 50+ businesses</div>
-            <div class="text-muted-foreground">Join our satisfied clients</div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
-
-  <!-- Stats Section -->
-  <section class="py-12 bg-muted/30 border-y border-border/50">
-    <div class="container mx-auto px-4">
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-        <div class="text-center">
-          <div class="text-4xl font-bold text-primary mb-2">10+</div>
-          <div class="text-muted-foreground">Years Experience</div>
-        </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-primary mb-2">200+</div>
-          <div class="text-muted-foreground">Projects Completed</div>
-        </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-primary mb-2">50+</div>
-          <div class="text-muted-foreground">Happy Clients</div>
-        </div>
-        <div class="text-center">
-          <div class="text-4xl font-bold text-primary mb-2">15+</div>
-          <div class="text-muted-foreground">Team Members</div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- Our Services Section -->
   <section class="py-24 bg-background">

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import {
-  Sun,
-  Moon,
   LogIn,
   Twitter,
   Instagram,
@@ -12,13 +10,8 @@ import {
 } from "lucide-vue-next";
 import site from "~/utils/config/site";
 
-const colorMode = useColorMode();
 // Use the imported site as fallback if $site is not available
 const { $site = site } = useNuxtApp();
-
-function toggleColorMode() {
-  colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
-}
 
 // Get current route for active page indicator
 const route = useRoute();
@@ -56,25 +49,6 @@ const route = useRoute();
         </div>
 
         <div class="flex items-center gap-4">
-          <!-- Color mode toggle -->
-          <Button
-            variant="ghost"
-            size="icon"
-            @click="toggleColorMode"
-            aria-label="Toggle theme"
-          >
-            <span class="relative block h-5 w-5">
-              <Sun
-                v-show="colorMode.value === 'dark'"
-                class="absolute inset-0 h-5 w-5"
-              />
-              <Moon
-                v-show="colorMode.value !== 'dark'"
-                class="absolute inset-0 h-5 w-5"
-              />
-            </span>
-          </Button>
-
           <!-- Login button -->
           <Button as-child variant="default" size="sm" class="hidden md:flex">
             <NuxtLink to="/auth/login" class="flex items-center gap-1">
