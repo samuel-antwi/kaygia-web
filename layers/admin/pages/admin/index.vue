@@ -9,6 +9,7 @@ import {
   Clock,
   ArrowRight,
   AlertTriangle,
+  Loader2,
 } from "lucide-vue-next";
 
 // Ensure middleware runs for this page (it does if global)

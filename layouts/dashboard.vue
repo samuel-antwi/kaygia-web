@@ -16,6 +16,7 @@ import {
   Sun,
   Moon,
   Menu,
+  Ticket,
   MessagesSquare,
   UserCircle,
 } from "lucide-vue-next";
@@ -132,7 +133,7 @@ const navItems = [
     icon: FilePlus,
     path: "/dashboard/projects/new",
   },
-  { name: "Tickets", icon: MessageSquare, path: "/dashboard/tickets" },
+  { name: "Tickets", icon: Ticket, path: "/dashboard/tickets" },
   { name: "Invoices", icon: Receipt, path: "/dashboard/invoices" },
   { name: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];

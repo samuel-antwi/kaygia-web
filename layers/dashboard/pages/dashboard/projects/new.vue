@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft, AlertCircle } from "lucide-vue-next";
 import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
 import type { CreateProjectPayload } from "../../../types/project";
 
