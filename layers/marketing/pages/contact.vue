@@ -106,7 +106,7 @@ const onSubmit = form.handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="relative min-h-screen">
+  <div class="relative min-h-screen bg-gray-100">
     <!-- Background Pattern -->
     <div
       class="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-[0.02]"
@@ -177,7 +177,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                       <FormLabel>Name</FormLabel>
                       <FormControl>
                         <Input
-                          class="h-14"
+                          class="h-12"
                           placeholder="Your full name"
                           v-bind="componentField"
                         />
@@ -192,7 +192,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
-                          class="h-14"
+                          class="h-12"
                           type="email"
                           placeholder="your.email@example.com"
                           v-bind="componentField"
@@ -209,7 +209,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                     <FormLabel>Service Interested In</FormLabel>
                     <FormControl>
                       <Select v-bind="componentField">
-                        <SelectTrigger class="h-14">
+                        <SelectTrigger class="h-12">
                           <SelectValue placeholder="Select a service" />
                         </SelectTrigger>
                         <SelectContent>
@@ -279,7 +279,7 @@ const onSubmit = form.handleSubmit(async (values) => {
                 <Button
                   type="submit"
                   size="lg"
-                  class="w-full"
+                  class="w-full h-12"
                   :disabled="
                     isSubmitting || Object.keys(form.errors.value).length > 0
                   "
