@@ -3,6 +3,14 @@ import type { SiteConfig } from "../types/site";
 export const site: SiteConfig = {
   name: "Kaygia Web",
   nameSuffix: "Web Development Agency",
+  founder: {
+    firstName: "Samuel",
+    lastName: "Antwi",
+    position: "Founder & Lead Developer",
+    bio: "With a passion for clean code and beautiful design, Samuel founded Kaygia web to help businesses establish meaningful online presences. Combining technical expertise with a keen eye for user experience, Samuel is committed to delivering websites that not only look great but also drive results.",
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
+  },
 
   // Company details
   company: {
@@ -17,6 +25,7 @@ export const site: SiteConfig = {
       instagram: "https://instagram.com/kaygiaweb",
       linkedin: "https://linkedin.com/company/kaygiaweb",
     },
+    businessHours: "Monday - Friday: 9:00 AM - 6:00 PM (GMT)",
   },
 
   // SEO defaults

@@ -9,10 +9,11 @@ import {
   Heart,
   Globe,
 } from "lucide-vue-next";
+import { site } from "~/utils/config/site";
 
 // Set page meta information
 useHead({
-  title: "Portfolio | Kaygia Web Development Agency",
+  title: `Portfolio | ${site.company.name} ${site.nameSuffix}`,
   meta: [
     {
       name: "description",

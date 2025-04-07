@@ -1,6 +1,13 @@
 export interface SiteConfig {
   name: string;
   nameSuffix: string;
+  founder: {
+    firstName: string;
+    lastName: string;
+    position: string;
+    bio: string;
+    image: string;
+  };
   company: {
     name: string;
     tagline: string;
@@ -13,6 +20,7 @@ export interface SiteConfig {
       instagram: string;
       linkedin: string;
     };
+    businessHours: string;
   };
   seo: {
     title: string;

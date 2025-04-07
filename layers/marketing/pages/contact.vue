@@ -3,15 +3,15 @@ import { Mail, Phone, MapPin } from "lucide-vue-next";
 import { z } from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
+import { site } from "~/utils/config/site";
 
 // Set page meta information
 useHead({
-  title: "Contact Us | Kaygia Web Development Agency",
+  title: `Contact Us | ${site.company.name} ${site.nameSuffix}`,
   meta: [
     {
       name: "description",
-      content:
-        "Get in touch with Kaygia Web Development Agency for your web development needs. Contact us for a free consultation.",
+      content: `Get in touch with ${site.company.name} for your web development needs. Contact us for a free consultation.`,
     },
   ],
 });
@@ -21,19 +21,19 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Phone",
-    details: "+44 (0) 20 1234 5678",
-    link: "tel:+442012345678",
+    details: site.company.phone,
+    link: `tel:${site.company.phone.replace(/\s/g, "")}`,
   },
   {
     icon: Mail,
     title: "Email",
-    details: "hello@kaygia.com",
-    link: "mailto:hello@kaygia.com",
+    details: site.company.email,
+    link: `mailto:${site.company.email}`,
   },
   {
     icon: MapPin,
     title: "Office",
-    details: "123 Tech Street, London, EC2A 1NT",
+    details: site.company.address,
     link: "https://maps.google.com",
   },
 ];
@@ -335,7 +335,7 @@ const onSubmit = form.handleSubmit(async (values) => {
             <div class="bg-card rounded-xl p-6 border border-border/50">
               <h3 class="font-semibold mb-2">Business Hours</h3>
               <p class="text-muted-foreground">
-                Monday - Friday: 9:00 AM - 6:00 PM (GMT)
+                {{ site.company.businessHours }}
               </p>
             </div>
           </div>

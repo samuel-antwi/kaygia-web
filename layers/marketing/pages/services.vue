@@ -30,8 +30,7 @@ import {
   HeadsetIcon,
   ArrowRight,
 } from "lucide-vue-next";
-import type { SiteConfig } from "~/utils/types/site";
-import site from "~/utils/config/site";
+import { site } from "~/utils/config/site";
 import {
   Card,
   CardHeader,
@@ -45,13 +44,16 @@ definePageMeta({
   layout: "default",
 });
 
-// Get site config with fallback
-const { $site = site } = useNuxtApp();
-
-useSeoMeta({
-  title: `Services - ${$site.name}`,
-  description:
-    "Explore our comprehensive web development services including custom websites, e-commerce solutions, and UI/UX design.",
+// Set page meta information
+useHead({
+  title: `Services | ${site.company.name} ${site.nameSuffix}`,
+  meta: [
+    {
+      name: "description",
+      content:
+        "Explore our comprehensive web development services including custom websites, e-commerce solutions, and UI/UX design.",
+    },
+  ],
 });
 
 // Service packages with pricing
