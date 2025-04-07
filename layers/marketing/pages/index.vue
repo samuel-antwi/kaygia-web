@@ -62,9 +62,7 @@ useHead({
           </span>
         </h1>
 
-        <p
-          class="text-xl md:text-2xl text-muted-foreground mb-10 leading-relaxed"
-        >
+        <p class="text-xl md:text-2xl text-gray-700 mb-10 leading-relaxed">
           We build beautiful, functional websites that help your business stand
           out and succeed in today's digital landscape.
         </p>
@@ -421,6 +419,7 @@ useHead({
         with a custom web solution tailored to your needs.
       </p>
       <Button
+        @click="router.push('/contact')"
         size="lg"
         variant="secondary"
         class="px-10 h-14 rounded-xl text-base font-medium group"

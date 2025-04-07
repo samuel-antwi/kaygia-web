@@ -41,7 +41,6 @@ export const site: SiteConfig = {
     main: [
       { name: "Services", href: "/services" },
       { name: "About", href: "/about" },
-      { name: "Portfolio", href: "/portfolio" },
       { name: "Contact", href: "/contact" },
     ],
     footer: {
@@ -53,7 +52,6 @@ export const site: SiteConfig = {
       ],
       company: [
         { name: "About", href: "/about" },
-        { name: "Portfolio", href: "/portfolio" },
         { name: "Contact", href: "/contact" },
         { name: "Client Login", href: "/dashboard" },
       ],
