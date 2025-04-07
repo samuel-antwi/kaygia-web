@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { Mail, Lock, User, AlertCircle, Eye, EyeOff } from "lucide-vue-next";
+import {
+  Mail,
+  Lock,
+  User,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Building2,
+} from "lucide-vue-next";
 import { z } from "zod";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
@@ -13,6 +21,7 @@ definePageMeta({
 const registerSchema = z
   .object({
     name: z.string().min(2, { message: "Full name is required" }),
+    company: z.string().min(1, { message: "Company name is required" }),
     email: z.string().email({ message: "Please enter a valid email address" }),
     password: z
       .string()
@@ -32,6 +41,7 @@ const form = useForm({
   validationSchema: validationSchema,
   initialValues: {
     name: "",
+    company: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -67,6 +77,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     // Call our API endpoint via the auth composable
     const result = await signUp(values.email, values.password, {
       name: values.name,
+      company: values.company,
     });
 
     if (!result?.success) {
@@ -247,7 +258,7 @@ const onSubmit = form.handleSubmit(async (values) => {
           <!-- Name field -->
           <FormField v-slot="{ componentField }" name="name">
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel>Contact Name</FormLabel>
               <div class="relative">
                 <div
                   class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
@@ -260,6 +271,30 @@ const onSubmit = form.handleSubmit(async (values) => {
                     v-bind="componentField"
                     type="text"
                     placeholder="John Doe"
+                    class="pl-12 h-12 text-base"
+                  />
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <!-- Company field -->
+          <FormField v-slot="{ componentField }" name="company">
+            <FormItem>
+              <FormLabel>Company Name</FormLabel>
+              <div class="relative">
+                <div
+                  class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
+                >
+                  <Building2 class="h-5 w-5 text-muted-foreground" />
+                </div>
+                <FormControl>
+                  <Input
+                    id="company"
+                    v-bind="componentField"
+                    type="text"
+                    placeholder="Your Business Name"
                     class="pl-12 h-12 text-base"
                   />
                 </FormControl>
