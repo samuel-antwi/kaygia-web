@@ -32,7 +32,7 @@ useHead({
 
 <template>
   <!-- Hero Section with Glassmorphism -->
-  <div class="relative sm:min-h-[75vh] min-h-[50vh] overflow-hidden">
+  <div class="relative sm:min-h-[65vh] min-h-[50vh] overflow-hidden">
     <!-- Hero Background with Overlay -->
     <div class="absolute inset-0 z-0">
       <img
@@ -93,7 +93,7 @@ useHead({
   </div>
 
   <!-- Our Services Section -->
-  <section class="py-24 bg-background">
+  <section class="sm:py-24 py-12 bg-gray-100">
     <div class="container mx-auto px-4">
       <div class="text-center mb-20">
         <div
@@ -112,7 +112,7 @@ useHead({
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
         <!-- Web Development Card -->
         <Card
-          class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-0 bg-gradient-to-br from-background to-muted/50"
+          class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl border-0 bg-gradient-to-br from-background to-muted/50"
         >
           <div
             class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"
@@ -158,7 +158,7 @@ useHead({
             </ul>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" class="w-full group" as-child>
+            <Button class="w-full group" as-child>
               <NuxtLink to="/services" class="flex items-center justify-center">
                 Learn More
                 <ArrowRight
@@ -171,7 +171,7 @@ useHead({
 
         <!-- UI/UX Design Card -->
         <Card
-          class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-0 bg-gradient-to-br from-background to-muted/50"
+          class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl border-0 bg-gradient-to-br from-background to-muted/50"
         >
           <div
             class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"
@@ -217,7 +217,7 @@ useHead({
             </ul>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" class="w-full group" as-child>
+            <Button class="w-full group" as-child>
               <NuxtLink to="/services" class="flex items-center justify-center">
                 Learn More
                 <ArrowRight
@@ -230,7 +230,7 @@ useHead({
 
         <!-- E-Commerce Card -->
         <Card
-          class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-0 bg-gradient-to-br from-background to-muted/50"
+          class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl border-0 bg-gradient-to-br from-background to-muted/50"
         >
           <div
             class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"
@@ -278,7 +278,7 @@ useHead({
             </ul>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" class="w-full group" as-child>
+            <Button class="w-full group" as-child>
               <NuxtLink to="/services" class="flex items-center justify-center">
                 Learn More
                 <ArrowRight

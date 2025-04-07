@@ -28,9 +28,18 @@ import {
   PackageCheck,
   ClipboardList,
   HeadsetIcon,
+  ArrowRight,
 } from "lucide-vue-next";
 import type { SiteConfig } from "~/utils/types/site";
 import site from "~/utils/config/site";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
 
 definePageMeta({
   layout: "default",
@@ -154,39 +163,205 @@ const additionalServices = [
     </section>
 
     <!-- Main Services -->
-    <section id="services" class="py-16 bg-muted/50">
+    <section id="services" class="py-20 bg-muted/50">
       <div class="container px-4 mx-auto">
-        <div class="grid gap-8 md:grid-cols-3">
+        <div class="max-w-3xl mx-auto mb-12 text-center">
           <div
-            class="p-6 transition-all bg-background rounded-lg shadow-sm hover:shadow-md"
+            class="inline-flex items-center px-4 py-2 mb-4 rounded-full bg-background text-muted-foreground text-sm font-medium"
           >
-            <Code class="w-12 h-12 mb-4 text-primary" />
-            <h3 class="mb-2 text-xl font-semibold">Web Development</h3>
-            <p class="text-muted-foreground">
-              Custom websites built with modern technologies, optimized for
-              performance and user experience.
-            </p>
+            <Briefcase class="h-4 w-4 mr-2" />
+            <span>Core Services</span>
           </div>
-          <div
-            class="p-6 transition-all bg-background rounded-lg shadow-sm hover:shadow-md"
+          <h2
+            class="text-4xl font-bold tracking-tight sm:text-5xl text-foreground mb-6"
           >
-            <Paintbrush class="w-12 h-12 mb-4 text-primary" />
-            <h3 class="mb-2 text-xl font-semibold">UI/UX Design</h3>
-            <p class="text-muted-foreground">
-              Beautiful, intuitive interfaces that engage users and drive
-              conversions.
-            </p>
-          </div>
-          <div
-            class="p-6 transition-all bg-background rounded-lg shadow-sm hover:shadow-md"
+            What We Offer
+          </h2>
+          <p class="text-lg text-muted-foreground">
+            Professional web development services tailored to your business
+            goals
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <!-- Web Development Card -->
+          <Card
+            class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-0 bg-gradient-to-br from-background to-muted/50"
           >
-            <ShoppingCart class="w-12 h-12 mb-4 text-primary" />
-            <h3 class="mb-2 text-xl font-semibold">E-Commerce Solutions</h3>
-            <p class="text-muted-foreground">
-              Powerful online stores with secure payment processing and
-              inventory management.
-            </p>
-          </div>
+            <div
+              class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"
+            ></div>
+            <CardHeader class="pb-3">
+              <div
+                class="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20"
+              >
+                <Code class="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle class="text-2xl font-bold">Web Development</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p class="text-muted-foreground mb-6">
+                Custom websites built with modern technologies, optimized for
+                performance and user experience.
+              </p>
+              <ul class="mt-4 space-y-4">
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Responsive design for all devices</span>
+                </li>
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>SEO optimization for better visibility</span>
+                </li>
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Performance focused implementation</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button variant="default" class="w-full group">
+                <span class="flex items-center justify-center">
+                  Learn More
+                  <ArrowRight
+                    class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                  />
+                </span>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <!-- UI/UX Design Card -->
+          <Card
+            class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-0 bg-gradient-to-br from-background to-muted/50"
+          >
+            <div
+              class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"
+            ></div>
+            <CardHeader class="pb-3">
+              <div
+                class="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20"
+              >
+                <Paintbrush class="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle class="text-2xl font-bold">UI/UX Design</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p class="text-muted-foreground mb-6">
+                Beautiful, intuitive interfaces that engage users and drive
+                conversions.
+              </p>
+              <ul class="mt-4 space-y-4">
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>User-centered design approach</span>
+                </li>
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Interactive prototyping</span>
+                </li>
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Cross-platform consistency</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button variant="default" class="w-full group">
+                <span class="flex items-center justify-center">
+                  Learn More
+                  <ArrowRight
+                    class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                  />
+                </span>
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <!-- E-Commerce Card -->
+          <Card
+            class="overflow-hidden rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-0 bg-gradient-to-br from-background to-muted/50"
+          >
+            <div
+              class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"
+            ></div>
+            <CardHeader class="pb-3">
+              <div
+                class="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20"
+              >
+                <ShoppingCart class="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle class="text-2xl font-bold"
+                >E-Commerce Solutions</CardTitle
+              >
+            </CardHeader>
+            <CardContent>
+              <p class="text-muted-foreground mb-6">
+                Powerful online stores with secure payment processing and
+                inventory management.
+              </p>
+              <ul class="mt-4 space-y-4">
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Secure payment integration</span>
+                </li>
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Inventory management</span>
+                </li>
+                <li class="flex items-start">
+                  <div
+                    class="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3"
+                  >
+                    <Check class="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Mobile-optimized checkout</span>
+                </li>
+              </ul>
+            </CardContent>
+            <CardFooter>
+              <Button variant="default" class="w-full group">
+                <span class="flex items-center justify-center">
+                  Learn More
+                  <ArrowRight
+                    class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                  />
+                </span>
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </section>
@@ -302,50 +477,90 @@ const additionalServices = [
     </section>
 
     <!-- Additional Services -->
-    <section id="additional-services" class="py-16 bg-muted/50">
+    <section id="additional-services" class="py-20 bg-muted/50">
       <div class="container px-4 mx-auto">
         <div class="max-w-3xl mx-auto mb-12 text-center">
+          <div
+            class="inline-flex items-center px-4 py-2 mb-4 rounded-full bg-background text-muted-foreground text-sm font-medium"
+          >
+            <Rocket class="h-4 w-4 mr-2" />
+            <span>Specialized Solutions</span>
+          </div>
           <h2
-            class="text-3xl font-bold tracking-tight sm:text-4xl text-foreground"
+            class="text-3xl font-bold tracking-tight sm:text-4xl text-foreground mb-6"
           >
             Additional Services
           </h2>
-          <p class="mt-4 text-lg text-muted-foreground">
+          <p class="text-lg text-muted-foreground">
             Comprehensive solutions to support your digital growth
           </p>
         </div>
+
         <div class="grid gap-8 md:grid-cols-2">
-          <div
+          <Card
             v-for="service in additionalServices"
             :key="service.name"
-            class="p-6 bg-background rounded-lg shadow-sm"
+            class="overflow-hidden rounded-2xl shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-0 bg-gradient-to-br from-background to-muted/50"
           >
-            <component :is="service.icon" class="w-12 h-12 mb-4 text-primary" />
-            <h3 class="mb-2 text-xl font-semibold text-foreground">
-              {{ service.name }}
-            </h3>
-            <p class="text-muted-foreground">{{ service.description }}</p>
-          </div>
+            <div
+              class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-primary/20"
+            ></div>
+            <CardHeader class="pb-2">
+              <div
+                class="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center mb-3 border border-primary/20"
+              >
+                <component :is="service.icon" class="h-7 w-7 text-primary" />
+              </div>
+              <CardTitle class="text-xl font-bold">{{
+                service.name
+              }}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p class="text-muted-foreground">{{ service.description }}</p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" class="w-full group">
+                <span class="flex items-center justify-center">
+                  Explore Service
+                  <ArrowRight
+                    class="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+                  />
+                </span>
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="py-16 bg-primary">
+    <section class="py-20 bg-primary">
       <div class="container px-4 mx-auto">
         <div class="max-w-3xl mx-auto text-center">
           <h2
-            class="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl"
+            class="text-3xl font-bold tracking-tight text-primary-foreground sm:text-5xl mb-6"
           >
             Ready to Transform Your Online Presence?
           </h2>
-          <p class="mt-4 text-lg text-primary-foreground/90">
+          <p class="text-lg text-primary-foreground/90 mb-8">
             Let's discuss how we can help your business succeed in the digital
             world.
           </p>
-          <Button class="mt-8" variant="secondary" size="lg"
-            >Get in Touch</Button
-          >
+          <div class="flex justify-center">
+            <Button
+              as-child
+              variant="secondary"
+              size="lg"
+              class="px-8 h-14 rounded-xl font-medium text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all group"
+            >
+              <NuxtLink to="/contact" class="flex items-center">
+                Get in Touch
+                <ArrowRight
+                  class="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
+                />
+              </NuxtLink>
+            </Button>
+          </div>
         </div>
       </div>
     </section>
