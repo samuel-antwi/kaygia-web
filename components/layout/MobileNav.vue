@@ -4,11 +4,11 @@ import {
   Menu,
   X,
   Home,
-  Settings,
   Users,
   Briefcase,
   Mail,
   LogIn,
+  User,
 } from "lucide-vue-next";
 import type { FunctionalComponent } from "vue";
 import type { LucideProps } from "lucide-vue-next";
@@ -33,7 +33,7 @@ type IconMap = Record<IconName, FunctionalComponent<LucideProps>>;
 
 const navIcons: IconMap = {
   Home: Home,
-  Services: Settings,
+  Services: User,
   About: Users,
   Portfolio: Briefcase,
   Contact: Mail,

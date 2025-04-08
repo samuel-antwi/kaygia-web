@@ -135,9 +135,7 @@ const activeTab = ref("profile");
 <template>
   <div>
     <header class="mb-8">
-      <h1 class="text-3xl sm:text-4xl font-bold text-foreground">
-        Account Settings
-      </h1>
+      <h1 class="text-3xl sm:text-4xl font-bold text-foreground">My Profile</h1>
       <p class="text-muted-foreground mt-2">
         Manage your account details and security preferences
       </p>
@@ -290,7 +288,7 @@ const activeTab = ref("profile");
           <CardHeader class="bg-muted/30">
             <div class="flex items-center gap-2">
               <Shield class="h-5 w-5 text-primary" />
-              <CardTitle>Security Settings</CardTitle>
+              <CardTitle>Security Details</CardTitle>
             </div>
             <CardDescription class="mt-1.5">
               Update your password and security preferences
@@ -302,7 +300,6 @@ const activeTab = ref("profile");
         </Card>
       </div>
 
-      <!-- Right column future extension - can be used for avatar, additional settings, session info etc. -->
       <div class="w-80">
         <Card class="shadow-sm border-border/40">
           <CardHeader class="bg-muted/30">
@@ -467,7 +464,7 @@ const activeTab = ref("profile");
           <CardHeader>
             <div class="flex items-center gap-2">
               <Shield class="h-5 w-5 text-primary" />
-              <CardTitle>Security Settings</CardTitle>
+              <CardTitle>Security Details</CardTitle>
             </div>
             <CardDescription>
               Update your password and security preferences

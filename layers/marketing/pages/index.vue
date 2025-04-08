@@ -47,7 +47,7 @@ useHead({
 
     <!-- Hero Content -->
     <div
-      class="relative z-10 container mx-auto px-4 py-20 flex flex-col items-start justify-center h-full"
+      class="relative z-10 container mx-auto px-4 sm:px-20 py-20 flex flex-col items-start justify-center h-full"
     >
       <div class="max-w-3xl">
         <h1

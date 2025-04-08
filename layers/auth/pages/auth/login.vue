@@ -109,6 +109,17 @@ const onSubmit = form.handleSubmit(async (values) => {
   }
 });
 
+// if the user is logged in redirect to using watch
+watch(
+  user,
+  (newUser) => {
+    if (newUser) {
+      navigateTo("/dashboard");
+    }
+  },
+  { immediate: true }
+);
+
 // Handle resending verification email
 const handleResend = () => {
   navigateTo("/resend-verification");

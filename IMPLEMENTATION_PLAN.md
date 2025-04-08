@@ -89,7 +89,7 @@
 ### 4.3 User Management
 
 - [ ] Implement user profiles
-- [ ] Create settings page
+- [ ] Create profile page
 - [ ] Add notification preferences
 - [ ] Implement role-based access
 

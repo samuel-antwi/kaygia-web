@@ -6,7 +6,6 @@ import {
   FilePlus,
   MessageSquare,
   Receipt,
-  Settings,
   PanelLeftClose,
   PanelLeft,
   User,
@@ -130,7 +129,7 @@ const navItems = [
   },
   { name: "Tickets", icon: Ticket, path: "/dashboard/tickets" },
   { name: "Invoices", icon: Receipt, path: "/dashboard/invoices" },
-  { name: "Settings", icon: Settings, path: "/dashboard/settings" },
+  { name: "Profile", icon: User, path: "/dashboard/profile" },
 ];
 </script>
 
@@ -249,11 +248,7 @@ const navItems = [
             <DropdownMenuContent>
               <DropdownMenuItem class="cursor-pointer">
                 <User class="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem class="cursor-pointer">
-                <Settings class="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <NuxtLink to="/dashboard/profile">Profile</NuxtLink>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
@@ -315,8 +310,8 @@ const navItems = [
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem class="cursor-pointer">
-                  <Settings class="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <User class="mr-2 h-4 w-4" />
+                  <NuxtLink to="/dashboard/profile">Profile</NuxtLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
