@@ -92,44 +92,51 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div>
     <!-- Header -->
-    <div class="mb-6">
-      <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-      >
+    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+      <!-- Left side: Title and Description -->
+      <div class="flex-1">
         <h2 class="text-2xl sm:text-3xl font-bold">Support Tickets</h2>
-        <Button @click="showNewTicket = true" class="flex items-center gap-2">
+        <p class="text-muted-foreground text-sm mt-1">
+          View and manage your support requests.
+        </p>
+      </div>
+
+      <!-- Right side: Search, Actions -->
+      <div class="flex flex-col md:flex-row md:items-center gap-2">
+        <!-- Search Input -->
+        <div class="relative md:w-64 bg-white">
+          <Search
+            class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+          />
+          <Input
+            v-model="searchQuery"
+            placeholder="Search tickets..."
+            class="w-full pl-10 h-9"
+          />
+        </div>
+
+        <!-- New Ticket Button -->
+        <Button
+          @click="showNewTicket = true"
+          class="h-9 flex-shrink-0 flex items-center gap-2"
+        >
           <Plus class="w-4 h-4" />
           <span>New Ticket</span>
         </Button>
       </div>
-      <p class="text-muted-foreground mt-2">
-        View and manage your support requests.
-      </p>
     </div>
 
     <!-- Main content: Ticket List -->
     <Card class="overflow-hidden">
       <CardHeader>
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        >
+        <div class="flex items-center justify-between">
           <div>
             <CardTitle>Your Tickets</CardTitle>
             <CardDescription>
               Click on a ticket to view details and add comments.
             </CardDescription>
           </div>
-          <div class="relative w-full sm:w-64">
-            <Input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search by subject or ticket #..."
-              class="pr-8"
-            />
-            <Search
-              class="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
-            />
-          </div>
+          <!-- Search moved to main header -->
         </div>
       </CardHeader>
       <CardContent class="p-0">

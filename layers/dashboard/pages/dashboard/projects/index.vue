@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RefreshCw, Plus, Filter, Eye, FileText } from "lucide-vue-next";
+import { Plus, Eye, FileText, Search } from "lucide-vue-next";
 import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
 import type { ProjectStatus } from "../../../types/project";
 
@@ -80,69 +80,59 @@ const formatStatus = (status: string): string => {
 onMounted(async () => {
   await projectStore.fetchProjects();
 });
-
-// Handle refresh button
-const refreshProjects = async () => {
-  await projectStore.fetchProjects();
-};
 </script>
 
 <template>
   <div>
-    <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
-      <div>
+    <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+      <!-- Left side: Title and Description -->
+      <div class="flex-1">
         <h2 class="text-2xl sm:text-3xl font-bold mb-2">My Projects</h2>
-        <p class="text-muted-foreground">
-          Manage and track all your projects in one place.
+        <p class="text-muted-foreground text-sm">
+          Manage and track all your projects.
         </p>
       </div>
-      <div class="mt-4 md:mt-0 flex space-x-2">
-        <Button
-          @click="refreshProjects"
-          variant="outline"
-          size="icon"
-          class="h-9 w-9"
-        >
-          <RefreshCw class="h-4 w-4" />
-        </Button>
-        <Button as-child>
+
+      <!-- Right side: Search, Filter, Actions -->
+      <div class="flex flex-col md:flex-row md:items-center gap-2">
+        <!-- Search Input -->
+        <div class="relative md:w-64 bg-white">
+          <Search
+            class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+          />
+          <Input
+            v-model="searchTerm"
+            placeholder="Search projects..."
+            class="w-full pl-10 h-9"
+          />
+        </div>
+
+        <!-- Filter Select -->
+        <Select v-model="statusFilter">
+          <SelectTrigger class="w-full md:w-[180px] bg-white h-9">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Status</SelectLabel>
+              <SelectItem
+                v-for="option in statusOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        <!-- New Project Button -->
+        <Button as-child class="h-9 flex-shrink-0">
           <NuxtLink to="/dashboard/projects/new" class="flex items-center">
             <Plus class="mr-2 h-4 w-4" />
             New Project
           </NuxtLink>
         </Button>
-      </div>
-    </div>
-
-    <!-- Search and filters -->
-    <div class="bg-card border rounded-lg p-4 mb-6">
-      <div class="flex flex-col md:flex-row gap-4">
-        <div class="flex-1">
-          <Input
-            v-model="searchTerm"
-            placeholder="Search projects..."
-            class="w-full"
-          />
-        </div>
-        <div class="flex space-x-2">
-          <Select v-model="statusFilter">
-            <SelectTrigger class="w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Status</SelectLabel>
-                <SelectItem
-                  v-for="option in statusOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  {{ option.label }}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
     </div>
 

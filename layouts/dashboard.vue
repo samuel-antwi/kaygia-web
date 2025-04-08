@@ -14,7 +14,6 @@ import {
   Bell,
   Sun,
   Moon,
-  Menu,
   Ticket,
   MessagesSquare,
   UserCircle,
@@ -278,7 +277,6 @@ const navItems = [
               class="mr-2 md:hidden"
               aria-label="Toggle sidebar"
             >
-              <Menu class="h-5 w-5" />
             </Button>
             <h1 class="text-lg font-semibold">
               {{ pageTitle }}
