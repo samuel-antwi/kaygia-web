@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { useToast } from "../../../../components/ui/toast/use-toast";
 import PasswordChangeForm from "../../components/PasswordChangeForm.vue";
+import { z } from "zod";
+import { toTypedSchema } from "@vee-validate/zod";
+import { useForm } from "vee-validate";
+import { User, Building, Mail, Shield } from "lucide-vue-next";
 
 definePageMeta({
   layout: "dashboard",
@@ -13,57 +17,76 @@ definePageMeta({
 const { user, loading } = useAuth();
 const { toast } = useToast();
 
-// Form state (pre-fill with user data)
-const userData = reactive({
-  name: "",
-  email: "",
-  company: "",
+// Force fetch user profile directly to ensure data is available
+const { data: profileData } = useFetch<{
+  success?: boolean;
+  user?: {
+    id: string;
+    email: string;
+    name?: string | null;
+    company?: string | null;
+    role?: string;
+  };
+  error?: string;
+}>("/api/user/profile", {
+  key: "settings-profile-" + Date.now(),
 });
 
-// Form submission state
-const isSubmitting = ref(false);
-const submitError = ref<string | null>(null);
+// Define validation schema using zod
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  company: z.string().min(1, "Company name is required"),
+});
 
-// Update form data when user data is loaded
+// Convert Zod schema to VeeValidate schema
+const validationSchema = toTypedSchema(formSchema);
+
+// Initialize form
+const form = useForm({
+  validationSchema,
+  initialValues: {
+    name: "",
+    company: "",
+  },
+});
+
+// Email is handled separately since it's read-only
+const userEmail = ref("");
+
+// Update form values when profile data is available
 watch(
-  user,
-  (currentUser) => {
-    if (currentUser) {
-      userData.name = currentUser.name || "";
-      userData.email = currentUser.email || "";
-      userData.company = currentUser.company || "";
+  profileData,
+  (newData) => {
+    if (newData?.success && newData?.user) {
+      form.setValues({
+        name: newData.user.name || "",
+        company: newData.user.company || "",
+      });
+      userEmail.value = newData.user.email || "";
     }
   },
   { immediate: true }
 );
 
+// Form submission state
+const isSubmitting = ref(false);
+const submitError = ref<string | null>(null);
+
 // Handle profile update submission
-const handleSubmit = async () => {
+const onSubmit = form.handleSubmit(async (values) => {
+  if (isSubmitting.value) return; // Prevent double submission
+
   isSubmitting.value = true;
   submitError.value = null;
-
-  // Basic validation
-  if (!userData.name.trim()) {
-    submitError.value = "Name cannot be empty.";
-    isSubmitting.value = false;
-    toast({
-      title: "Validation Error",
-      description: submitError.value ?? "An unknown validation error occurred.",
-      variant: "destructive",
-    });
-    return;
-  }
 
   try {
     // Use useFetch to call the API endpoint
     const { data, error } = await useFetch("/api/profile", {
       method: "PATCH",
       body: {
-        name: userData.name.trim(),
-        company: userData.company?.trim() || null,
+        name: values.name.trim(),
+        company: values.company.trim(),
       },
-      // Automatically fetch updated session data upon success
-      // watch: false, // Prevent automatic re-fetch if causing issues
     });
 
     // Check for network or server errors returned by useFetch
@@ -74,12 +97,6 @@ const handleSubmit = async () => {
 
     // Check if the API operation itself was successful (based on our backend response)
     if (data.value?.success && data.value.user) {
-      // Session update is handled by backend via setUserSession.
-      // Frontend state in `user` ref from `useAuth` should update automatically
-      // due to reactivity or on next navigation/refresh if session fetch is triggered.
-      // Explicit refresh might be needed if useAuth doesn't automatically watch session changes.
-      // await refreshSession(); // Example if a refresh function exists
-
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved.",
@@ -87,7 +104,6 @@ const handleSubmit = async () => {
       });
     } else {
       // Handle cases where the API returns success: false or unexpected data format
-      // Although our current backend always throws error or returns success:true with user
       submitError.value =
         "Failed to update profile due to unexpected response.";
       toast({
@@ -104,100 +120,370 @@ const handleSubmit = async () => {
       "An unexpected error occurred while updating profile.";
     toast({
       title: "Update Failed",
-      description: "An unexpected error occurred.",
+      description: submitError.value || "An unexpected error occurred",
       variant: "destructive",
     });
   } finally {
     isSubmitting.value = false;
   }
-};
+});
+
+// Active tab management for mobile view
+const activeTab = ref("profile");
 </script>
 
 <template>
   <div>
-    <h2 class="text-2xl sm:text-3xl font-bold mb-6">Settings</h2>
+    <header class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold text-foreground">
+        Account Settings
+      </h1>
+      <p class="text-muted-foreground mt-2">
+        Manage your account details and security preferences
+      </p>
+    </header>
 
-    <Card class="max-w-2xl">
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-        <CardDescription> Update your personal details. </CardDescription>
-      </CardHeader>
-      <CardContent class="space-y-6">
-        <div v-if="loading && !user">
-          <p>Loading user data...</p>
-          <!-- Add a loading spinner or skeleton loader here if desired -->
-        </div>
-        <form v-else @submit.prevent="handleSubmit" class="space-y-4">
-          <div class="space-y-2">
-            <Label for="name">Name</Label>
-            <Input
-              id="name"
-              v-model="userData.name"
-              placeholder="Your name"
-              class="h-12"
-              :disabled="isSubmitting"
-            />
-          </div>
+    <!-- Mobile Tabs -->
+    <div class="md:hidden mb-6">
+      <Tabs
+        default-value="profile"
+        class="w-full"
+        @value-change="(val: string) => (activeTab = val)"
+      >
+        <TabsList class="w-full grid grid-cols-2">
+          <TabsTrigger value="profile" class="relative">
+            <User class="mr-2 h-4 w-4" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="security" class="relative">
+            <Shield class="mr-2 h-4 w-4" />
+            Security
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </div>
 
-          <!-- Email (Read-only) -->
-          <div class="space-y-2">
-            <Label for="email">Email</Label>
-            <Input
-              id="email"
-              v-model="userData.email"
-              placeholder="Your email address"
-              disabled
-              class="h-12 bg-muted/50 cursor-not-allowed"
-            />
-            <p class="text-xs text-muted-foreground">
-              Email cannot be changed.
-            </p>
-          </div>
-
-          <!-- Company -->
-          <div class="space-y-2">
-            <Label for="company">Company (Optional)</Label>
-            <Input
-              id="company"
-              v-model="userData.company"
-              placeholder="Your company name"
-              class="h-12"
-              :disabled="isSubmitting"
-            />
-          </div>
-
-          <!-- Update Button -->
-          <div class="pt-4">
-            <Button
-              type="submit"
-              class="w-full h-12"
-              :disabled="isSubmitting || loading"
+    <!-- Desktop Layout -->
+    <div class="hidden md:flex md:gap-8">
+      <!-- Left column for cards -->
+      <div class="flex-1 space-y-8 max-w-3xl">
+        <!-- Profile Information Card -->
+        <Card class="shadow-sm border-border/40">
+          <CardHeader class="bg-muted/30">
+            <div class="flex items-center gap-2">
+              <User class="h-5 w-5 text-primary" />
+              <CardTitle>Profile Information</CardTitle>
+            </div>
+            <CardDescription class="mt-1.5">
+              Update your personal and company details
+            </CardDescription>
+          </CardHeader>
+          <CardContent class="pt-6">
+            <div
+              v-if="loading && !profileData"
+              class="py-8 flex justify-center"
             >
-              <span v-if="isSubmitting" class="mr-2">
-                <div
-                  class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"
-                ></div>
-              </span>
-              {{ isSubmitting ? "Updating..." : "Update Profile" }}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+              <div
+                class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"
+              ></div>
+            </div>
+            <form v-else @submit="onSubmit" class="space-y-5">
+              <!-- Name -->
+              <FormField v-slot="{ componentField }" name="name">
+                <FormItem>
+                  <div class="flex items-baseline justify-between">
+                    <FormLabel for="name" class="text-sm font-medium"
+                      >Full Name</FormLabel
+                    >
+                  </div>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    >
+                      <User class="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <FormControl>
+                      <Input
+                        id="name"
+                        v-bind="componentField"
+                        placeholder="Your full name"
+                        class="h-11 pl-10"
+                        :disabled="isSubmitting"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
 
-    <!-- Password Change Section -->
-    <Card class="max-w-2xl mt-8">
-      <CardHeader>
-        <CardTitle>Password</CardTitle>
-        <CardDescription> Change your account password. </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <PasswordChangeForm />
-      </CardContent>
-    </Card>
+              <!-- Email (Read-only) -->
+              <div class="space-y-2">
+                <Label for="email" class="text-sm font-medium"
+                  >Email Address</Label
+                >
+                <div class="relative">
+                  <div
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                  >
+                    <Mail class="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="email"
+                    :value="userEmail"
+                    placeholder="Your email address"
+                    disabled
+                    class="h-11 pl-10 bg-muted/40 cursor-not-allowed"
+                  />
+                </div>
+                <p class="text-xs text-muted-foreground">
+                  Email address cannot be changed
+                </p>
+              </div>
+
+              <!-- Company -->
+              <FormField v-slot="{ componentField }" name="company">
+                <FormItem>
+                  <FormLabel for="company" class="text-sm font-medium"
+                    >Company Name</FormLabel
+                  >
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    >
+                      <Building class="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <FormControl>
+                      <Input
+                        id="company"
+                        v-bind="componentField"
+                        placeholder="Your company name"
+                        class="h-11 pl-10"
+                        :disabled="isSubmitting"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+
+              <!-- Update Button -->
+              <div class="pt-2">
+                <Button
+                  type="submit"
+                  class="w-full h-11"
+                  :disabled="isSubmitting || loading"
+                >
+                  <span v-if="isSubmitting" class="mr-2">
+                    <div
+                      class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"
+                    ></div>
+                  </span>
+                  {{ isSubmitting ? "Updating..." : "Save Changes" }}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <!-- Password Change Card -->
+        <Card class="shadow-sm border-border/40">
+          <CardHeader class="bg-muted/30">
+            <div class="flex items-center gap-2">
+              <Shield class="h-5 w-5 text-primary" />
+              <CardTitle>Security Settings</CardTitle>
+            </div>
+            <CardDescription class="mt-1.5">
+              Update your password and security preferences
+            </CardDescription>
+          </CardHeader>
+          <CardContent class="pt-6">
+            <PasswordChangeForm />
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Right column future extension - can be used for avatar, additional settings, session info etc. -->
+      <div class="w-80">
+        <Card class="shadow-sm border-border/40">
+          <CardHeader class="bg-muted/30">
+            <CardTitle>Account Overview</CardTitle>
+          </CardHeader>
+          <CardContent class="pt-6">
+            <div class="space-y-4">
+              <div
+                class="h-24 w-24 rounded-full bg-primary/10 mx-auto flex items-center justify-center"
+              >
+                <User class="h-12 w-12 text-primary/80" />
+              </div>
+
+              <div class="text-center space-y-1.5 mt-2">
+                <h3 class="font-medium">
+                  {{ form.values.name || "Your Name" }}
+                </h3>
+                <p class="text-sm text-muted-foreground">{{ userEmail }}</p>
+              </div>
+
+              <div class="pt-4 space-y-3">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-muted-foreground">Account Type</span>
+                  <Badge>{{
+                    profileData?.user?.role
+                      ? profileData.user.role === "ADMIN"
+                        ? "Administrator"
+                        : profileData.user.role === "SUPER_ADMIN"
+                          ? "Super Admin"
+                          : "Client"
+                      : "Client"
+                  }}</Badge>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-muted-foreground">Last Updated</span>
+                  <span>{{ new Date().toLocaleDateString() }}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+
+    <!-- Mobile Layout -->
+    <div class="md:hidden space-y-6">
+      <div v-if="activeTab === 'profile'">
+        <!-- Profile Card for Mobile -->
+        <Card class="shadow-sm border-border/40">
+          <CardHeader>
+            <div class="flex items-center gap-2">
+              <User class="h-5 w-5 text-primary" />
+              <CardTitle>Profile Information</CardTitle>
+            </div>
+            <CardDescription>
+              Update your personal and company details
+            </CardDescription>
+          </CardHeader>
+          <CardContent class="pt-4">
+            <div
+              v-if="loading && !profileData"
+              class="py-8 flex justify-center"
+            >
+              <div
+                class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"
+              ></div>
+            </div>
+            <form v-else @submit="onSubmit" class="space-y-4">
+              <!-- Name -->
+              <FormField v-slot="{ componentField }" name="name">
+                <FormItem>
+                  <FormLabel for="name">Full Name</FormLabel>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    >
+                      <User class="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <FormControl>
+                      <Input
+                        id="name"
+                        v-bind="componentField"
+                        placeholder="Your full name"
+                        class="h-11 pl-10"
+                        :disabled="isSubmitting"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+
+              <!-- Email (Read-only) -->
+              <div class="space-y-2">
+                <Label for="email">Email Address</Label>
+                <div class="relative">
+                  <div
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                  >
+                    <Mail class="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Input
+                    id="email"
+                    :value="userEmail"
+                    placeholder="Your email address"
+                    disabled
+                    class="h-11 pl-10 bg-muted/40 cursor-not-allowed"
+                  />
+                </div>
+                <p class="text-xs text-muted-foreground">
+                  Email address cannot be changed
+                </p>
+              </div>
+
+              <!-- Company -->
+              <FormField v-slot="{ componentField }" name="company">
+                <FormItem>
+                  <FormLabel for="company">Company Name</FormLabel>
+                  <div class="relative">
+                    <div
+                      class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    >
+                      <Building class="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <FormControl>
+                      <Input
+                        id="company"
+                        v-bind="componentField"
+                        placeholder="Your company name"
+                        class="h-11 pl-10"
+                        :disabled="isSubmitting"
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+
+              <!-- Update Button -->
+              <div class="pt-2">
+                <Button
+                  type="submit"
+                  class="w-full h-11"
+                  :disabled="isSubmitting || loading"
+                >
+                  <span v-if="isSubmitting" class="mr-2">
+                    <div
+                      class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"
+                    ></div>
+                  </span>
+                  {{ isSubmitting ? "Updating..." : "Save Changes" }}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div v-if="activeTab === 'security'">
+        <!-- Password Card for Mobile -->
+        <Card class="shadow-sm border-border/40">
+          <CardHeader>
+            <div class="flex items-center gap-2">
+              <Shield class="h-5 w-5 text-primary" />
+              <CardTitle>Security Settings</CardTitle>
+            </div>
+            <CardDescription>
+              Update your password and security preferences
+            </CardDescription>
+          </CardHeader>
+          <CardContent class="pt-4">
+            <PasswordChangeForm />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* Add any page-specific styles here */
+.card-header-icon {
+  @apply inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary;
+}
 </style>
