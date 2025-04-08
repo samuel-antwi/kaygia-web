@@ -400,7 +400,7 @@ const filteredServices = computed(() => {
           </p>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           <div
             v-for="approach in approaches"
             :key="approach.title"
@@ -505,7 +505,7 @@ const filteredServices = computed(() => {
           </p>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           <div
             v-for="service in additionalServices"
             :key="service.name"
