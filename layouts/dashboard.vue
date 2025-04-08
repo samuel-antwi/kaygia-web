@@ -30,7 +30,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const colorMode = useColorMode();
 const isSidebarCollapsed = ref(false);
 const isMobile = ref(false);
 const route = useRoute();
@@ -51,10 +50,6 @@ function checkIfMobile() {
   isMobile.value = window.innerWidth < 768;
   // Auto-collapse sidebar on mobile
   isSidebarCollapsed.value = isMobile.value;
-}
-
-function toggleColorMode() {
-  colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
 }
 
 function toggleSidebar() {
@@ -296,22 +291,6 @@ const navItems = [
           </div>
 
           <div class="flex items-center space-x-2">
-            <!-- Color mode toggle -->
-            <Button
-              variant="ghost"
-              size="icon"
-              @click="toggleColorMode"
-              class="rounded-full"
-            >
-              <Sun
-                class="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-              />
-              <Moon
-                class="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-              />
-              <span class="sr-only">Toggle theme</span>
-            </Button>
-
             <!-- User profile dropdown -->
             <DropdownMenu>
               <DropdownMenuTrigger as-child>

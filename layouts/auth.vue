@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Sun, Moon } from "lucide-vue-next";
 import site from "~/utils/config/site";
 
 const { $site = site } = useNuxtApp();
@@ -26,7 +25,3 @@ const { $site = site } = useNuxtApp();
     </main>
   </div>
 </template>
-
-<style scoped>
-/* Add any additional styling here if needed */
-</style>

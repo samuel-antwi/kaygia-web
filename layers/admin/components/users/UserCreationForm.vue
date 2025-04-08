@@ -20,11 +20,8 @@ const formSchema = z.object({
   role: z.enum(["CLIENT", "ADMIN"], {
     required_error: "Please select a role",
   }),
-  company: z.string().optional(),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .optional(),
+  company: z.string().min(1, "Company name is required"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   sendVerificationEmail: z.boolean().default(true),
   active: z.boolean().default(true),
 });
@@ -179,9 +176,13 @@ const emit = defineEmits<{
           <!-- User Name -->
           <FormField v-slot="{ componentField }" name="name">
             <FormItem>
-              <FormLabel class="text-sm font-medium">Full Name</FormLabel>
+              <FormLabel class="text-sm font-medium">Contact Name</FormLabel>
               <FormControl>
-                <Input v-bind="componentField" placeholder="Jane Doe" />
+                <Input
+                  class="h-12"
+                  v-bind="componentField"
+                  placeholder="Jane Doe"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -193,6 +194,7 @@ const emit = defineEmits<{
               <FormLabel class="text-sm font-medium">Email Address</FormLabel>
               <FormControl>
                 <Input
+                  class="h-12"
                   v-bind="componentField"
                   type="email"
                   placeholder="jane.doe@example.com"
@@ -206,11 +208,13 @@ const emit = defineEmits<{
             <!-- Company -->
             <FormField v-slot="{ componentField }" name="company">
               <FormItem>
-                <FormLabel class="text-sm font-medium"
-                  >Company (Optional)</FormLabel
-                >
+                <FormLabel class="text-sm font-medium">Company Name</FormLabel>
                 <FormControl>
-                  <Input v-bind="componentField" placeholder="Company Name" />
+                  <Input
+                    class="h-12"
+                    v-bind="componentField"
+                    placeholder="Company Name"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -222,7 +226,7 @@ const emit = defineEmits<{
                 <FormLabel class="text-sm font-medium">User Role</FormLabel>
                 <Select :value="value" @update:value="handleChange">
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger class="h-12">
                       <SelectValue placeholder="Select Role" />
                     </SelectTrigger>
                   </FormControl>
@@ -243,9 +247,7 @@ const emit = defineEmits<{
           <FormField v-slot="{ componentField, value }" name="password">
             <FormItem>
               <div class="flex items-center justify-between">
-                <FormLabel class="text-sm font-medium"
-                  >Password (Optional)</FormLabel
-                >
+                <FormLabel class="text-sm font-medium">Password</FormLabel>
                 <Button
                   type="button"
                   size="sm"
@@ -261,7 +263,8 @@ const emit = defineEmits<{
                   <Input
                     v-bind="componentField"
                     :type="showPassword ? 'text' : 'password'"
-                    placeholder="Leave blank to auto-generate"
+                    placeholder="Enter password or generate one"
+                    class="h-12"
                     autocomplete="new-password"
                   />
                   <button
@@ -275,9 +278,8 @@ const emit = defineEmits<{
                 </div>
               </FormControl>
               <FormMessage />
-              <p v-if="!value" class="text-xs text-muted-foreground">
-                If left blank, a secure password will be generated and displayed
-                after creating the user.
+              <p class="text-xs text-muted-foreground">
+                Password must be at least 8 characters long.
               </p>
             </FormItem>
           </FormField>
@@ -367,7 +369,7 @@ const emit = defineEmits<{
           <!-- Submit Button -->
           <Button
             type="submit"
-            class="w-full mt-2"
+            class="w-full mt-2 h-12"
             :disabled="isSubmitting"
             size="lg"
           >

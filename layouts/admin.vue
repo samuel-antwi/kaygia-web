@@ -37,9 +37,6 @@ function checkIfMobile() {
   isSidebarCollapsed.value = isMobile.value;
 }
 
-// Get Nuxt color mode composable
-const colorMode = useColorMode();
-
 // Get auth composable
 const { user, signOut } = useAuth();
 
@@ -67,11 +64,6 @@ async function handleLogout() {
     // Optionally: Add user feedback here
     // alert("An unexpected error occurred during logout.");
   }
-}
-
-// Function to toggle color mode
-function toggleColorMode() {
-  colorMode.preference = colorMode.value === "dark" ? "light" : "dark";
 }
 
 // Function to toggle sidebar collapse state
@@ -279,25 +271,6 @@ function isAdminRouteActive(path: string): boolean {
                 ?.name || "Admin"
             }}
           </h1>
-        </div>
-
-        <!-- Right side: Actions (Theme Toggle) -->
-        <div class="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            @click="toggleColorMode"
-            class="rounded-full"
-            aria-label="Toggle theme"
-          >
-            <Sun
-              class="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-            />
-            <Moon
-              class="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-            />
-            <span class="sr-only">Toggle theme</span>
-          </Button>
         </div>
       </header>
 
