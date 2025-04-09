@@ -104,9 +104,13 @@ export const useTicketStore = defineStore("tickets", () => {
 
   const createTicket = async (
     subject: string,
-    content: string
+    content: string,
+    projectId?: string
   ): Promise<boolean> => {
-    if (!subject || !content.trim()) return false;
+    if (!subject || !content.trim()) {
+      error.value = "Subject and content cannot be empty.";
+      return false;
+    }
 
     isCreatingTicket.value = true;
     error.value = null;
@@ -117,11 +121,11 @@ export const useTicketStore = defineStore("tickets", () => {
         message?: string;
       }>("/api/tickets", {
         method: "POST",
-        body: { subject, content },
+        body: { subject, content, projectId: projectId || undefined },
       });
 
       if (response.success) {
-        await fetchTickets(); // Refresh the list
+        await fetchTickets();
         return true;
       } else {
         throw new Error(response.message || "Failed to create ticket");
@@ -151,7 +155,6 @@ export const useTicketStore = defineStore("tickets", () => {
       );
 
       if (response.success) {
-        // Refresh ticket details to get the new comment
         await fetchTicketDetails(ticketId);
         return true;
       } else {

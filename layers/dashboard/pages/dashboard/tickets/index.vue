@@ -19,6 +19,15 @@ definePageMeta({
   middleware: "auth",
 });
 
+// Define a special value for "no project selected"
+const NO_PROJECT_VALUE = "none";
+
+// State and refs
+const searchQuery = ref("");
+const showNewTicket = ref(false);
+const projectsList = ref<{ id: string; title: string }[]>([]);
+const isLoadingProjects = ref(false);
+
 // Initialize ticket store
 const ticketStore = useTicketStore();
 ticketStore.error = null; // Clear errors on setup
@@ -29,36 +38,7 @@ const { sortedTickets, isLoadingList, error, isCreatingTicket } =
 const { user, loading: authLoading } = useAuth();
 
 // Utils
-const { formatDate, formatTime, getStatusBadgeVariant } = useTicketUtils(); // Ensure formatDate and formatTime are destructured
-
-// State
-const searchQuery = ref(""); // Keep search functionality
-const showNewTicket = ref(false);
-
-// Watch for auth state before fetching messages
-watchEffect(() => {
-  if (!authLoading.value && user.value) {
-    ticketStore.fetchTickets();
-  }
-});
-
-// Filter tickets by search query (adapting from messages)
-const filteredTickets = computed(() => {
-  if (!searchQuery.value) return sortedTickets.value;
-  const query = searchQuery.value.toLowerCase();
-
-  return sortedTickets.value.filter((ticket) => {
-    return (
-      ticket.subject.toLowerCase().includes(query) ||
-      ticket.ticketNumber.includes(query.replace(/[^0-9]/g, "")) // Allow searching by ticket number, strip non-numeric chars
-    );
-  });
-});
-
-// Navigate to ticket detail page
-const viewTicket = (ticketId: string) => {
-  navigateTo(`/dashboard/tickets/${ticketId}`);
-};
+const { formatDate, formatTime, getStatusBadgeVariant } = useTicketUtils();
 
 // New ticket form schema
 const formSchema = toTypedSchema(
@@ -67,26 +47,85 @@ const formSchema = toTypedSchema(
     content: z
       .string()
       .min(10, "Initial message must be at least 10 characters"),
+    projectId: z.string().optional(),
   })
 );
 
-// Form validation
-const { handleSubmit, resetForm } = useForm({
+// Form initialization - directly following the documentation pattern
+const form = useForm({
   validationSchema: formSchema,
+  initialValues: {
+    subject: "",
+    content: "",
+    projectId: NO_PROJECT_VALUE,
+  },
 });
 
-// Handle new ticket submission
-const onSubmit = handleSubmit(async (values) => {
+// Reset form when dialog closes
+watch(
+  () => showNewTicket.value,
+  (isOpen) => {
+    if (!isOpen) {
+      form.resetForm();
+    }
+  }
+);
+
+// Handle form submission
+const onSubmit = form.handleSubmit(async (values) => {
+  // Convert our special "none" value to undefined for the API
+  const projectIdToSend =
+    values.projectId === NO_PROJECT_VALUE ? undefined : values.projectId;
+
   const success = await ticketStore.createTicket(
     values.subject,
-    values.content
+    values.content,
+    projectIdToSend
   );
+
   if (success) {
     showNewTicket.value = false;
-    resetForm();
-    // No need to navigate, fetchTickets is called automatically in createTicket
   }
 });
+
+// Watch for auth state before fetching data
+watchEffect(async () => {
+  if (!authLoading.value && user.value) {
+    ticketStore.fetchTickets();
+    isLoadingProjects.value = true;
+    try {
+      const { data: projectsData, error: projectsError } =
+        await useFetch<{ id: string; title: string }[]>("/api/projects");
+      if (projectsError.value) {
+        console.error("Error fetching projects:", projectsError.value);
+      } else {
+        projectsList.value = projectsData.value || [];
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching projects:", err);
+    } finally {
+      isLoadingProjects.value = false;
+    }
+  }
+});
+
+// Filter tickets by search query
+const filteredTickets = computed(() => {
+  if (!searchQuery.value) return sortedTickets.value;
+  const query = searchQuery.value.toLowerCase();
+
+  return sortedTickets.value.filter((ticket) => {
+    return (
+      ticket.subject.toLowerCase().includes(query) ||
+      ticket.ticketNumber.includes(query.replace(/[^0-9]/g, ""))
+    );
+  });
+});
+
+// Navigate to ticket detail page
+const viewTicket = (ticketId: string) => {
+  navigateTo(`/dashboard/tickets/${ticketId}`);
+};
 </script>
 
 <template>
@@ -257,7 +296,7 @@ const onSubmit = handleSubmit(async (values) => {
     </Card>
 
     <!-- New Ticket Dialog -->
-    <Dialog v-model:open="showNewTicket">
+    <Dialog :open="showNewTicket" @update:open="showNewTicket = $event">
       <DialogContentFixed class="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Create New Ticket</DialogTitle>
@@ -280,6 +319,34 @@ const onSubmit = handleSubmit(async (values) => {
               <FormMessage />
             </FormItem>
           </FormField>
+
+          <!-- Project Selector -->
+          <FormField v-slot="{ componentField }" name="projectId">
+            <FormItem>
+              <FormLabel>Related Project (Optional)</FormLabel>
+              <Select v-bind="componentField">
+                <FormControl>
+                  <SelectTrigger :disabled="isLoadingProjects">
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem :value="NO_PROJECT_VALUE">
+                    None - General Inquiry
+                  </SelectItem>
+                  <SelectItem
+                    v-for="project in projectsList"
+                    :key="project.id"
+                    :value="project.id"
+                  >
+                    {{ project.title }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
           <FormField v-slot="{ componentField }" name="content">
             <FormItem>
               <FormLabel>Details</FormLabel>

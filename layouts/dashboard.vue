@@ -128,7 +128,6 @@ const navItems = [
   },
   { name: "Tickets", icon: Ticket, path: "/dashboard/tickets" },
   { name: "Invoices", icon: Receipt, path: "/dashboard/invoices" },
-  { name: "Profile", icon: User, path: "/dashboard/profile" },
 ];
 </script>
 
@@ -221,7 +220,7 @@ const navItems = [
       </nav>
 
       <!-- Sidebar footer -->
-      <div class="border-t p-3">
+      <div class="border-t hidden md:block p-3">
         <div class="flex gap-2 items-center">
           <Avatar class="h-8 w-8">
             <AvatarImage src="" alt="User avatar" />

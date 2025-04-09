@@ -13,6 +13,10 @@ const createTicketSchema = z.object({
   content: z.string().min(10, {
     message: "Initial message content must be at least 10 characters long",
   }),
+  projectId: z
+    .string()
+    .uuid({ message: "Invalid Project ID format" })
+    .optional(),
 });
 
 export default defineEventHandler(async (event) => {
@@ -54,7 +58,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const { subject, content } = validation.data;
+  const { subject, content, projectId } = validation.data;
 
   // 3. Create Ticket and Initial Comment in a Transaction
   try {
@@ -91,6 +95,7 @@ export default defineEventHandler(async (event) => {
           subject: subject,
           description: content, // Use initial content as description
           clientId: user.id,
+          projectId: projectId,
           status: "OPEN",
           createdAt: now,
           updatedAt: now,
