@@ -26,6 +26,7 @@ const { data: profileData } = useFetch<{
     name?: string | null;
     company?: string | null;
     role?: string;
+    updatedAt?: string;
   };
   error?: string;
 }>("/api/user/profile", {
@@ -97,6 +98,15 @@ const onSubmit = form.handleSubmit(async (values) => {
 
     // Check if the API operation itself was successful (based on our backend response)
     if (data.value?.success && data.value.user) {
+      // Update local profile data with the latest data from the API
+      profileData.value = {
+        success: true,
+        user: {
+          ...profileData.value?.user,
+          ...data.value.user,
+        },
+      };
+
       toast({
         title: "Profile Updated",
         description: "Your profile information has been saved.",
@@ -130,49 +140,56 @@ const onSubmit = form.handleSubmit(async (values) => {
 
 // Active tab management for mobile view
 const activeTab = ref("profile");
+
+const tabs = [
+  {
+    label: "Profile",
+    value: "profile",
+    icon: User,
+  },
+  {
+    label: "Security",
+    value: "security",
+    icon: Shield,
+  },
+];
 </script>
 
 <template>
-  <div>
-    <header class="mb-8">
-      <h1 class="text-3xl sm:text-4xl font-bold text-foreground">My Profile</h1>
-      <p class="text-muted-foreground mt-2">
-        Manage your account details and security preferences
-      </p>
-    </header>
-
-    <!-- Mobile Tabs -->
-    <div class="md:hidden mb-6">
-      <Tabs
-        default-value="profile"
-        class="w-full"
-        @value-change="(val: string) => (activeTab = val)"
+  <div class="container py-8 space-y-6">
+    <!-- Tabs -->
+    <div class="flex items-center w-full justify-between md:hidden">
+      <div
+        class="inline-flex items-center justify-center p-1 bg-muted rounded-lg"
       >
-        <TabsList class="w-full grid grid-cols-2">
-          <TabsTrigger value="profile" class="relative">
-            <User class="mr-2 h-4 w-4" />
-            Profile
-          </TabsTrigger>
-          <TabsTrigger value="security" class="relative">
-            <Shield class="mr-2 h-4 w-4" />
-            Security
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+        <button
+          v-for="tab in tabs"
+          :key="tab.value"
+          @click="activeTab = tab.value"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-md"
+          :class="[
+            activeTab === tab.value
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          ]"
+        >
+          <component :is="tab.icon" class="h-4 w-4" />
+          {{ tab.label }}
+        </button>
+      </div>
     </div>
 
     <!-- Desktop Layout -->
-    <div class="hidden md:flex md:gap-8">
-      <!-- Left column for cards -->
-      <div class="flex-1 space-y-8 max-w-3xl">
-        <!-- Profile Information Card -->
+    <div class="hidden md:grid md:grid-cols-[1fr_320px] gap-6">
+      <div class="space-y-6">
+        <!-- Profile Card -->
         <Card class="shadow-sm border-border/40">
-          <CardHeader class="bg-muted/30">
-            <div class="flex items-center gap-2">
+          <CardHeader class="bg-muted/30 space-y-2">
+            <div class="flex items-center gap-2.5">
               <User class="h-5 w-5 text-primary" />
               <CardTitle>Profile Information</CardTitle>
             </div>
-            <CardDescription class="mt-1.5">
+            <CardDescription>
               Update your personal and company details
             </CardDescription>
           </CardHeader>
@@ -285,8 +302,8 @@ const activeTab = ref("profile");
 
         <!-- Password Change Card -->
         <Card class="shadow-sm border-border/40">
-          <CardHeader class="bg-muted/30">
-            <div class="flex items-center gap-2">
+          <CardHeader class="bg-muted/30 space-y-2">
+            <div class="flex items-center gap-2.5">
               <Shield class="h-5 w-5 text-primary" />
               <CardTitle>Security Details</CardTitle>
             </div>
@@ -300,9 +317,10 @@ const activeTab = ref("profile");
         </Card>
       </div>
 
-      <div class="w-80">
+      <!-- Account Overview Card -->
+      <div class="w-full">
         <Card class="shadow-sm border-border/40">
-          <CardHeader class="bg-muted/30">
+          <CardHeader class="bg-muted/30 space-y-2">
             <CardTitle>Account Overview</CardTitle>
           </CardHeader>
           <CardContent class="pt-6">
@@ -335,7 +353,13 @@ const activeTab = ref("profile");
                 </div>
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-muted-foreground">Last Updated</span>
-                  <span>{{ new Date().toLocaleDateString() }}</span>
+                  <span>{{
+                    profileData?.user?.updatedAt
+                      ? new Date(
+                          profileData.user.updatedAt
+                        ).toLocaleDateString()
+                      : "Never updated"
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -349,8 +373,8 @@ const activeTab = ref("profile");
       <div v-if="activeTab === 'profile'">
         <!-- Profile Card for Mobile -->
         <Card class="shadow-sm border-border/40">
-          <CardHeader>
-            <div class="flex items-center gap-2">
+          <CardHeader class="space-y-2">
+            <div class="flex items-center gap-2.5">
               <User class="h-5 w-5 text-primary" />
               <CardTitle>Profile Information</CardTitle>
             </div>
@@ -358,7 +382,7 @@ const activeTab = ref("profile");
               Update your personal and company details
             </CardDescription>
           </CardHeader>
-          <CardContent class="pt-4">
+          <CardContent class="pt-6">
             <div
               v-if="loading && !profileData"
               class="py-8 flex justify-center"
@@ -461,8 +485,8 @@ const activeTab = ref("profile");
       <div v-if="activeTab === 'security'">
         <!-- Password Card for Mobile -->
         <Card class="shadow-sm border-border/40">
-          <CardHeader>
-            <div class="flex items-center gap-2">
+          <CardHeader class="space-y-2">
+            <div class="flex items-center gap-2.5">
               <Shield class="h-5 w-5 text-primary" />
               <CardTitle>Security Details</CardTitle>
             </div>
@@ -470,7 +494,7 @@ const activeTab = ref("profile");
               Update your password and security preferences
             </CardDescription>
           </CardHeader>
-          <CardContent class="pt-4">
+          <CardContent class="pt-6">
             <PasswordChangeForm />
           </CardContent>
         </Card>
@@ -480,6 +504,14 @@ const activeTab = ref("profile");
 </template>
 
 <style scoped>
+.form-icon {
+  @apply absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground;
+}
+
+.form-input {
+  @apply h-11 pl-10;
+}
+
 .card-header-icon {
   @apply inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary;
 }

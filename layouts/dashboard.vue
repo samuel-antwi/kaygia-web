@@ -15,11 +15,7 @@ import {
   Sun,
   Moon,
   Ticket,
-  MessagesSquare,
-  UserCircle,
 } from "lucide-vue-next";
-import { useTicketStore } from "../layers/dashboard/stores/ticketStore";
-import { storeToRefs } from "pinia";
 import { useTicketUtils } from "../layers/dashboard/composables/useTicketUtils";
 import {
   Tooltip,
