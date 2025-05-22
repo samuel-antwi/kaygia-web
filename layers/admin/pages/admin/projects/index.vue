@@ -52,7 +52,7 @@ interface ApiResponse {
 const searchQuery = ref("");
 
 // Fetch projects data
-const { data, pending, error, refresh } = await useFetch<ApiResponse>(
+const { data, status, error, refresh } = await useFetch<ApiResponse>(
   "/api/admin/projects",
   {
     lazy: false, // Fetch data before navigating
@@ -137,7 +137,7 @@ const viewProject = (projectId: string) => {
         />
       </div>
       <Button @click="refresh" variant="outline" size="sm" class="h-10">
-        <span v-if="pending">
+        <span v-if="status === 'pending'">
           <Loader2 class="mr-2 h-4 w-4 animate-spin" />
           Refreshing
         </span>
@@ -146,7 +146,10 @@ const viewProject = (projectId: string) => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="pending" class="flex items-center justify-center py-8">
+    <div
+      v-if="status === 'pending'"
+      class="flex items-center justify-center py-8"
+    >
       <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
       <p class="ml-3 text-muted-foreground">Loading projects...</p>
     </div>

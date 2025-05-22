@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted } from "vue";
 import {
   LogOut,
   User,
-  Settings,
   LayoutDashboard,
   Ticket,
   Users,
@@ -121,8 +120,6 @@ function isAdminRouteActive(path: string): boolean {
           class="flex items-center gap-2 font-semibold transition-opacity mr-4"
           :class="isSidebarCollapsed ? 'justify-center' : ''"
         >
-          <!-- <Settings class="h-6 w-6 text-primary" /> REMOVED -->
-          <!-- Hide text when collapsed -->
           <div
             :class="
               isSidebarCollapsed
@@ -223,11 +220,7 @@ function isAdminRouteActive(path: string): boolean {
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled>
                 <User class="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled>
-                <Settings class="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <NuxtLink to="/admin/profile">Profile</NuxtLink>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

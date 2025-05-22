@@ -76,6 +76,9 @@ export const supportTickets = pgTable("support_tickets", {
   clientId: text("client_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  projectId: text("project_id").references(() => projects.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   lastRepliedAt: timestamp("last_replied_at"),
@@ -139,6 +142,10 @@ export const supportTicketsRelations = relations(
     client: one(users, {
       fields: [supportTickets.clientId],
       references: [users.id],
+    }),
+    project: one(projects, {
+      fields: [supportTickets.projectId],
+      references: [projects.id],
     }),
     comments: many(ticketComments),
   })

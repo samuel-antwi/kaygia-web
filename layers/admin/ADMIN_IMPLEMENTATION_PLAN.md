@@ -1,6 +1,6 @@
 # Admin Layer Implementation Plan
 
-This document outlines the plan for implementing the Admin UI layer within the Kaygia Web application. This layer will provide administrators with the necessary tools to manage various aspects of the platform, including users, projects, support tickets, and potentially system settings.
+This document outlines the plan for implementing the Admin UI layer within the Kaygia Web application. This layer will provide administrators with the necessary tools to manage various aspects of the platform, including users, projects, support tickets, and potentially system profile.
 
 ## I. Core Objectives
 
@@ -18,7 +18,7 @@ Key sections planned:
 2.  **User Management:** List, view, potentially edit user details and roles.
 3.  **Project Management:** List, view, potentially edit project details and statuses.
 4.  **Ticket Management:** List, view, comment on, and manage the status of support tickets.
-5.  **Settings:** (Potential future) Application-level settings.
+5.  **Profile:** (Potential future) Application-level profile.
 
 ## III. Implementation Steps
 
