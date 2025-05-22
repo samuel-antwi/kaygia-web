@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import {
-  AlertTriangle,
-  ArrowLeft,
-  Building,
-  Calendar,
-  CheckCircle2,
-  CircleDollarSign,
-  ClipboardList,
-  Clock,
-  FileText,
-  FolderKanban,
-  Loader2,
-  Mail,
-  User2,
-} from "lucide-vue-next";
+import { AlertTriangle, Loader2 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
+
+// Import modular components
+import ProjectHeader from "~/layers/admin/components/projects/ProjectHeader.vue";
+import ProjectBasicInfo from "~/layers/admin/components/projects/ProjectBasicInfo.vue";
+import ProjectTimelineSection from "~/layers/admin/components/projects/ProjectTimelineSection.vue";
+import ProjectTechnicalSection from "~/layers/admin/components/projects/ProjectTechnicalSection.vue";
+import ProjectContentSection from "~/layers/admin/components/projects/ProjectContentSection.vue";
+import ProjectBusinessSection from "~/layers/admin/components/projects/ProjectBusinessSection.vue";
+import ProjectCommunicationSection from "~/layers/admin/components/projects/ProjectCommunicationSection.vue";
+import ClientInfoCard from "~/layers/admin/components/projects/ClientInfoCard.vue";
+import StatusManagementCard from "~/layers/admin/components/projects/StatusManagementCard.vue";
 
 definePageMeta({
   layout: "admin",
@@ -35,6 +32,37 @@ interface Project {
   type: string;
   budget: number | null;
   requirements: string | null;
+  
+  // Timeline & Scope
+  timelinePreference?: string | null;
+  preferredLaunchDate?: Date | null;
+  maintenanceRequired?: boolean | null;
+  
+  // Technical Requirements
+  hostingPreference?: string | null;
+  domainStatus?: string | null;
+  integrationsNeeded?: string[] | null;
+  performanceRequirements?: string | null;
+  seoRequirements?: string | null;
+  
+  // Content & Assets
+  contentReadiness?: string | null;
+  brandAssetsStatus?: string | null;
+  competitorReferences?: string | null;
+  cmsRequired?: boolean | null;
+  
+  // Business Context
+  targetAudience?: string | null;
+  businessGoals?: string | null;
+  successMetrics?: string | null;
+  complianceRequirements?: string[] | null;
+  
+  // Communication (legacy fields)
+  communicationPreference?: string | null;
+  timezone?: string | null;
+  keyStakeholders?: string | null;
+  approvalProcess?: string | null;
+  
   client: {
     id: string;
     name: string | null;
@@ -75,45 +103,12 @@ const { data, pending, error, refresh } = await useFetch<ApiResponse>(
 // Computed property for easier access to the project data
 const project = computed(() => data.value?.project);
 
-// List of valid project statuses
-const projectStatuses = [
-  { value: "PENDING", label: "Pending" },
-  { value: "APPROVED", label: "Approved" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "REVIEW", label: "Under Review" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
-
-// Function to format date
-const formatDate = (date: string | Date | null | undefined): string => {
-  if (!date) return "N/A";
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  return dateObj.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
-
-// Format currency
-const formatCurrency = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "N/A";
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-  }).format(value);
-};
-
 // Function to update project status
-const updateProjectStatus = async (newStatus: any) => {
+const updateProjectStatus = async (newStatus: string) => {
   if (!project.value || isUpdatingStatus.value || !newStatus) return;
 
-  // Ensure we have a string value
-  const statusValue = String(newStatus);
-
   // Don't do anything if the status is the same
-  if (project.value.status === statusValue) return;
+  if (project.value.status === newStatus) return;
 
   isUpdatingStatus.value = true;
 
@@ -122,7 +117,7 @@ const updateProjectStatus = async (newStatus: any) => {
       `/api/admin/projects/${projectId.value}/status`,
       {
         method: "PUT",
-        body: { status: statusValue },
+        body: { status: newStatus },
       }
     );
 
@@ -130,8 +125,7 @@ const updateProjectStatus = async (newStatus: any) => {
       await refresh();
       toast({
         title: "Status Updated",
-        description:
-          data.value.message || `Project status updated to ${statusValue}`,
+        description: data.value.message || `Project status updated to ${newStatus}`,
         variant: "default",
         duration: 3000,
       });
@@ -155,39 +149,10 @@ const updateProjectStatus = async (newStatus: any) => {
     isUpdatingStatus.value = false;
   }
 };
-
-// Get status color for labels
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "PENDING":
-      return "text-amber-600";
-    case "APPROVED":
-      return "text-blue-600";
-    case "IN_PROGRESS":
-      return "text-purple-600";
-    case "REVIEW":
-      return "text-cyan-600";
-    case "COMPLETED":
-      return "text-green-600";
-    case "CANCELLED":
-      return "text-red-600";
-    default:
-      return "text-gray-600";
-  }
-};
 </script>
 
 <template>
   <div class="container mx-auto py-6 space-y-6">
-    <!-- Back Button -->
-    <NuxtLink
-      to="/admin/projects"
-      class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
-    >
-      <ArrowLeft class="w-4 h-4 mr-1" />
-      Back to Projects
-    </NuxtLink>
-
     <!-- Loading State -->
     <div v-if="pending" class="flex items-center justify-center py-20">
       <Loader2 class="h-10 w-10 animate-spin text-muted-foreground" />
@@ -237,195 +202,82 @@ const getStatusColor = (status: string) => {
     </div>
 
     <!-- Project Data Loaded State -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Left Column: Project Information -->
-      <div class="lg:col-span-2 space-y-4">
-        <Card>
-          <CardHeader
-            class="flex flex-row items-center justify-between space-y-0 pb-2"
-          >
-            <div>
-              <CardTitle class="text-xl">{{ project.title }}</CardTitle>
-              <CardDescription
-                >Project Type: {{ project.type }}</CardDescription
-              >
-            </div>
-            <div :class="getStatusColor(project.status)" class="font-semibold">
-              {{ project.status }}
-            </div>
-          </CardHeader>
-          <CardContent class="space-y-4">
-            <div v-if="project.description" class="mt-2 space-y-1">
-              <h4 class="text-sm font-medium flex items-center">
-                <FileText class="h-4 w-4 mr-2 text-muted-foreground" />
-                Description
-              </h4>
-              <p class="text-sm text-muted-foreground">
-                {{ project.description }}
-              </p>
-            </div>
+    <div v-else class="space-y-6">
+      <!-- Project Header -->
+      <ProjectHeader 
+        :title="project.title"
+        :type="project.type"
+        :status="project.status"
+      />
 
-            <div v-if="project.requirements" class="mt-4 space-y-1">
-              <h4 class="text-sm font-medium flex items-center">
-                <ClipboardList class="h-4 w-4 mr-2 text-muted-foreground" />
-                Requirements
-              </h4>
-              <p class="text-sm text-muted-foreground whitespace-pre-line">
-                {{ project.requirements }}
-              </p>
-            </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Project Information -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Basic Project Information -->
+          <ProjectBasicInfo
+            :description="project.description"
+            :requirements="project.requirements"
+            :created-at="project.createdAt"
+            :updated-at="project.updatedAt"
+            :start-date="project.startDate"
+            :end-date="project.endDate"
+            :budget="project.budget"
+            :type="project.type"
+          />
 
-            <Separator />
+          <!-- Timeline & Scope Section -->
+          <ProjectTimelineSection
+            :timeline-preference="project.timelinePreference"
+            :preferred-launch-date="project.preferredLaunchDate"
+            :maintenance-required="project.maintenanceRequired"
+          />
 
-            <!-- Project Details Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-1">
-                <h4 class="text-sm font-medium flex items-center">
-                  <Calendar class="h-4 w-4 mr-2 text-muted-foreground" />
-                  Created
-                </h4>
-                <p class="text-sm text-muted-foreground">
-                  {{ formatDate(project.createdAt) }}
-                </p>
-              </div>
+          <!-- Technical Requirements Section -->
+          <ProjectTechnicalSection
+            :hosting-preference="project.hostingPreference"
+            :domain-status="project.domainStatus"
+            :integrations-needed="project.integrationsNeeded"
+            :performance-requirements="project.performanceRequirements"
+            :seo-requirements="project.seoRequirements"
+            :cms-required="project.cmsRequired"
+          />
 
-              <div class="space-y-1">
-                <h4 class="text-sm font-medium flex items-center">
-                  <Clock class="h-4 w-4 mr-2 text-muted-foreground" />
-                  Last Updated
-                </h4>
-                <p class="text-sm text-muted-foreground">
-                  {{ formatDate(project.updatedAt) }}
-                </p>
-              </div>
+          <!-- Content & Assets Section -->
+          <ProjectContentSection
+            :content-readiness="project.contentReadiness"
+            :brand-assets-status="project.brandAssetsStatus"
+            :competitor-references="project.competitorReferences"
+          />
 
-              <div class="space-y-1">
-                <h4 class="text-sm font-medium flex items-center">
-                  <Calendar class="h-4 w-4 mr-2 text-muted-foreground" />
-                  Start Date
-                </h4>
-                <p class="text-sm text-muted-foreground">
-                  {{ formatDate(project.startDate) }}
-                </p>
-              </div>
+          <!-- Business Context Section -->
+          <ProjectBusinessSection
+            :target-audience="project.targetAudience"
+            :business-goals="project.businessGoals"
+            :success-metrics="project.successMetrics"
+            :compliance-requirements="project.complianceRequirements"
+          />
 
-              <div class="space-y-1">
-                <h4 class="text-sm font-medium flex items-center">
-                  <CheckCircle2 class="h-4 w-4 mr-2 text-muted-foreground" />
-                  End Date
-                </h4>
-                <p class="text-sm text-muted-foreground">
-                  {{ formatDate(project.endDate) }}
-                </p>
-              </div>
+          <!-- Communication & Process Section (for legacy projects) -->
+          <ProjectCommunicationSection
+            :communication-preference="project.communicationPreference"
+            :timezone="project.timezone"
+            :key-stakeholders="project.keyStakeholders"
+            :approval-process="project.approvalProcess"
+          />
+        </div>
 
-              <div class="space-y-1">
-                <h4 class="text-sm font-medium flex items-center">
-                  <CircleDollarSign
-                    class="h-4 w-4 mr-2 text-muted-foreground"
-                  />
-                  Budget
-                </h4>
-                <p class="text-sm text-muted-foreground">
-                  {{ formatCurrency(project.budget) }}
-                </p>
-              </div>
+        <!-- Right Column: Client Information and Status Management -->
+        <div class="space-y-6">
+          <!-- Client Information Card -->
+          <ClientInfoCard :client="project.client" />
 
-              <div class="space-y-1">
-                <h4 class="text-sm font-medium flex items-center">
-                  <FolderKanban class="h-4 w-4 mr-2 text-muted-foreground" />
-                  Project Type
-                </h4>
-                <p class="text-sm text-muted-foreground">{{ project.type }}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <!-- Right Column: Client Information and Status Management -->
-      <div class="space-y-4">
-        <!-- Client Information Card -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Client Information</CardTitle>
-          </CardHeader>
-          <CardContent class="space-y-4">
-            <div class="flex items-center">
-              <User2 class="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>{{ project.client?.name || "Unknown Client" }}</span>
-            </div>
-            <div class="flex items-center">
-              <Mail class="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>{{ project.client?.email }}</span>
-            </div>
-            <div v-if="project.client?.company" class="flex items-center">
-              <Building class="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>{{ project.client?.company }}</span>
-            </div>
-
-            <div class="mt-2">
-              <NuxtLink :to="`/admin/users/${project.client.id}`">
-                <Button variant="outline" size="sm" class="w-full">
-                  View Client Profile
-                </Button>
-              </NuxtLink>
-            </div>
-          </CardContent>
-        </Card>
-
-        <!-- Status Management Card -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Status Management</CardTitle>
-          </CardHeader>
-          <CardContent class="space-y-4">
-            <p class="text-sm text-muted-foreground">
-              Current Status:
-              <span class="font-medium" :class="getStatusColor(project.status)">
-                {{ project.status }}
-              </span>
-            </p>
-
-            <div class="relative">
-              <Select
-                :model-value="project.status"
-                @update:model-value="updateProjectStatus"
-                :disabled="isUpdatingStatus"
-              >
-                <SelectTrigger class="w-full">
-                  <SelectValue placeholder="Select new status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="status in projectStatuses"
-                    :key="status.value"
-                    :value="status.value"
-                  >
-                    {{ status.label }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              <!-- Loading spinner overlay -->
-              <div
-                v-if="isUpdatingStatus"
-                class="absolute inset-0 flex items-center justify-center bg-background/50 rounded"
-              >
-                <Loader2 class="h-4 w-4 animate-spin" />
-              </div>
-            </div>
-
-            <Alert variant="destructive" class="mt-3">
-              <AlertTriangle class="h-4 w-4" />
-              <AlertTitle>Important</AlertTitle>
-              <AlertDescription>
-                Changing the project status may trigger notifications to the
-                client.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+          <!-- Status Management Card -->
+          <StatusManagementCard
+            :current-status="project.status"
+            :is-updating="isUpdatingStatus"
+            @update-status="updateProjectStatus"
+          />
+        </div>
       </div>
     </div>
   </div>
