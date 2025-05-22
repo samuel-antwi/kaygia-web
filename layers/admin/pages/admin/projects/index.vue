@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { AlertTriangle, Loader2, Search, FolderKanban } from "lucide-vue-next";
+import { AlertTriangle, Loader2, Search, FolderKanban, Settings } from "lucide-vue-next";
 import type { InferSelectModel } from "drizzle-orm";
 import type { projects as projectsSchema } from "~/server/db/schema";
 
@@ -112,6 +112,11 @@ const formatCurrency = (value: number | null | undefined) => {
 // Function to navigate to project detail page
 const viewProject = (projectId: string) => {
   navigateTo(`/admin/projects/${projectId}`);
+};
+
+// Function to navigate to project management page
+const manageProject = (projectId: string) => {
+  navigateTo(`/admin/projects/${projectId}/manage`);
 };
 </script>
 
@@ -257,13 +262,23 @@ const viewProject = (projectId: string) => {
                   <TableCell>{{ formatCurrency(project.budget) }}</TableCell>
                   <TableCell>{{ formatDate(project.createdAt) }}</TableCell>
                   <TableCell class="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      @click.stop="viewProject(project.id)"
-                    >
-                      View
-                    </Button>
+                    <div class="flex items-center justify-end space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        @click.stop="viewProject(project.id)"
+                      >
+                        View
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        @click.stop="manageProject(project.id)"
+                      >
+                        <Settings class="h-4 w-4 mr-1" />
+                        Manage
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>

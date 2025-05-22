@@ -111,6 +111,22 @@ export const projectFiles = pgTable("project_files", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Project milestones table
+export const projectMilestones = pgTable("project_milestones", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  targetDate: timestamp("target_date"),
+  completedAt: timestamp("completed_at"),
+  status: text("status").notNull().default("pending"), // 'pending', 'in_progress', 'completed'
+  order: real("order").notNull().default(0), // For ordering milestones
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Project updates/activity feed table
 export const projectUpdates = pgTable("project_updates", {
   id: text("id").primaryKey().notNull(),
@@ -233,6 +249,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   updates: many(projectUpdates),
   deliverables: many(projectDeliverables),
   comments: many(projectComments),
+  milestones: many(projectMilestones),
 }));
 
 export const supportTicketsRelations = relations(
@@ -331,5 +348,13 @@ export const projectCommentsRelations = relations(projectComments, ({ one, many 
   }),
   replies: many(projectComments, {
     relationName: "parentComment"
+  }),
+}));
+
+// Project milestones relations
+export const projectMilestonesRelations = relations(projectMilestones, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectMilestones.projectId],
+    references: [projects.id],
   }),
 }));

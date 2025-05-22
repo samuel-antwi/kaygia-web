@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { AlertTriangle, Loader2 } from "lucide-vue-next";
+import { AlertTriangle, Loader2, Settings } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 // Import modular components
@@ -208,6 +208,8 @@ const updateProjectStatus = async (newStatus: string) => {
         :title="project.title"
         :type="project.type"
         :status="project.status"
+        :project-id="projectId"
+        :show-manage-button="true"
       />
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

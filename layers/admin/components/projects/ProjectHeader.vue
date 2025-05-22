@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft, Settings } from "lucide-vue-next";
 
 interface Props {
   title: string;
   type: string;
   status: string;
+  projectId?: string;
+  showManageButton?: boolean;
 }
 
 defineProps<Props>();
@@ -43,13 +45,30 @@ const getStatusColor = (status: string) => {
 
     <!-- Project Header -->
     <Card>
-      <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle class="text-xl">{{ title }}</CardTitle>
-          <CardDescription>Project Type: {{ type }}</CardDescription>
-        </div>
-        <div :class="getStatusColor(status)" class="font-semibold">
-          {{ status }}
+      <CardHeader>
+        <div class="flex flex-row items-start justify-between space-y-0">
+          <div class="space-y-2">
+            <CardTitle class="text-2xl">{{ title }}</CardTitle>
+            <div class="flex items-center space-x-4">
+              <CardDescription>Project Type: {{ type }}</CardDescription>
+              <Badge 
+                :class="getStatusColor(status) + ' bg-opacity-10 border-opacity-20'" 
+                variant="outline"
+              >
+                {{ status }}
+              </Badge>
+            </div>
+          </div>
+          <Button 
+            v-if="showManageButton && projectId" 
+            as-child 
+            class="flex items-center"
+          >
+            <NuxtLink :to="`/admin/projects/${projectId}/manage`">
+              <Settings class="h-4 w-4 mr-2" />
+              Manage Project
+            </NuxtLink>
+          </Button>
         </div>
       </CardHeader>
     </Card>
