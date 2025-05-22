@@ -61,7 +61,7 @@ const formSchema = z.object({
     .email("Please enter a valid email address"),
   service: z.string().min(1, "Please select a service"),
   message: z.string().min(10, "Message must be at least 10 characters"),
-  agreement: z.boolean().refine((val) => val === true, {
+  agreement: z.boolean().default(false).refine((val) => val === true, {
     message: "You must agree to our privacy policy",
   }),
 });
@@ -72,6 +72,7 @@ type FormValues = z.infer<typeof formSchema>;
 // Create form using vee-validate + zod
 const form = useForm<FormValues>({
   validationSchema: toTypedSchema(formSchema),
+  validateOnMount: false,
   initialValues: {
     name: "",
     email: "",
@@ -81,13 +82,14 @@ const form = useForm<FormValues>({
   },
 });
 
-// Type-safe way to access errors
-const getFieldError = (fieldName: keyof FormValues) => {
-  return form.errors.value[fieldName];
-};
 
 // Form submission handler
 const onSubmit = form.handleSubmit(async (values) => {
+  console.log("=== FORM SUBMISSION ===");
+  console.log("Values received:", values);
+  console.log("Agreement value:", values.agreement, typeof values.agreement);
+  console.log("Form errors:", form.errors.value);
+  
   isSubmitting.value = true;
 
   try {
@@ -102,6 +104,9 @@ const onSubmit = form.handleSubmit(async (values) => {
   } finally {
     isSubmitting.value = false;
   }
+}, (errors) => {
+  console.log("=== FORM VALIDATION FAILED ===");
+  console.log("Validation errors:", errors);
 });
 </script>
 
@@ -243,21 +248,19 @@ const onSubmit = form.handleSubmit(async (values) => {
                 </FormField>
 
                 <!-- Privacy Agreement -->
-                <FormField v-slot="{ field, handleChange }" name="agreement">
-                  <FormItem
-                    class="flex flex-row items-start space-x-3 space-y-0 rounded-lg p-4 border border-border/50"
-                  >
-                    <FormControl>
-                      <Checkbox
-                        :checked="field.value"
-                        @update:checked="
-                          (checked: boolean) => handleChange(checked)
-                        "
-                        :id="field.name"
-                      />
-                    </FormControl>
-                    <div class="space-y-1 leading-none">
-                      <FormLabel class="text-sm font-normal" :for="field.name">
+                <FormField v-slot="{ value, handleChange }" name="agreement">
+                  <FormItem class="flex flex-row items-start space-x-3 space-y-0 rounded-lg p-4 border border-border/50">
+                    <div class="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox 
+                          :model-value="value" 
+                          @update:model-value="(checked: boolean | 'indeterminate') => {
+                            console.log('Checkbox clicked:', checked, typeof checked);
+                            handleChange(checked);
+                          }"
+                        />
+                      </FormControl>
+                      <FormLabel class="text-sm font-normal">
                         I agree to the
                         <a
                           href="#"
@@ -265,12 +268,10 @@ const onSubmit = form.handleSubmit(async (values) => {
                           >Privacy Policy</a
                         >
                       </FormLabel>
-                      <p
-                        v-if="getFieldError('agreement')"
-                        class="text-sm font-medium text-destructive"
-                      >
-                        {{ getFieldError("agreement") }}
-                      </p>
+                    </div>
+                    <FormMessage />
+                    <div class="text-xs text-gray-500">
+                      Debug: value={{ value }}, type={{ typeof value }}
                     </div>
                   </FormItem>
                 </FormField>

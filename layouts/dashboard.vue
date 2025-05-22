@@ -130,7 +130,7 @@ const navItems = [
   },
   { name: "Tickets", icon: Ticket, path: "/dashboard/tickets" },
   { name: "Invoices", icon: Receipt, path: "/dashboard/invoices" },
-  { name: "Settings", icon: Settings, path: "/dashboard/settings" },
+  { name: "Account", icon: Settings, path: "/dashboard/account" },
 ];
 </script>
 
@@ -224,45 +224,61 @@ const navItems = [
 
       <!-- Sidebar footer -->
       <div class="border-t p-3">
-        <div class="flex gap-2 items-center">
-          <Avatar class="h-8 w-8">
-            <AvatarImage src="" alt="User avatar" />
-            <AvatarFallback>
-              <User class="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div :class="isSidebarCollapsed ? 'hidden' : ''">
-            <p v-if="authLoading" class="text-sm font-medium">Loading...</p>
-            <template v-else>
-              <p class="text-sm font-medium">{{ user?.name || "User" }}</p>
-              <p class="text-xs text-muted-foreground">
-                {{ user?.email || "user@example.com" }}
-              </p>
-            </template>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger class="ml-auto">
-              <Button variant="ghost" size="icon">
-                <MoreVertical class="h-4 w-4" />
+        <DropdownMenu>
+          <div class="flex gap-2 items-center">
+            <!-- When collapsed: Avatar becomes the trigger -->
+            <DropdownMenuTrigger v-if="isSidebarCollapsed" as-child>
+              <Button variant="ghost" class="w-full p-1 justify-center">
+                <Avatar class="h-8 w-8">
+                  <AvatarImage src="" alt="User avatar" />
+                  <AvatarFallback>
+                    <User class="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem class="cursor-pointer">
-                <User class="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem class="cursor-pointer">
-                <Settings class="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
-                <LogOut class="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            
+            <!-- When expanded: Show user info and separate trigger -->
+            <template v-else>
+              <Avatar class="h-8 w-8">
+                <AvatarImage src="" alt="User avatar" />
+                <AvatarFallback>
+                  <User class="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div class="flex-1">
+                <p v-if="authLoading" class="text-sm font-medium">Loading...</p>
+                <template v-else>
+                  <p class="text-sm font-medium">{{ user?.name || "User" }}</p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ user?.email || "user@example.com" }}
+                  </p>
+                </template>
+              </div>
+              <DropdownMenuTrigger class="ml-auto">
+                <Button variant="ghost" size="icon">
+                  <MoreVertical class="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </template>
+          </div>
+          
+          <DropdownMenuContent :align="isSidebarCollapsed ? 'center' : 'end'">
+            <DropdownMenuItem class="cursor-pointer">
+              <User class="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem class="cursor-pointer">
+              <Settings class="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
+              <LogOut class="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
 
@@ -290,41 +306,9 @@ const navItems = [
             </h1>
           </div>
 
+          <!-- Additional header controls can be added here if needed -->
           <div class="flex items-center space-x-2">
-            <!-- User profile dropdown -->
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <Button variant="ghost" class="relative h-8 w-8 rounded-full">
-                  <Avatar class="h-8 w-8">
-                    <AvatarFallback>
-                      <User v-if="!authLoading" class="h-4 w-4" />
-                      <div
-                        v-else
-                        class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
-                      ></div>
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  <div v-if="!authLoading">
-                    {{ user?.name || "My Account" }}
-                  </div>
-                  <div v-else>Loading...</div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem class="cursor-pointer">
-                  <Settings class="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
-                  <LogOut class="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <!-- Reserved for future header controls (notifications, etc.) -->
           </div>
         </div>
       </header>
