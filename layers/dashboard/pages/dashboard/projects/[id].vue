@@ -1,247 +1,259 @@
 <script setup lang="ts">
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  DollarSign,
-  FileText,
-  Tag,
-  Banknote,
-} from "lucide-vue-next";
-import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
-import type { ProjectStatus } from "../../../types/project";
+import { computed, ref } from "vue";
+import { ArrowLeft, AlertTriangle, Loader2 } from "lucide-vue-next";
 
-// Get the project ID from the route
-const route = useRoute();
-const id = route.params.id as string;
+// Import client-facing components
+import ProjectOverviewCard from "~/layers/dashboard/components/projects/ProjectOverviewCard.vue";
+import ProjectProgressCard from "~/layers/dashboard/components/projects/ProjectProgressCard.vue";
+import ProjectUpdatesCard from "~/layers/dashboard/components/projects/ProjectUpdatesCard.vue";
+import ProjectDeliverablesCard from "~/layers/dashboard/components/projects/ProjectDeliverablesCard.vue";
+import ProjectSupportCard from "~/layers/dashboard/components/projects/ProjectSupportCard.vue";
 
 definePageMeta({
   layout: "dashboard",
   middleware: "auth",
 });
 
-// Initialize the project store
-const projectStore = useProjectStore();
-const { currentProject, isLoading, error } = storeToRefs(projectStore);
-
-// Status options for displaying
-const statusOptions = [
-  { value: "PENDING", label: "Pending" },
-  { value: "APPROVED", label: "Approved" },
-  { value: "IN_PROGRESS", label: "In Progress" },
-  { value: "REVIEW", label: "In Review" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
-
-// Fetch the project on component mount
-onMounted(async () => {
-  await projectStore.fetchProject(id);
-});
-
-// Status badge styles
-const getStatusClass = (status: ProjectStatus): string => {
-  const statusStyles: Record<ProjectStatus, string> = {
-    PENDING:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500",
-    APPROVED:
-      "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500",
-    IN_PROGRESS:
-      "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-500",
-    REVIEW:
-      "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-500",
-    COMPLETED:
-      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500",
-    CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500",
+// Define the structure for a project (client-facing fields only)
+interface Project {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  startDate: Date | null;
+  endDate: Date | null;
+  type: string;
+  budget: number | null;
+  
+  // Client-relevant fields
+  timelinePreference?: string | null;
+  preferredLaunchDate?: Date | null;
+  targetAudience?: string | null;
+  businessGoals?: string | null;
+  successMetrics?: string | null;
+  
+  client: {
+    id: string;
+    name: string | null;
+    email: string;
+    company: string | null;
   };
+}
 
-  return statusStyles[status] || "";
+// Define the API response structure
+interface ApiResponse {
+  success: boolean;
+  project?: Project;
+  message?: string;
+}
+
+const route = useRoute();
+const projectId = computed(() => route.params.id as string);
+
+// Fetch the project data
+const { data, pending, error, refresh } = await useFetch<ApiResponse>(
+  () => `/api/projects/${projectId.value}`,
+  {
+    lazy: false,
+    server: true,
+    watch: [projectId],
+  }
+);
+
+// Computed property for easier access to the project data
+const project = computed(() => data.value?.project);
+
+// Get status color for display
+const getStatusColor = (status: string): string => {
+  switch (status) {
+    case "PENDING":
+      return "bg-amber-100 text-amber-800 border-amber-200";
+    case "APPROVED":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    case "IN_PROGRESS":
+      return "bg-purple-100 text-purple-800 border-purple-200";
+    case "REVIEW":
+      return "bg-cyan-100 text-cyan-800 border-cyan-200";
+    case "COMPLETED":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "CANCELLED":
+      return "bg-red-100 text-red-800 border-red-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
 };
 
-// Format status for display
-const formatStatus = (status: string): string => {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-};
-
-// Format date
-const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+// Get user-friendly status text
+const getStatusText = (status: string): string => {
+  switch (status) {
+    case "PENDING":
+      return "Awaiting Approval";
+    case "APPROVED":
+      return "Approved - Starting Soon";
+    case "IN_PROGRESS":
+      return "In Development";
+    case "REVIEW":
+      return "Under Review";
+    case "COMPLETED":
+      return "Project Complete";
+    case "CANCELLED":
+      return "Project Cancelled";
+    default:
+      return status;
+  }
 };
 </script>
 
 <template>
-  <div>
-    <!-- Back button -->
-    <Button variant="ghost" class="mb-4" as-child>
-      <NuxtLink to="/dashboard/projects" class="flex items-center">
-        <ArrowLeft class="mr-2 h-4 w-4" />
-        Back to Projects
-      </NuxtLink>
-    </Button>
-
-    <!-- Loading state -->
-    <div
-      v-if="isLoading && !currentProject"
-      class="flex items-center justify-center min-h-[60vh]"
-    >
-      <div class="text-center">
-        <div
-          class="inline-block animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mb-4"
-        ></div>
-        <p class="text-muted-foreground">Loading project details...</p>
-      </div>
+  <div class="container mx-auto py-6 space-y-6">
+    <!-- Loading State -->
+    <div v-if="pending" class="flex items-center justify-center py-20">
+      <Loader2 class="h-10 w-10 animate-spin text-muted-foreground" />
+      <p class="ml-3 text-muted-foreground">Loading project details...</p>
     </div>
 
-    <!-- Error state -->
+    <!-- Error State -->
     <div
       v-else-if="error"
-      class="p-6 bg-destructive/10 rounded-lg border border-destructive text-center"
+      class="p-6 bg-destructive/10 border border-destructive/20 rounded-lg"
     >
-      <p class="text-destructive font-medium">{{ error }}</p>
-      <Button variant="outline" class="mt-4" as-child>
-        <NuxtLink to="/dashboard/projects">Return to Projects</NuxtLink>
+      <div class="flex items-center">
+        <AlertTriangle class="h-6 w-6 text-destructive mr-3" />
+        <div>
+          <p class="font-semibold text-destructive">Error Loading Project</p>
+          <p class="text-destructive/90 mt-1 text-sm">
+            {{
+              error?.data?.statusMessage ||
+              error?.data?.message ||
+              error?.message ||
+              "Could not load project data."
+            }}
+          </p>
+        </div>
+      </div>
+      <Button
+        @click="refresh"
+        variant="outline"
+        size="sm"
+        class="mt-4 border-destructive/40 text-destructive"
+      >
+        Retry
       </Button>
     </div>
 
-    <!-- Project details -->
-    <div v-else-if="currentProject" class="space-y-6">
-      <!-- Project header -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-      >
-        <div>
-          <h2 class="text-2xl sm:text-3xl font-bold mb-2">
-            {{ currentProject.title }}
-          </h2>
-          <div class="flex items-center">
-            <Badge :class="getStatusClass(currentProject.status)">
-              {{ formatStatus(currentProject.status) }}
-            </Badge>
-          </div>
-        </div>
+    <!-- No Project Data State -->
+    <div
+      v-else-if="!project"
+      class="text-center py-10 border border-dashed rounded-md"
+    >
+      <p class="text-muted-foreground">
+        Project not found or you don't have access to this project.
+      </p>
+      <Button @click="refresh" variant="outline" size="sm" class="mt-3">
+        Retry
+      </Button>
+    </div>
 
-        <div class="flex items-center gap-2">
-          <Badge variant="outline" class="flex items-center gap-1">
-            <Tag class="h-3.5 w-3.5" />
-            {{ formatStatus(currentProject.type) }}
-          </Badge>
-          <Badge variant="outline" class="flex items-center gap-1">
-            <Calendar class="h-3.5 w-3.5" />
-            {{ formatDate(currentProject.createdAt) }}
-          </Badge>
-        </div>
+    <!-- Project Data Loaded State -->
+    <div v-else class="space-y-6">
+      <!-- Header with Back Button -->
+      <div class="flex items-center justify-between">
+        <Button variant="ghost" class="mb-4" as-child>
+          <NuxtLink to="/dashboard/projects" class="flex items-center">
+            <ArrowLeft class="mr-2 h-4 w-4" />
+            Back to Projects
+          </NuxtLink>
+        </Button>
+        
+        <!-- Status Badge -->
+        <Badge :class="getStatusColor(project.status)" variant="outline" class="text-sm px-3 py-1">
+          {{ getStatusText(project.status) }}
+        </Badge>
       </div>
 
-      <!-- Project details -->
-      <div class="grid md:grid-cols-3 gap-6">
-        <!-- Main details -->
-        <div class="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Description</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p v-if="currentProject.description" class="whitespace-pre-wrap">
-                {{ currentProject.description }}
-              </p>
-              <p v-else class="text-muted-foreground italic">
-                No description provided
-              </p>
-            </CardContent>
-          </Card>
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Main Project Information -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Project Overview -->
+          <ProjectOverviewCard
+            :title="project.title"
+            :description="project.description"
+            :type="project.type"
+            :target-audience="project.targetAudience"
+            :business-goals="project.businessGoals"
+            :budget="project.budget"
+            :preferred-launch-date="project.preferredLaunchDate"
+          />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Requirements</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p v-if="currentProject.requirements" class="whitespace-pre-wrap">
-                {{ currentProject.requirements }}
-              </p>
-              <p v-else class="text-muted-foreground italic">
-                No requirements specified
-              </p>
-            </CardContent>
-          </Card>
+          <!-- Project Progress -->
+          <ProjectProgressCard
+            :status="project.status"
+            :created-at="project.createdAt"
+            :start-date="project.startDate"
+            :end-date="project.endDate"
+            :timeline-preference="project.timelinePreference"
+          />
+
+          <!-- Project Updates -->
+          <ProjectUpdatesCard />
+
+          <!-- Project Deliverables -->
+          <ProjectDeliverablesCard />
         </div>
 
-        <!-- Project metadata -->
+        <!-- Right Column: Support and Actions -->
         <div class="space-y-6">
+          <!-- Support Card -->
+          <ProjectSupportCard :project-id="project.id" />
+
+          <!-- Quick Actions Card -->
           <Card>
             <CardHeader>
-              <CardTitle>Project Details</CardTitle>
+              <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent class="space-y-4">
-              <div>
-                <h4 class="text-sm font-medium text-muted-foreground mb-1">
-                  Budget
-                </h4>
-                <div class="flex items-center">
-                  <Banknote class="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span v-if="currentProject.budget" class="font-medium">
-                    {{
-                      currentProject.budget.toLocaleString("en-UK", {
-                        style: "currency",
-                        currency: "GBP",
-                      })
-                    }}
-                  </span>
-                  <span v-else class="text-muted-foreground italic"
-                    >Not specified</span
-                  >
-                </div>
-              </div>
+            <CardContent class="space-y-3">
+              <Button class="w-full" variant="outline" as-child>
+                <NuxtLink :to="`/dashboard/projects/${project.id}/files`">
+                  Upload Files
+                </NuxtLink>
+              </Button>
+              
+              <Button class="w-full" variant="outline" as-child>
+                <NuxtLink to="/dashboard/tickets">
+                  Create Support Ticket
+                </NuxtLink>
+              </Button>
+              
+              <Button class="w-full" variant="outline">
+                Schedule Meeting
+              </Button>
+            </CardContent>
+          </Card>
 
-              <div>
-                <h4 class="text-sm font-medium text-muted-foreground mb-1">
-                  Created On
-                </h4>
-                <div class="flex items-center">
-                  <Calendar class="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span class="font-medium">{{
-                    formatDate(currentProject.createdAt)
-                  }}</span>
-                </div>
+          <!-- Project Details Summary -->
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Summary</CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Project ID:</span>
+                <span class="font-mono text-xs">{{ project.id.slice(0, 8) }}...</span>
               </div>
-
-              <div>
-                <h4 class="text-sm font-medium text-muted-foreground mb-1">
-                  Last Updated
-                </h4>
-                <div class="flex items-center">
-                  <Clock class="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span class="font-medium">{{
-                    formatDate(currentProject.updatedAt)
-                  }}</span>
-                </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Created:</span>
+                <span>{{ new Date(project.createdAt).toLocaleDateString() }}</span>
               </div>
-
-              <div v-if="currentProject.startDate">
-                <h4 class="text-sm font-medium text-muted-foreground mb-1">
-                  Start Date
-                </h4>
-                <div class="flex items-center">
-                  <Calendar class="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span class="font-medium">{{
-                    formatDate(currentProject.startDate)
-                  }}</span>
-                </div>
+              <div class="flex justify-between">
+                <span class="text-muted-foreground">Last Updated:</span>
+                <span>{{ new Date(project.updatedAt).toLocaleDateString() }}</span>
               </div>
-
-              <div v-if="currentProject.endDate">
-                <h4 class="text-sm font-medium text-muted-foreground mb-1">
-                  End Date
-                </h4>
-                <div class="flex items-center">
-                  <Calendar class="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span class="font-medium">{{
-                    formatDate(currentProject.endDate)
-                  }}</span>
-                </div>
+              <div v-if="project.successMetrics" class="pt-3 border-t">
+                <h4 class="font-medium mb-2">Success Metrics</h4>
+                <p class="text-muted-foreground text-xs">{{ project.successMetrics }}</p>
               </div>
             </CardContent>
           </Card>

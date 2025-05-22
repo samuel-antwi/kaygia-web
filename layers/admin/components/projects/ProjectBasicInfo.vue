@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { FileText, ClipboardList, Calendar, Clock, CheckCircle2, CircleDollarSign, FolderKanban } from "lucide-vue-next";
+import {
+  FileText,
+  ClipboardList,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  CircleDollarSign,
+  FolderKanban,
+} from "lucide-vue-next";
 
 interface Props {
   description?: string | null;
