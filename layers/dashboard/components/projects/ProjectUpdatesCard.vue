@@ -10,35 +10,15 @@ interface ProjectUpdate {
 }
 
 interface Props {
-  updates?: ProjectUpdate[];
+  projectId: string;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
-// Mock updates for demonstration
-const mockUpdates: ProjectUpdate[] = [
-  {
-    id: "1",
-    message: "Initial wireframes and project scope have been finalized. Moving to design phase.",
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    author: "Project Manager",
-    type: "milestone"
-  },
-  {
-    id: "2", 
-    message: "Design mockups for homepage and key pages are ready for your review.",
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    author: "Design Team",
-    type: "progress"
-  },
-  {
-    id: "3",
-    message: "Thank you for the logo files! We've incorporated them into the design.",
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    author: "Design Team",
-    type: "feedback"
-  }
-];
+// Fetch real updates from API
+const { data: updatesData } = await useFetch(`/api/projects/${props.projectId}/updates`)
+
+const updates = computed(() => updatesData.value?.updates || []);
 
 // Format date
 const formatDate = (date: string | Date): string => {
@@ -94,7 +74,7 @@ const getUpdateTypeIcon = (type: string) => {
     </CardHeader>
     <CardContent>
       <div class="space-y-4">
-        <div v-for="update in mockUpdates" :key="update.id" class="border-l-2 border-muted pl-4 pb-4">
+        <div v-for="update in updates" :key="update.id" class="border-l-2 border-muted pl-4 pb-4">
           <div class="flex items-start space-x-3">
             <div class="p-1 rounded-full bg-muted">
               <component :is="getUpdateTypeIcon(update.type)" class="h-3 w-3" :class="getUpdateTypeColor(update.type)" />

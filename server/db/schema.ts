@@ -94,6 +94,72 @@ export const projects = pgTable("projects", {
   approvalProcess: text("approval_process"),
 });
 
+// Project files table
+export const projectFiles = pgTable("project_files", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  originalName: text("original_name").notNull(),
+  path: text("path").notNull(), // Supabase storage path
+  type: text("type").notNull(), // file, image, document, etc.
+  mimeType: text("mime_type"),
+  size: real("size"), // file size in bytes
+  uploadedBy: text("uploaded_by")
+    .references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Project updates/activity feed table
+export const projectUpdates = pgTable("project_updates", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // 'progress', 'milestone', 'feedback', 'general'
+  author: text("author").notNull(), // Name of team member
+  authorRole: text("author_role"), // 'Project Manager', 'Developer', 'Designer'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Project deliverables table
+export const projectDeliverables = pgTable("project_deliverables", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // 'file', 'link', 'preview'
+  url: text("url"), // For links and previews
+  fileId: text("file_id")
+    .references(() => projectFiles.id, { onDelete: "set null" }), // For file deliverables
+  status: text("status").notNull().default("pending"), // 'pending', 'ready', 'approved', 'rejected'
+  fileType: text("file_type"), // 'pdf', 'image', 'doc', 'link'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  approvedAt: timestamp("approved_at"),
+  approvedBy: text("approved_by")
+    .references(() => users.id, { onDelete: "set null" }),
+});
+
+// Project comments table
+export const projectComments = pgTable("project_comments", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: text("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  message: text("message").notNull(),
+  type: text("type").default("comment"), // 'comment', 'feedback', 'question'
+  parentId: text("parent_id"), // Will be set up as self-reference later
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const supportTickets = pgTable("support_tickets", {
   id: text("id").primaryKey().notNull(),
   ticketNumber: text("ticket_number").notNull().unique(),
@@ -154,13 +220,19 @@ export const usersRelations = relations(users, ({ many }) => ({
   ticketComments: many(ticketComments),
   passwordResets: many(passwordResets),
   emailVerifications: many(emailVerifications),
+  projectFiles: many(projectFiles),
+  projectComments: many(projectComments),
 }));
 
-export const projectsRelations = relations(projects, ({ one }) => ({
+export const projectsRelations = relations(projects, ({ one, many }) => ({
   client: one(users, {
     fields: [projects.clientId],
     references: [users.id],
   }),
+  files: many(projectFiles),
+  updates: many(projectUpdates),
+  deliverables: many(projectDeliverables),
+  comments: many(projectComments),
 }));
 
 export const supportTicketsRelations = relations(
@@ -205,3 +277,59 @@ export const emailVerificationsRelations = relations(
     }),
   })
 );
+
+// Project files relations
+export const projectFilesRelations = relations(projectFiles, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectFiles.projectId],
+    references: [projects.id],
+  }),
+  uploadedBy: one(users, {
+    fields: [projectFiles.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
+// Project updates relations
+export const projectUpdatesRelations = relations(projectUpdates, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectUpdates.projectId],
+    references: [projects.id],
+  }),
+}));
+
+// Project deliverables relations
+export const projectDeliverablesRelations = relations(projectDeliverables, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectDeliverables.projectId],
+    references: [projects.id],
+  }),
+  file: one(projectFiles, {
+    fields: [projectDeliverables.fileId],
+    references: [projectFiles.id],
+  }),
+  approvedBy: one(users, {
+    fields: [projectDeliverables.approvedBy],
+    references: [users.id],
+  }),
+}));
+
+// Project comments relations
+export const projectCommentsRelations = relations(projectComments, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [projectComments.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [projectComments.userId],
+    references: [users.id],
+  }),
+  parent: one(projectComments, {
+    fields: [projectComments.parentId],
+    references: [projectComments.id],
+    relationName: "parentComment"
+  }),
+  replies: many(projectComments, {
+    relationName: "parentComment"
+  }),
+}));

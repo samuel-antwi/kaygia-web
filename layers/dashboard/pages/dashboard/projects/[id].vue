@@ -198,10 +198,10 @@ const getStatusText = (status: string): string => {
           />
 
           <!-- Project Updates -->
-          <ProjectUpdatesCard />
+          <ProjectUpdatesCard :project-id="project.id" />
 
           <!-- Project Deliverables -->
-          <ProjectDeliverablesCard />
+          <ProjectDeliverablesCard :project-id="project.id" />
         </div>
 
         <!-- Right Column: Support and Actions -->

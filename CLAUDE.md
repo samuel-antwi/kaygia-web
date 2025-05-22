@@ -112,3 +112,39 @@ const session = await getUserSession(event)
 - Role validation enforced in API endpoints
 - Password hashing with bcrypt
 - Email verification required for account activation
+
+## 🚨 CRITICAL RULE: PACKAGE MANAGEMENT
+
+### ⛔ **NEVER REMOVE PACKAGES WITHOUT PERMISSION**
+
+**ABSOLUTE RULE**: Never remove or modify existing packages in `package.json` without explicit user confirmation.
+
+#### **Why this matters:**
+- **bcrypt/bcryptjs** - Removing breaks authentication system
+- **resend** - Removing breaks email verification and password resets  
+- **drizzle-orm** - Removing breaks database access
+- **nuxt-auth-utils** - Removing breaks login functionality
+- **Core dependencies** - Can break entire application
+
+#### **Safe approach:**
+1. **Always READ** existing package.json first
+2. **Only ADD** new packages when needed
+3. **Never OVERWRITE** the entire file
+4. **ASK permission** before removing anything
+5. **Use `npm install package-name`** instead of rewriting file
+
+#### **Example of correct behavior:**
+```bash
+# ✅ CORRECT: Adding a new package
+npm install new-package
+
+# ❌ WRONG: Overwriting package.json
+# Don't manually rewrite the entire file
+```
+
+### **Emergency Recovery:**
+If packages are accidentally removed:
+1. Check `git show HEAD:package.json` for original
+2. Restore all missing packages immediately
+3. Run `npm install` to reinstall
+4. Test that authentication/email still works

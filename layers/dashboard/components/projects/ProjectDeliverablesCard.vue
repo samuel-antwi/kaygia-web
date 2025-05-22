@@ -13,44 +13,33 @@ interface Deliverable {
 }
 
 interface Props {
-  deliverables?: Deliverable[];
+  projectId: string;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
-// Mock deliverables for demonstration
-const mockDeliverables: Deliverable[] = [
-  {
-    id: "1",
-    name: "Project Wireframes",
-    type: "file",
-    url: "#",
-    description: "Initial wireframes showing site structure and layout",
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    fileType: "pdf",
-    status: "approved"
-  },
-  {
-    id: "2",
-    name: "Design Mockups",
-    type: "preview",
-    url: "#", 
-    description: "Homepage and key page designs for review",
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    fileType: "image",
-    status: "ready"
-  },
-  {
-    id: "3",
-    name: "Development Preview",
-    type: "link",
-    url: "#",
-    description: "Live staging site for testing and feedback",
-    createdAt: new Date(),
-    fileType: "link", 
-    status: "pending"
+// Fetch real deliverables from API
+const { data: deliverablesData, refresh: refreshDeliverables } = await useFetch(`/api/projects/${props.projectId}/deliverables`)
+
+const deliverables = computed(() => deliverablesData.value?.deliverables || []);
+
+// Handle approval actions
+const handleApproval = async (deliverableId: string, action: 'approve' | 'reject') => {
+  try {
+    await $fetch(`/api/projects/${props.projectId}/deliverables/${deliverableId}/approve`, {
+      method: 'POST',
+      body: { action }
+    });
+    
+    // Refresh deliverables list
+    await refreshDeliverables();
+    
+    // Show success message (you could use toast here)
+    console.log(`Deliverable ${action}d successfully`);
+  } catch (error) {
+    console.error(`Error ${action}ing deliverable:`, error);
   }
-];
+};
 
 // Format date
 const formatDate = (date: string | Date): string => {
@@ -117,12 +106,12 @@ const getStatusText = (status: string): string => {
     </CardHeader>
     <CardContent>
       <div class="space-y-4">
-        <div v-for="deliverable in mockDeliverables" :key="deliverable.id" 
+        <div v-for="deliverable in deliverables" :key="deliverable.id" 
              class="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
           <div class="flex items-start justify-between">
             <div class="flex items-start space-x-3 flex-1">
               <div class="p-2 bg-muted rounded-lg">
-                <component :is="getFileTypeIcon(deliverable.fileType)" class="h-4 w-4 text-muted-foreground" />
+                <component :is="getFileTypeIcon(deliverable.fileType || undefined)" class="h-4 w-4 text-muted-foreground" />
               </div>
               <div class="flex-1 space-y-1">
                 <h4 class="font-medium">{{ deliverable.name }}</h4>
@@ -154,14 +143,18 @@ const getStatusText = (status: string): string => {
                class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p class="text-sm text-blue-800 mb-2">This deliverable is ready for your review and approval.</p>
             <div class="flex space-x-2">
-              <Button size="sm" variant="default">Approve</Button>
-              <Button size="sm" variant="outline">Request Changes</Button>
+              <Button size="sm" variant="default" @click="handleApproval(deliverable.id, 'approve')">
+                Approve
+              </Button>
+              <Button size="sm" variant="outline" @click="handleApproval(deliverable.id, 'reject')">
+                Request Changes
+              </Button>
             </div>
           </div>
         </div>
         
         <!-- Empty state -->
-        <div v-if="!mockDeliverables.length" class="text-center py-8 text-muted-foreground">
+        <div v-if="!deliverables.length" class="text-center py-8 text-muted-foreground">
           <Monitor class="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>No deliverables available yet.</p>
           <p class="text-sm">Your project team will upload files and previews here as they become ready.</p>
