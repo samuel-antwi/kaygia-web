@@ -13,10 +13,7 @@ const updateProjectSchema = z.object({
       "WEBSITE",
       "E_COMMERCE",
       "WEB_APP",
-      "MOBILE_APP",
-      "BRANDING",
-      "MARKETING",
-      "OTHER",
+      "LANDING_PAGE",
     ])
     .optional(),
   status: z

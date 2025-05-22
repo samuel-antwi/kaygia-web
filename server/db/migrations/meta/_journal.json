@@ -43,6 +43,20 @@
       "when": 1744152383165,
       "tag": "0005_friendly_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1747932280124,
+      "tag": "0006_sharp_venom",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1747939329589,
+      "tag": "0007_easy_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

@@ -22,10 +22,7 @@ export const projectTypeEnum = pgEnum("project_type", [
   "WEBSITE",
   "E_COMMERCE",
   "WEB_APP",
-  "MOBILE_APP",
-  "BRANDING",
-  "MARKETING",
-  "OTHER",
+  "LANDING_PAGE",
 ]);
 export const ticketStatusEnum = pgEnum("ticket_status", [
   "OPEN",
@@ -65,6 +62,36 @@ export const projects = pgTable("projects", {
   type: projectTypeEnum("type").notNull(),
   budget: real("budget"),
   requirements: text("requirements"),
+  
+  // Timeline & Scope
+  timelinePreference: text("timeline_preference"), // 'rush', 'standard', 'flexible'
+  preferredLaunchDate: timestamp("preferred_launch_date"),
+  maintenanceRequired: boolean("maintenance_required").default(false),
+  
+  // Technical Requirements
+  hostingPreference: text("hosting_preference"), // 'client_managed', 'agency_managed', 'cloud_provider'
+  domainStatus: text("domain_status"), // 'new_domain', 'existing_domain', 'subdomain'
+  integrationsNeeded: text("integrations_needed").array(),
+  performanceRequirements: text("performance_requirements"),
+  seoRequirements: text("seo_requirements"),
+  
+  // Content & Assets
+  contentReadiness: text("content_readiness"), // 'client_provides', 'need_copywriting', 'mixed'
+  brandAssetsStatus: text("brand_assets_status"), // 'complete', 'partial', 'none'
+  competitorReferences: text("competitor_references"),
+  cmsRequired: boolean("cms_required").default(false),
+  
+  // Business Context
+  targetAudience: text("target_audience"),
+  businessGoals: text("business_goals"),
+  successMetrics: text("success_metrics"),
+  complianceRequirements: text("compliance_requirements").array(),
+  
+  // Communication
+  communicationPreference: text("communication_preference"), // 'email', 'slack', 'meetings'
+  timezone: text("timezone"),
+  keyStakeholders: text("key_stakeholders"),
+  approvalProcess: text("approval_process"),
 });
 
 export const supportTickets = pgTable("support_tickets", {
