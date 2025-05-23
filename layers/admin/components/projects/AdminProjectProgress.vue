@@ -3,6 +3,7 @@ import { ref, computed, watch } from "vue";
 import { Plus, CheckCircle, Clock, Circle, Settings, Trash2, Edit3, Lock, AlertCircle } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import type { PROJECT_PHASES } from "~/server/utils/project-phases";
+import DeleteConfirmDialog from "~/layers/admin/components/ui/DeleteConfirmDialog.vue";
 
 interface Props {
   projectId: string;
@@ -42,6 +43,14 @@ const { toast } = useToast();
 const showCreateForm = ref(false);
 const editingMilestone = ref<any>(null);
 const isSubmitting = ref(false);
+
+// Delete dialog state
+const deleteDialog = ref({
+  open: false,
+  milestoneId: "",
+  milestoneName: "",
+  loading: false
+});
 
 const newMilestone = ref({
   name: "",
@@ -182,12 +191,22 @@ const updateProjectProgress = async (progress: number) => {
   }
 };
 
+// Open delete dialog
+const openDeleteDialog = (milestone: any) => {
+  deleteDialog.value = {
+    open: true,
+    milestoneId: milestone.id,
+    milestoneName: milestone.name,
+    loading: false
+  };
+};
+
 // Delete milestone
-const deleteMilestone = async (milestoneId: string) => {
-  if (!confirm("Are you sure you want to delete this milestone?")) return;
+const deleteMilestone = async () => {
+  deleteDialog.value.loading = true;
 
   try {
-    const response = await $fetch(`/api/admin/projects/${props.projectId}/milestones/${milestoneId}`, {
+    const response = await $fetch(`/api/admin/projects/${props.projectId}/milestones/${deleteDialog.value.milestoneId}`, {
       method: "DELETE"
     });
 
@@ -196,6 +215,7 @@ const deleteMilestone = async (milestoneId: string) => {
         title: "Success",
         description: "Milestone deleted successfully"
       });
+      deleteDialog.value.open = false;
       await refreshProgress();
     }
   } catch (error: any) {
@@ -204,6 +224,8 @@ const deleteMilestone = async (milestoneId: string) => {
       description: error?.data?.message || "Failed to delete milestone",
       variant: "destructive"
     });
+  } finally {
+    deleteDialog.value.loading = false;
   }
 };
 
@@ -308,7 +330,12 @@ const saveEditedMilestone = async () => {
               <span class="text-2xl font-bold text-blue-600">{{ overallProgress }}%</span>
             </div>
             
-            <Progress :value="overallProgress" class="h-3" />
+            <div class="w-full bg-muted rounded-full h-3">
+              <div 
+                class="h-3 rounded-full transition-all duration-500 bg-primary"
+                :style="{ width: `${overallProgress}%` }"
+              ></div>
+            </div>
             
             <div class="flex justify-between text-sm text-muted-foreground">
               <span>Current Phase: {{ project.currentPhase ? Object.values(phases).find(p => p.id === project.currentPhase)?.name : 'Not Started' }}</span>
@@ -344,7 +371,12 @@ const saveEditedMilestone = async () => {
                   {{ phaseProgress[phase.id]?.progress || 0 }}% ({{ phaseProgress[phase.id]?.milestones?.filter(m => m.status === 'completed').length || 0 }}/{{ phaseProgress[phase.id]?.milestones?.length || 0 }})
                 </span>
               </div>
-              <Progress :value="phaseProgress[phase.id]?.progress || 0" class="h-2" />
+              <div class="w-full bg-muted rounded-full h-2">
+                <div 
+                  class="h-2 rounded-full transition-all duration-500 bg-primary"
+                  :style="{ width: `${phaseProgress[phase.id]?.progress || 0}%` }"
+                ></div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -588,7 +620,7 @@ const saveEditedMilestone = async () => {
                 <Edit3 class="h-4 w-4" />
               </Button>
               
-              <Button variant="outline" size="sm" @click="deleteMilestone(milestone.id)">
+              <Button variant="outline" size="sm" @click="openDeleteDialog(milestone)">
                 <Trash2 class="h-4 w-4 text-red-500" />
               </Button>
             </div>
@@ -596,5 +628,15 @@ const saveEditedMilestone = async () => {
         </CardContent>
       </Card>
     </div>
+    
+    <!-- Delete Confirmation Dialog -->
+    <DeleteConfirmDialog
+      v-model:open="deleteDialog.open"
+      title="Delete Milestone"
+      :description="`This milestone will be permanently removed from the project. This action cannot be undone.`"
+      :item-name="deleteDialog.milestoneName"
+      :loading="deleteDialog.loading"
+      @confirm="deleteMilestone"
+    />
   </div>
 </template>

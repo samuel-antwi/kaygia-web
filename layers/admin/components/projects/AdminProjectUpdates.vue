@@ -2,6 +2,7 @@
 import { ref, computed, watch } from "vue";
 import { Plus, MessageSquare, Calendar, User, Edit, Trash2, Eye } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
+import DeleteConfirmDialog from "~/layers/admin/components/ui/DeleteConfirmDialog.vue";
 
 interface Props {
   projectId: string;
@@ -21,6 +22,14 @@ const { toast } = useToast();
 // Form state
 const showCreateForm = ref(false);
 const isSubmitting = ref(false);
+
+// Delete dialog state
+const deleteDialog = ref({
+  open: false,
+  updateId: "",
+  updateMessage: "",
+  loading: false
+});
 
 const newUpdate = ref({
   message: "",
@@ -106,12 +115,22 @@ const createUpdate = async () => {
   }
 };
 
+// Open delete dialog
+const openDeleteDialog = (update: any) => {
+  deleteDialog.value = {
+    open: true,
+    updateId: update.id,
+    updateMessage: update.message.substring(0, 50) + (update.message.length > 50 ? '...' : ''),
+    loading: false
+  };
+};
+
 // Delete update
-const deleteUpdate = async (updateId: string) => {
-  if (!confirm("Are you sure you want to delete this update?")) return;
+const deleteUpdate = async () => {
+  deleteDialog.value.loading = true;
 
   try {
-    const response = await fetch(`/api/admin/projects/${props.projectId}/updates/${updateId}`, {
+    const response = await fetch(`/api/admin/projects/${props.projectId}/updates/${deleteDialog.value.updateId}`, {
       method: "DELETE"
     }).then(res => res.json()) as { success: boolean };
 
@@ -120,6 +139,7 @@ const deleteUpdate = async (updateId: string) => {
         title: "Success",
         description: "Update deleted successfully"
       });
+      deleteDialog.value.open = false;
       await refreshUpdates();
     }
   } catch (error: any) {
@@ -128,6 +148,8 @@ const deleteUpdate = async (updateId: string) => {
       description: error?.data?.message || "Failed to delete update",
       variant: "destructive"
     });
+  } finally {
+    deleteDialog.value.loading = false;
   }
 };
 
@@ -285,7 +307,7 @@ const getUpdateTypeInfo = (type: string) => {
               <Button variant="ghost" size="sm">
                 <Edit class="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" @click="deleteUpdate(update.id)">
+              <Button variant="ghost" size="sm" @click="openDeleteDialog(update)">
                 <Trash2 class="h-4 w-4" />
               </Button>
             </div>
@@ -293,5 +315,15 @@ const getUpdateTypeInfo = (type: string) => {
         </CardContent>
       </Card>
     </div>
+    
+    <!-- Delete Confirmation Dialog -->
+    <DeleteConfirmDialog
+      v-model:open="deleteDialog.open"
+      title="Delete Update"
+      :description="`This update will be permanently removed and will no longer be visible to the client. This action cannot be undone.`"
+      :item-name="deleteDialog.updateMessage"
+      :loading="deleteDialog.loading"
+      @confirm="deleteUpdate"
+    />
   </div>
 </template>

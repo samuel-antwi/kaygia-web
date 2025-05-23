@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { Upload, Download, Eye, FileText, Image, Archive, Trash2, FolderOpen, Filter, Search, Lock } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
+import DeleteConfirmDialog from "~/layers/admin/components/ui/DeleteConfirmDialog.vue";
 
 interface Props {
   projectId: string;
@@ -16,6 +17,14 @@ const uploadProgress = ref(0);
 const selectedFiles = ref<FileList | null>(null);
 const searchQuery = ref("");
 const selectedCategory = ref("all");
+
+// Delete dialog state
+const deleteDialog = ref({
+  open: false,
+  fileId: "",
+  fileName: "",
+  loading: false
+});
 
 // Fetch project files
 const { data: filesData, refresh: refreshFiles } = await useFetch(`/api/admin/projects/${props.projectId}/files`, {
@@ -111,12 +120,22 @@ const uploadFiles = async () => {
   }
 };
 
+// Open delete dialog
+const openDeleteDialog = (file: any) => {
+  deleteDialog.value = {
+    open: true,
+    fileId: file.id,
+    fileName: file.originalName || file.name,
+    loading: false
+  };
+};
+
 // Delete file
-const deleteFile = async (fileId: string) => {
-  if (!confirm("Are you sure you want to delete this file?")) return;
+const deleteFile = async () => {
+  deleteDialog.value.loading = true;
 
   try {
-    const response = await fetch(`/api/admin/projects/${props.projectId}/files/${fileId}`, {
+    const response = await fetch(`/api/admin/projects/${props.projectId}/files/${deleteDialog.value.fileId}`, {
       method: "DELETE"
     }).then(res => res.json()) as { success: boolean };
 
@@ -125,6 +144,7 @@ const deleteFile = async (fileId: string) => {
         title: "Success",
         description: "File deleted successfully"
       });
+      deleteDialog.value.open = false;
       await refreshFiles();
     }
   } catch (error: any) {
@@ -133,6 +153,8 @@ const deleteFile = async (fileId: string) => {
       description: error?.data?.message || "Failed to delete file",
       variant: "destructive"
     });
+  } finally {
+    deleteDialog.value.loading = false;
   }
 };
 
@@ -282,7 +304,7 @@ const getTypeBadgeColor = (type: string) => {
 
               <!-- Upload progress -->
               <div v-if="isUploading" class="mt-4">
-                <Progress :value="uploadProgress" class="h-2" />
+                <Progress :value="uploadProgress" class="h-2 [&>div]:bg-blue-600" />
                 <p class="text-sm text-muted-foreground mt-2">Uploading... {{ uploadProgress }}%</p>
               </div>
             </div>
@@ -400,7 +422,7 @@ const getTypeBadgeColor = (type: string) => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  @click="deleteFile(file.id)"
+                  @click="openDeleteDialog(file)"
                   title="Delete"
                   class="text-red-500 hover:text-red-700 hover:bg-red-50"
                 >
@@ -440,5 +462,15 @@ const getTypeBadgeColor = (type: string) => {
         </div>
       </CardContent>
     </Card>
+    
+    <!-- Delete Confirmation Dialog -->
+    <DeleteConfirmDialog
+      v-model:open="deleteDialog.open"
+      title="Delete File"
+      :description="`This file will be permanently removed from the project. This action cannot be undone.`"
+      :item-name="deleteDialog.fileName"
+      :loading="deleteDialog.loading"
+      @confirm="deleteFile"
+    />
   </div>
 </template>
