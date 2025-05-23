@@ -28,6 +28,7 @@ export default defineEventHandler(async (event: H3Event) => {
         email: true,
         name: true,
         company: true,
+        avatarUrl: true,
         role: true,
         emailVerified: true,
         createdAt: true,

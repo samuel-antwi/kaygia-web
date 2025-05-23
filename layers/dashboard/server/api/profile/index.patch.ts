@@ -43,6 +43,7 @@ export default defineEventHandler(async (event) => {
         name: users.name,
         email: users.email,
         company: users.company,
+        avatarUrl: users.avatarUrl,
         updatedAt: users.updatedAt,
       });
 
