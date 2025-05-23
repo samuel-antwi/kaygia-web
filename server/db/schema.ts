@@ -96,6 +96,12 @@ export const projects = pgTable("projects", {
   
   // Progress tracking
   progress: integer("progress").default(0).notNull(), // 0-100 percentage
+  
+  // Preview/staging
+  previewUrl: text("preview_url"),
+  previewPassword: text("preview_password"), // Optional password protection
+  previewEnabled: boolean("preview_enabled").default(true).notNull(),
+  previewExpiresAt: timestamp("preview_expires_at"), // Optional expiration
 });
 
 // Project files table

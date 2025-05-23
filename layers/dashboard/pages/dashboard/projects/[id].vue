@@ -8,6 +8,7 @@ import ProjectProgressCard from "~/layers/dashboard/components/projects/ProjectP
 import ProjectUpdatesCard from "~/layers/dashboard/components/projects/ProjectUpdatesCard.vue";
 import ProjectDeliverablesCard from "~/layers/dashboard/components/projects/ProjectDeliverablesCard.vue";
 import ProjectSupportCard from "~/layers/dashboard/components/projects/ProjectSupportCard.vue";
+import ProjectPreviewCard from "~/layers/dashboard/components/projects/ProjectPreviewCard.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -31,6 +32,12 @@ interface Project {
   progress?: number;
   currentPhase?: string | null;
   currentPhaseName?: string | null;
+  
+  // Preview
+  previewUrl?: string | null;
+  previewPassword?: string | null;
+  previewEnabled?: boolean;
+  previewExpiresAt?: Date | string | null;
   
   // Client-relevant fields
   timelinePreference?: string | null;
@@ -214,6 +221,15 @@ const getStatusText = (status: string): string => {
 
         <!-- Right Column: Support and Actions -->
         <div class="space-y-6">
+          <!-- Preview Card -->
+          <ProjectPreviewCard 
+            :preview-url="project.previewUrl"
+            :preview-password="project.previewPassword"
+            :preview-enabled="project.previewEnabled"
+            :preview-expires-at="project.previewExpiresAt"
+            :project-title="project.title"
+          />
+          
           <!-- Support Card -->
           <ProjectSupportCard :project-id="project.id" />
 

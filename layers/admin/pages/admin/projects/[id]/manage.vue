@@ -5,6 +5,7 @@ import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProject
 import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
 import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
 import AdminProjectFiles from "~/layers/admin/components/projects/AdminProjectFiles.vue";
+import PreviewUrlCard from "~/layers/admin/components/projects/PreviewUrlCard.vue";
 
 definePageMeta({
   layout: "admin",
@@ -215,6 +216,16 @@ const getStatusColor = (status: string): string => {
           </CardContent>
         </Card>
       </div>
+
+      <!-- Preview URL Card -->
+      <PreviewUrlCard 
+        :project-id="projectId"
+        :project-title="project.title"
+        :preview-url="project.previewUrl"
+        :preview-password="project.previewPassword"
+        :preview-enabled="project.previewEnabled"
+        :preview-expires-at="project.previewExpiresAt"
+      />
 
       <!-- Management Tabs -->
       <Card>
