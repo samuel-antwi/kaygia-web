@@ -157,8 +157,6 @@ const initiatePasswordReset = async () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-
       </div>
       
       <!-- Additional Actions -->

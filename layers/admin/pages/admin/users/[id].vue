@@ -477,24 +477,28 @@ function handleProfileUpdated(updatedUser: any) {
             </div>
             
             <!-- Management Cards Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <RoleManagement
-                :user="user"
-                :current-user="currentUser"
-                :on-role-changed="refresh"
-                class="h-fit"
-              />
-              <AccountStatusManagement
-                :user="user"
-                :on-status-changed="refresh"
-                class="h-fit"
-              />
-              <PasswordManagement :user="user" class="h-fit" />
-              <EmailVerificationManagement
-                :user="user"
-                :on-verification-changed="refresh"
-                class="h-fit"
-              />
+            <div class="space-y-6">
+              <!-- Primary Actions Row -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RoleManagement
+                  :user="user"
+                  :current-user="currentUser"
+                  :on-role-changed="refresh"
+                />
+                <AccountStatusManagement
+                  :user="user"
+                  :on-status-changed="refresh"
+                />
+              </div>
+              
+              <!-- Secondary Actions Row -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <PasswordManagement :user="user" />
+                <EmailVerificationManagement
+                  :user="user"
+                  :on-verification-changed="refresh"
+                />
+              </div>
             </div>
           </TabsContent>
 
