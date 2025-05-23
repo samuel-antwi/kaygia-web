@@ -174,7 +174,7 @@ export const projectDeliverables = pgTable("project_deliverables", {
 
 // Project comments table
 export const projectComments = pgTable("project_comments", {
-  id: text("id").primaryKey().notNull(),
+  id: text("id").primaryKey().notNull().$defaultFn(() => crypto.randomUUID()),
   projectId: text("project_id")
     .references(() => projects.id, { onDelete: "cascade" })
     .notNull(),

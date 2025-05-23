@@ -5,6 +5,7 @@ import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProject
 import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
 import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
 import AdminProjectFiles from "~/layers/admin/components/projects/AdminProjectFiles.vue";
+import AdminProjectComments from "~/layers/admin/components/projects/AdminProjectComments.vue";
 import PreviewUrlCard from "~/layers/admin/components/projects/PreviewUrlCard.vue";
 
 definePageMeta({
@@ -236,6 +237,7 @@ const getStatusColor = (status: string): string => {
                 { id: 'overview', label: 'Overview', icon: null },
                 { id: 'updates', label: 'Project Updates', icon: Eye, type: 'client' },
                 { id: 'deliverables', label: 'Deliverables', icon: Eye, type: 'client' },
+                { id: 'comments', label: 'Comments', icon: Eye, type: 'client' },
                 { id: 'progress', label: 'Progress Tracking', icon: Lock, type: 'internal' },
                 { id: 'files', label: 'File Management', icon: Lock, type: 'internal' }
               ]"
@@ -328,6 +330,11 @@ const getStatusColor = (status: string): string => {
               :project="project" 
               :trigger-create="triggerMilestoneForm" 
             />
+          </div>
+
+          <!-- Comments Tab -->
+          <div v-if="activeTab === 'comments'">
+            <AdminProjectComments :project-id="projectId" />
           </div>
 
           <!-- Files Tab -->

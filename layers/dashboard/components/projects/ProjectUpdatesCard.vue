@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { MessageSquare, Calendar, User, Bell } from "lucide-vue-next";
+import { ref } from "vue";
+import { MessageSquare, Calendar, User, Bell, Send, X } from "lucide-vue-next";
+import { useToast } from "@/components/ui/toast/use-toast";
 
 interface ProjectUpdate {
   id: string;
@@ -9,16 +11,39 @@ interface ProjectUpdate {
   type: 'progress' | 'milestone' | 'feedback' | 'general';
 }
 
+interface ProjectComment {
+  id: string;
+  message: string;
+  type: string;
+  createdAt: Date | string;
+  userId: string;
+  userName: string | null;
+  userRole: string;
+}
+
 interface Props {
   projectId: string;
 }
 
 const props = defineProps<Props>();
+const { toast } = useToast();
+
+// Comment form state
+const showCommentForm = ref(false);
+const commentMessage = ref("");
+const isSubmitting = ref(false);
 
 // Fetch real updates from API
 const { data: updatesData } = await useFetch(`/api/projects/${props.projectId}/updates`)
 
 const updates = computed(() => updatesData.value?.updates || []);
+
+// Fetch comments
+const { data: commentsData, refresh: refreshComments } = await useFetch(`/api/projects/${props.projectId}/comments`, {
+  server: false
+});
+
+const comments = computed(() => commentsData.value || []);
 
 // Format date
 const formatDate = (date: string | Date): string => {
@@ -61,6 +86,47 @@ const getUpdateTypeIcon = (type: string) => {
       return MessageSquare;
   }
 };
+
+// Submit comment
+const submitComment = async () => {
+  if (!commentMessage.value.trim()) {
+    toast({
+      title: "Error",
+      description: "Please enter a comment",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    const response = await $fetch(`/api/projects/${props.projectId}/comments`, {
+      method: "POST",
+      body: {
+        message: commentMessage.value,
+        type: "comment"
+      }
+    });
+
+    toast({
+      title: "Success",
+      description: "Your comment has been posted"
+    });
+    
+    commentMessage.value = "";
+    showCommentForm.value = false;
+    await refreshComments();
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error?.data?.message || "Failed to post comment",
+      variant: "destructive"
+    });
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 </script>
 
 <template>
@@ -91,8 +157,56 @@ const getUpdateTypeIcon = (type: string) => {
         </div>
       </div>
       
-      <div class="mt-6 pt-4 border-t">
-        <Button variant="outline" class="w-full">
+      <!-- Comments Section -->
+      <div v-if="comments.length > 0" class="mt-6 pt-4 border-t">
+        <h4 class="text-sm font-medium mb-3">Comments & Questions</h4>
+        <div class="space-y-3">
+          <div v-for="comment in comments" :key="comment.id" class="bg-muted/50 rounded-lg p-3">
+            <p class="text-sm">{{ comment.message }}</p>
+            <div class="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
+              <span>{{ comment.userName || 'Anonymous' }}</span>
+              <span>•</span>
+              <span>{{ formatDate(comment.createdAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Comment Form -->
+      <div v-if="showCommentForm" class="mt-4 space-y-3">
+        <Textarea
+          v-model="commentMessage"
+          placeholder="Type your comment or question here..."
+          rows="3"
+          class="resize-none"
+        />
+        <div class="flex gap-2">
+          <Button 
+            @click="submitComment" 
+            :disabled="isSubmitting || !commentMessage.trim()"
+            size="sm"
+            class="flex-1"
+          >
+            <Send class="h-4 w-4 mr-2" />
+            {{ isSubmitting ? 'Posting...' : 'Post Comment' }}
+          </Button>
+          <Button 
+            @click="showCommentForm = false; commentMessage = ''" 
+            variant="outline"
+            size="sm"
+          >
+            <X class="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      <!-- Add Comment Button -->
+      <div v-if="!showCommentForm" class="mt-6 pt-4 border-t">
+        <Button 
+          variant="outline" 
+          class="w-full"
+          @click="showCommentForm = true"
+        >
           <MessageSquare class="h-4 w-4 mr-2" />
           Add Comment or Question
         </Button>
