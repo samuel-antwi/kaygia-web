@@ -5,7 +5,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { useToast } from "../../../../components/ui/toast/use-toast";
 import PasswordChangeForm from "../../components/PasswordChangeForm.vue";
-import { User, Settings, UserCircle, Camera, Upload, Trash2 } from "lucide-vue-next";
+import { User, Settings, Camera, Upload, Trash2 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -17,7 +17,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   FormControl,
   FormDescription,
@@ -277,93 +276,116 @@ async function deleteAvatar() {
       </p>
     </div>
 
-    <!-- Settings Grid -->
-    <div class="grid gap-6">
-      <!-- Avatar Card -->
-      <Card class="relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
-        <CardHeader>
-          <div class="flex items-center space-x-3">
-            <div class="p-2 bg-purple-500/10 rounded-lg">
-              <Camera class="h-5 w-5 text-purple-600" />
-            </div>
-            <div>
-              <CardTitle>Profile Picture</CardTitle>
-              <CardDescription>Upload a profile picture to personalize your account</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="flex items-center gap-6">
-            <div class="relative group">
-              <Avatar class="h-24 w-24 border-4 border-background shadow-lg">
-                <AvatarImage v-if="avatarPreview" :src="avatarPreview" />
-                <AvatarFallback class="text-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
-                  {{ user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U' }}
-                </AvatarFallback>
-              </Avatar>
-              <div v-if="isUploadingAvatar" class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                <div class="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></div>
+    <!-- Modern Settings Layout -->
+    <div class="space-y-8">
+      <!-- Profile Header Section -->
+      <div class="relative">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/5 via-purple-500/5 to-pink-500/5 rounded-3xl"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,theme(colors.primary.500/10),transparent_50%)] rounded-3xl"></div>
+        
+        <Card class="relative border-0 shadow-xl bg-white/50 backdrop-blur-sm">
+          <CardContent class="p-8">
+            <div class="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+              <!-- Avatar Section -->
+              <div class="flex flex-col items-center gap-4">
+                <div class="relative group">
+                  <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full blur-xl"></div>
+                  <Avatar class="h-32 w-32 border-4 border-white shadow-2xl relative">
+                    <AvatarImage v-if="avatarPreview" :src="avatarPreview" />
+                    <AvatarFallback class="text-3xl bg-gradient-to-br from-primary to-purple-600 text-white">
+                      {{ user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U' }}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div v-if="isUploadingAvatar" class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                    <div class="animate-spin h-8 w-8 border-3 border-white border-t-transparent rounded-full"></div>
+                  </div>
+                  <button
+                    @click="() => fileInput?.click()"
+                    :disabled="isUploadingAvatar"
+                    class="absolute -bottom-2 -right-2 p-3 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-all hover:scale-105 disabled:opacity-50"
+                  >
+                    <Camera class="h-4 w-4" />
+                  </button>
+                </div>
+                
+                <div class="text-center space-y-2">
+                  <h2 class="text-2xl font-bold">{{ user?.name || 'Unnamed User' }}</h2>
+                  <p class="text-muted-foreground">{{ user?.email }}</p>
+                  <Badge v-if="user?.company" variant="secondary" class="bg-blue-100 text-blue-700 border-blue-200">
+                    {{ user.company }}
+                  </Badge>
+                </div>
+                
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleAvatarSelect"
+                />
+                <div class="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="fileInput?.click()"
+                    :disabled="isUploadingAvatar"
+                    class="bg-white/80 backdrop-blur-sm"
+                  >
+                    <Upload class="h-4 w-4 mr-2" />
+                    Change Photo
+                  </Button>
+                  <Button
+                    v-if="avatarPreview"
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    @click="deleteAvatar"
+                    :disabled="isUploadingAvatar"
+                    class="text-destructive hover:text-destructive bg-white/80 backdrop-blur-sm"
+                  >
+                    <Trash2 class="h-4 w-4" />
+                  </Button>
+                </div>
+                <p class="text-xs text-muted-foreground text-center max-w-48">Square image recommended. Max 5MB.</p>
               </div>
-              <button
-                v-if="avatarPreview && !isUploadingAvatar"
-                @click="() => fileInput?.click()"
-                class="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/50 rounded-full transition-colors group-hover:opacity-100 opacity-0"
-              >
-                <Camera class="h-6 w-6 text-white" />
-              </button>
-            </div>
-            <div class="space-y-3">
-              <input
-                ref="fileInput"
-                type="file"
-                accept="image/*"
-                class="hidden"
-                @change="handleAvatarSelect"
-              />
-              <div class="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  @click="fileInput?.click()"
-                  :disabled="isUploadingAvatar"
-                >
-                  <Upload class="h-4 w-4 mr-2" />
-                  Upload Photo
-                </Button>
-                <Button
-                  v-if="avatarPreview"
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  @click="deleteAvatar"
-                  :disabled="isUploadingAvatar"
-                  class="text-destructive hover:text-destructive"
-                >
-                  <Trash2 class="h-4 w-4 mr-2" />
-                  Remove
-                </Button>
+              
+              <!-- Quick Stats -->
+              <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+                <div class="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <div class="text-2xl font-bold text-green-600">Active</div>
+                  <div class="text-sm text-muted-foreground">Account Status</div>
+                </div>
+                <div class="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <div class="text-2xl font-bold text-blue-600">{{ user?.emailVerified ? 'Verified' : 'Pending' }}</div>
+                  <div class="text-sm text-muted-foreground">Email Status</div>
+                </div>
+                <div class="text-center p-4 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20">
+                  <div class="text-2xl font-bold text-purple-600">{{ new Date(user?.createdAt || Date.now()).getFullYear() }}</div>
+                  <div class="text-sm text-muted-foreground">Member Since</div>
+                </div>
               </div>
-              <p class="text-xs text-muted-foreground">Recommended: Square image, at least 200x200px. Max 5MB.</p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      <!-- Profile Information Card -->
-      <Card class="relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"></div>
-        <CardHeader>
-          <div class="flex items-center space-x-3">
-            <div class="p-2 bg-primary/10 rounded-lg">
-              <User class="h-5 w-5 text-primary" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Settings Cards Grid -->
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Profile Information Card -->
+        <Card class="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-slate-50/50">
+          <CardHeader class="pb-4">
+            <div class="flex items-center space-x-3">
+              <div class="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl text-white shadow-lg">
+                <User class="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle class="text-xl">Profile Information</CardTitle>
+                <CardDescription>Update your personal details and company information</CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>Update your personal details and company information</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
         <CardContent class="space-y-6">
           <div v-if="authLoading && !user" class="space-y-4">
             <div class="flex items-center space-x-2 text-muted-foreground">
@@ -405,19 +427,19 @@ async function deleteAvatar() {
             </FormItem>
           </FormField>
 
-          <!-- Email Field (Read-only) - Using FormField for consistency but binding directly to user email -->
-          <FormField name="email">
+          <!-- Email Field (Read-only) -->
+          <FormField v-slot="{ componentField }" name="email">
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input
                   id="email"
-                  :value="user?.email"
+                  v-bind="componentField"
                   disabled
                   class="h-12 bg-muted/50 cursor-not-allowed"
                 />
               </FormControl>
-              <FormDescription> Email cannot be changed. </FormDescription>
+              <FormDescription>Email cannot be changed.</FormDescription>
               <FormMessage />
             </FormItem>
           </FormField>
@@ -464,72 +486,25 @@ async function deleteAvatar() {
         </CardContent>
       </Card>
 
-      <!-- Security & Password Section -->
-      <Card class="relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-red-500"></div>
-        <CardHeader>
-          <div class="flex items-center space-x-3">
-            <div class="p-2 bg-orange-500/10 rounded-lg">
-              <Settings class="h-5 w-5 text-orange-600" />
+        <!-- Security & Password Section -->
+        <Card class="group hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-gradient-to-br from-white to-orange-50/30">
+          <CardHeader class="pb-4">
+            <div class="flex items-center space-x-3">
+              <div class="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl text-white shadow-lg">
+                <Settings class="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle class="text-xl">Security Settings</CardTitle>
+                <CardDescription>Manage your password and account security</CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>Manage your password and account security</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
         <CardContent>
           <PasswordChangeForm />
         </CardContent>
       </Card>
 
-      <!-- Account Information -->
-      <Card class="relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
-        <CardHeader>
-          <div class="flex items-center space-x-3">
-            <div class="p-2 bg-blue-500/10 rounded-lg">
-              <UserCircle class="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>View your account details and status</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-              <div>
-                <Label class="text-sm font-medium text-muted-foreground">Account Status</Label>
-                <div class="flex items-center space-x-2 mt-1">
-                  <div class="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <span class="text-sm">Active</span>
-                </div>
-              </div>
-              <div>
-                <Label class="text-sm font-medium text-muted-foreground">Member Since</Label>
-                <p class="text-sm mt-1">{{ new Date(user?.createdAt || Date.now()).toLocaleDateString() }}</p>
-              </div>
-            </div>
-            <div class="space-y-4">
-              <div>
-                <Label class="text-sm font-medium text-muted-foreground">Account Type</Label>
-                <div class="flex items-center space-x-2 mt-1">
-                  <Badge variant="secondary">{{ user?.role || 'Client' }}</Badge>
-                </div>
-              </div>
-              <div>
-                <Label class="text-sm font-medium text-muted-foreground">Email Verified</Label>
-                <div class="flex items-center space-x-2 mt-1">
-                  <div :class="user?.emailVerified ? 'h-2 w-2 bg-green-500 rounded-full' : 'h-2 w-2 bg-yellow-500 rounded-full'"></div>
-                  <span class="text-sm">{{ user?.emailVerified ? 'Verified' : 'Pending' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   </div>
 </template>
