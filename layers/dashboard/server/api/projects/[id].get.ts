@@ -1,7 +1,8 @@
 import { defineEventHandler } from "h3";
 import { getDb } from "~/server/utils/db";
-import { projects, users } from "~/server/db/schema";
+import { projects, users, projectMilestones } from "~/server/db/schema";
 import { and, eq } from "drizzle-orm";
+import { calculateOverallProgress, getCurrentPhase, PROJECT_PHASES } from "~/server/utils/project-phases";
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
@@ -42,9 +43,28 @@ export default defineEventHandler(async (event) => {
       });
     }
 
+    // Fetch project milestones to calculate hybrid progress
+    const milestones = await db.query.projectMilestones.findMany({
+      where: eq(projectMilestones.projectId, projectId),
+    });
+
+    // Calculate hybrid progress
+    const calculatedProgress = calculateOverallProgress(milestones, project.status);
+    const currentPhase = getCurrentPhase(milestones) || 'discovery'; // Default to discovery if no milestones
+    
+    // Get current phase details
+    const currentPhaseDetails = currentPhase ? PROJECT_PHASES[Object.keys(PROJECT_PHASES).find(
+      key => PROJECT_PHASES[key as keyof typeof PROJECT_PHASES].id === currentPhase
+    ) as keyof typeof PROJECT_PHASES] : null;
+
     return {
       success: true,
-      project,
+      project: {
+        ...project,
+        progress: project.progress || calculatedProgress, // Use stored progress or calculated
+        currentPhase,
+        currentPhaseName: currentPhaseDetails?.name || null,
+      },
     };
   } catch (error) {
     console.error("Database Error:", error);

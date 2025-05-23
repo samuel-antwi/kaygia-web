@@ -3,23 +3,32 @@ import { Calendar, Clock, CheckCircle, AlertCircle } from "lucide-vue-next";
 
 interface Props {
   status: string;
+  progress?: number;
+  currentPhase?: string | null;
+  currentPhaseName?: string | null;
   createdAt: Date | string;
   startDate?: Date | string | null;
   endDate?: Date | string | null;
   timelinePreference?: string | null;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
-// Calculate progress percentage based on status
-const getProgressPercentage = (status: string): number => {
-  switch (status) {
+// Use hybrid progress if available, otherwise fall back to status-based
+const getProgressPercentage = (): number => {
+  // If we have actual progress data, use it
+  if (props.progress !== undefined && props.progress !== null) {
+    return props.progress;
+  }
+  
+  // Otherwise, fall back to status-based progress
+  switch (props.status) {
     case "PENDING":
       return 0;
     case "APPROVED":
-      return 20;
+      return 10;
     case "IN_PROGRESS":
-      return 60;
+      return 50;
     case "REVIEW":
       return 85;
     case "COMPLETED":
@@ -31,9 +40,15 @@ const getProgressPercentage = (status: string): number => {
   }
 };
 
-// Get current phase description
-const getCurrentPhase = (status: string): string => {
-  switch (status) {
+// Get current phase description with hybrid support
+const getCurrentPhaseDisplay = (): string => {
+  // If we have phase data from the hybrid system, use it
+  if (props.currentPhaseName) {
+    return props.currentPhaseName;
+  }
+  
+  // Otherwise, fall back to status-based phase
+  switch (props.status) {
     case "PENDING":
       return "Awaiting Approval";
     case "APPROVED":
@@ -102,7 +117,7 @@ const getEstimatedCompletion = (createdAt: Date | string, timelinePreference?: s
       <CardTitle class="flex items-center justify-between">
         <span>Project Progress</span>
         <Badge :class="getStatusColor(status)" variant="outline">
-          {{ getCurrentPhase(status) }}
+          {{ getCurrentPhaseDisplay() }}
         </Badge>
       </CardTitle>
     </CardHeader>
@@ -110,16 +125,19 @@ const getEstimatedCompletion = (createdAt: Date | string, timelinePreference?: s
       <!-- Progress Bar -->
       <div class="space-y-2">
         <div class="flex justify-between text-sm">
-          <span>Progress</span>
-          <span class="font-medium">{{ getProgressPercentage(status) }}%</span>
+          <span>Overall Progress</span>
+          <span class="font-medium">{{ getProgressPercentage() }}%</span>
         </div>
         <div class="w-full bg-muted rounded-full h-3">
           <div 
             class="h-3 rounded-full transition-all duration-500"
             :class="status === 'COMPLETED' ? 'bg-green-500' : status === 'CANCELLED' ? 'bg-red-500' : 'bg-primary'"
-            :style="{ width: `${getProgressPercentage(status)}%` }"
+            :style="{ width: `${getProgressPercentage()}%` }"
           ></div>
         </div>
+        <p v-if="currentPhaseName" class="text-xs text-muted-foreground text-center">
+          Currently in {{ currentPhaseName }} phase
+        </p>
       </div>
 
       <!-- Timeline Information -->
@@ -150,33 +168,33 @@ const getEstimatedCompletion = (createdAt: Date | string, timelinePreference?: s
         <h4 class="text-sm font-medium">Project Phases</h4>
         <div class="space-y-2">
           <div class="flex items-center space-x-3">
-            <CheckCircle :class="getProgressPercentage(status) >= 20 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
-            <span class="text-sm" :class="getProgressPercentage(status) >= 20 ? 'text-foreground' : 'text-muted-foreground'">
-              Project Planning & Discovery
+            <CheckCircle :class="getProgressPercentage() >= 15 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
+            <span class="text-sm" :class="getProgressPercentage() >= 15 ? 'text-foreground' : 'text-muted-foreground'">
+              Discovery & Planning
             </span>
           </div>
           <div class="flex items-center space-x-3">
-            <CheckCircle :class="getProgressPercentage(status) >= 40 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
-            <span class="text-sm" :class="getProgressPercentage(status) >= 40 ? 'text-foreground' : 'text-muted-foreground'">
-              Design & Wireframing
+            <CheckCircle :class="getProgressPercentage() >= 40 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
+            <span class="text-sm" :class="getProgressPercentage() >= 40 ? 'text-foreground' : 'text-muted-foreground'">
+              Design & Prototyping
             </span>
           </div>
           <div class="flex items-center space-x-3">
-            <CheckCircle :class="getProgressPercentage(status) >= 60 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
-            <span class="text-sm" :class="getProgressPercentage(status) >= 60 ? 'text-foreground' : 'text-muted-foreground'">
-              Development & Build
+            <CheckCircle :class="getProgressPercentage() >= 80 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
+            <span class="text-sm" :class="getProgressPercentage() >= 80 ? 'text-foreground' : 'text-muted-foreground'">
+              Development
             </span>
           </div>
           <div class="flex items-center space-x-3">
-            <CheckCircle :class="getProgressPercentage(status) >= 85 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
-            <span class="text-sm" :class="getProgressPercentage(status) >= 85 ? 'text-foreground' : 'text-muted-foreground'">
+            <CheckCircle :class="getProgressPercentage() >= 95 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
+            <span class="text-sm" :class="getProgressPercentage() >= 95 ? 'text-foreground' : 'text-muted-foreground'">
               Testing & Review
             </span>
           </div>
           <div class="flex items-center space-x-3">
-            <CheckCircle :class="getProgressPercentage(status) >= 100 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
-            <span class="text-sm" :class="getProgressPercentage(status) >= 100 ? 'text-foreground' : 'text-muted-foreground'">
-              Launch & Deployment
+            <CheckCircle :class="getProgressPercentage() >= 100 ? 'text-green-500' : 'text-muted-foreground'" class="h-4 w-4" />
+            <span class="text-sm" :class="getProgressPercentage() >= 100 ? 'text-foreground' : 'text-muted-foreground'">
+              Deployment
             </span>
           </div>
         </div>

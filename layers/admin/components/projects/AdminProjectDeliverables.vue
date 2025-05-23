@@ -280,13 +280,14 @@ const getFileTypeIcon = (fileType?: string | null) => {
                   Drop files here or click to browse
                 </p>
                 <input
+                  ref="deliverableFileInput"
                   type="file"
                   @change="handleFileSelect"
                   class="hidden"
                   id="file-input"
                   accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.svg"
                 />
-                <Button variant="outline" size="sm" @click="$el.querySelector('#file-input')?.click()">
+                <Button variant="outline" size="sm" @click="($refs.deliverableFileInput as HTMLInputElement)?.click()">
                   Choose File
                 </Button>
               </div>

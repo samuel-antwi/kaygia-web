@@ -27,6 +27,11 @@ interface Project {
   type: string;
   budget: number | null;
   
+  // Progress tracking
+  progress?: number;
+  currentPhase?: string | null;
+  currentPhaseName?: string | null;
+  
   // Client-relevant fields
   timelinePreference?: string | null;
   preferredLaunchDate?: Date | null;
@@ -191,6 +196,9 @@ const getStatusText = (status: string): string => {
           <!-- Project Progress -->
           <ProjectProgressCard
             :status="project.status"
+            :progress="project.progress"
+            :current-phase="project.currentPhase"
+            :current-phase-name="project.currentPhaseName"
             :created-at="project.createdAt"
             :start-date="project.startDate"
             :end-date="project.endDate"

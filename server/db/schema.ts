@@ -5,6 +5,7 @@ import {
   boolean,
   real,
   pgEnum,
+  integer,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -92,6 +93,9 @@ export const projects = pgTable("projects", {
   timezone: text("timezone"),
   keyStakeholders: text("key_stakeholders"),
   approvalProcess: text("approval_process"),
+  
+  // Progress tracking
+  progress: integer("progress").default(0).notNull(), // 0-100 percentage
 });
 
 // Project files table
@@ -123,6 +127,8 @@ export const projectMilestones = pgTable("project_milestones", {
   completedAt: timestamp("completed_at"),
   status: text("status").notNull().default("pending"), // 'pending', 'in_progress', 'completed'
   order: real("order").notNull().default(0), // For ordering milestones
+  phase: text("phase"), // 'discovery', 'design', 'development', 'testing', 'deployment'
+  weight: integer("weight").default(1).notNull(), // Weight for progress calculation
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -1,11 +1,31 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { Plus, CheckCircle, Clock, Circle, Settings, Trash2, Edit3, Lock } from "lucide-vue-next";
+import { Plus, CheckCircle, Clock, Circle, Settings, Trash2, Edit3, Lock, AlertCircle } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
+import type { PROJECT_PHASES } from "~/server/utils/project-phases";
 
 interface Props {
   projectId: string;
   triggerCreate?: boolean;
+}
+
+interface Phase {
+  id: string;
+  name: string;
+  description: string;
+  defaultWeight: number;
+  order: number;
+}
+
+interface PhaseProgress {
+  progress: number;
+  milestones: Array<{
+    id: string;
+    name: string;
+    status: string;
+    phase?: string | null;
+    weight: number;
+  }>;
 }
 
 const props = defineProps<Props>();
@@ -28,7 +48,9 @@ const newMilestone = ref({
   description: "",
   targetDate: "",
   status: "pending" as "pending" | "in_progress" | "completed",
-  order: 0
+  order: 0,
+  phase: "",
+  weight: 1
 });
 
 // Fetch project progress
@@ -36,14 +58,14 @@ const { data: progressData, refresh: refreshProgress } = await useFetch(`/api/ad
   server: false
 });
 
-const project = computed(() => progressData.value?.project || {} as { progress?: number });
+const project = computed(() => progressData.value?.project || {} as { progress?: number; calculatedProgress?: number; currentPhase?: string });
 const milestones = computed(() => progressData.value?.milestones || []);
+const phases = computed<Record<string, Phase>>(() => progressData.value?.phases || {});
+const phaseProgress = computed<Record<string, PhaseProgress>>(() => progressData.value?.phaseProgress || {});
 
-// Calculate overall progress
+// Use calculated hybrid progress
 const overallProgress = computed(() => {
-  if (milestones.value.length === 0) return 0;
-  const completedCount = milestones.value.filter((m: any) => m.status === 'completed').length;
-  return Math.round((completedCount / milestones.value.length) * 100);
+  return project.value.calculatedProgress || 0;
 });
 
 // Milestone status options
@@ -74,7 +96,9 @@ const createMilestone = async () => {
         description: newMilestone.value.description,
         targetDate: newMilestone.value.targetDate || null,
         status: newMilestone.value.status,
-        order: milestones.value.length
+        order: milestones.value.length,
+        phase: newMilestone.value.phase || null,
+        weight: newMilestone.value.weight
       }
     });
 
@@ -90,7 +114,9 @@ const createMilestone = async () => {
         description: "",
         targetDate: "",
         status: "pending",
-        order: 0
+        order: 0,
+        phase: "",
+        weight: 1
       };
       showCreateForm.value = false;
       
@@ -221,7 +247,9 @@ const saveEditedMilestone = async () => {
         name: editingMilestone.value.name,
         description: editingMilestone.value.description,
         targetDate: editingMilestone.value.targetDate || null,
-        status: editingMilestone.value.status
+        status: editingMilestone.value.status,
+        phase: editingMilestone.value.phase || null,
+        weight: editingMilestone.value.weight || 1
       }
     });
 
@@ -283,7 +311,7 @@ const saveEditedMilestone = async () => {
             <Progress :value="overallProgress" class="h-3" />
             
             <div class="flex justify-between text-sm text-muted-foreground">
-              <span>{{ milestones.filter(m => m.status === 'completed').length }} of {{ milestones.length }} internal milestones completed</span>
+              <span>Current Phase: {{ project.currentPhase ? Object.values(phases).find(p => p.id === project.currentPhase)?.name : 'Not Started' }}</span>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -292,8 +320,31 @@ const saveEditedMilestone = async () => {
                 class="border-blue-200 hover:bg-blue-50"
               >
                 <Settings class="h-4 w-4 mr-1" />
-                Sync Internal Progress
+                Sync Progress to Client View
               </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <!-- Phase Breakdown -->
+      <Card class="border-blue-200 bg-blue-50/30">
+        <CardHeader>
+          <CardTitle class="text-base flex items-center gap-2">
+            <Lock class="h-4 w-4 text-blue-600" />
+            Phase Breakdown
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="space-y-3">
+            <div v-for="phase in Object.values(phases)" :key="phase.id" class="space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-medium">{{ phase.name }}</span>
+                <span class="text-xs text-muted-foreground">
+                  {{ phaseProgress[phase.id]?.progress || 0 }}% ({{ phaseProgress[phase.id]?.milestones?.filter(m => m.status === 'completed').length || 0 }}/{{ phaseProgress[phase.id]?.milestones?.length || 0 }})
+                </span>
+              </div>
+              <Progress :value="phaseProgress[phase.id]?.progress || 0" class="h-2" />
             </div>
           </div>
         </CardContent>
@@ -323,6 +374,22 @@ const saveEditedMilestone = async () => {
           </div>
 
           <div class="space-y-2">
+            <Label for="phase">Project Phase</Label>
+            <Select v-model="newMilestone.phase">
+              <SelectTrigger>
+                <SelectValue placeholder="Select phase" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="phase in Object.values(phases)" :key="phase.id" :value="phase.id">
+                  {{ phase.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
             <Label for="status">Status</Label>
             <Select v-model="newMilestone.status">
               <SelectTrigger>
@@ -334,6 +401,18 @@ const saveEditedMilestone = async () => {
                 </SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="weight">Weight (Importance)</Label>
+            <Input
+              id="weight"
+              v-model.number="newMilestone.weight"
+              type="number"
+              min="1"
+              max="10"
+              placeholder="1-10"
+            />
           </div>
         </div>
 
@@ -374,8 +453,15 @@ const saveEditedMilestone = async () => {
         <Circle class="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
         <h3 class="font-medium text-muted-foreground">No milestones yet</h3>
         <p class="text-sm text-muted-foreground mt-1">
-          Create your first milestone to start tracking progress
+          Create milestones to track detailed progress. Client currently sees {{ overallProgress }}% based on project status.
         </p>
+        <Alert class="mt-4 text-left max-w-2xl mx-auto">
+          <AlertCircle class="h-4 w-4" />
+          <AlertTitle>Quick Start</AlertTitle>
+          <AlertDescription>
+            Start with Discovery phase milestones like "Requirements Gathering", "Scope Definition", and "Timeline Planning" to show granular progress to your client.
+          </AlertDescription>
+        </Alert>
         <Button @click="showCreateForm = true" variant="outline" class="mt-4">
           <Plus class="h-4 w-4 mr-2" />
           Add First Milestone
@@ -456,6 +542,14 @@ const saveEditedMilestone = async () => {
                     <component :is="getStatusInfo(milestone.status).icon" class="h-3 w-3 mr-1" />
                     {{ getStatusInfo(milestone.status).label }}
                   </Badge>
+                  
+                  <Badge v-if="milestone.phase" variant="outline" class="text-blue-600 bg-blue-50 border-blue-200">
+                    {{ Object.values(phases).find(p => p.id === milestone.phase)?.name || milestone.phase }}
+                  </Badge>
+                  
+                  <span v-if="milestone.weight > 1" class="text-xs text-muted-foreground">
+                    Weight: {{ milestone.weight }}
+                  </span>
                   
                   <span v-if="milestone.targetDate" class="text-xs text-muted-foreground">
                     Target: {{ formatDate(milestone.targetDate) }}

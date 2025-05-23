@@ -3,6 +3,7 @@ import { getDb } from "~/server/utils/db";
 import { projectMilestones, projects } from "~/server/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { calculateOverallProgress, getCurrentPhase, PROJECT_PHASES } from "~/server/utils/project-phases";
 
 export default defineEventHandler(async (event) => {
   // Get project ID from params
@@ -37,6 +38,7 @@ export default defineEventHandler(async (event) => {
         id: true,
         title: true,
         status: true,
+        progress: true,
         startDate: true,
         endDate: true,
         createdAt: true,
@@ -72,6 +74,24 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    // Calculate hybrid progress
+    const calculatedProgress = calculateOverallProgress(milestones, project.status);
+    const currentPhase = getCurrentPhase(milestones) || 'discovery'; // Default to discovery if no milestones
+    
+    // Calculate phase-specific progress
+    const phaseProgress: Record<string, { progress: number; milestones: any[] }> = {};
+    
+    Object.values(PROJECT_PHASES).forEach(phase => {
+      const phaseMilestones = milestones.filter(m => m.phase === phase.id);
+      const completed = phaseMilestones.filter(m => m.status === 'completed').length;
+      const total = phaseMilestones.length;
+      
+      phaseProgress[phase.id] = {
+        progress: total > 0 ? Math.round((completed / total) * 100) : 0,
+        milestones: phaseMilestones
+      };
+    });
+
     // Calculate progress statistics
     const totalMilestones = milestones.length;
     const completedMilestones = milestones.filter(
@@ -84,21 +104,22 @@ export default defineEventHandler(async (event) => {
       (m) => m.status === "pending"
     ).length;
 
-    const overallProgress =
-      totalMilestones > 0
-        ? Math.round((completedMilestones / totalMilestones) * 100)
-        : 0;
-
     return {
       success: true,
-      project,
+      project: {
+        ...project,
+        calculatedProgress, // New hybrid progress
+        currentPhase,
+      },
       milestones,
+      phases: PROJECT_PHASES,
+      phaseProgress,
       progress: {
         total: totalMilestones,
         completed: completedMilestones,
         inProgress: inProgressMilestones,
         pending: pendingMilestones,
-        overallProgress,
+        overallProgress: calculatedProgress,
       },
     };
   } catch (error: any) {

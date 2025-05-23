@@ -73,6 +73,8 @@ export default defineEventHandler(async (event) => {
       targetDate: body.targetDate ? new Date(body.targetDate) : null,
       status: body.status || "pending",
       order: body.order || 0,
+      phase: body.phase || null,
+      weight: body.weight || 1,
     });
 
     // Fetch the created milestone

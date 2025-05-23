@@ -252,6 +252,7 @@ const getTypeBadgeColor = (type: string) => {
                   Supports images, documents, archives, and more
                 </p>
                 <input
+                  ref="fileInput"
                   type="file"
                   @change="handleFileSelect"
                   class="hidden"
@@ -261,7 +262,7 @@ const getTypeBadgeColor = (type: string) => {
                 />
                 <Button 
                   variant="outline" 
-                  @click="$el.querySelector('#file-input')?.click()"
+                  @click="($refs.fileInput as HTMLInputElement)?.click()"
                   :disabled="isUploading"
                 >
                   Choose Files
