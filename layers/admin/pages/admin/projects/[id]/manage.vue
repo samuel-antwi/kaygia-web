@@ -19,6 +19,14 @@ const projectId = computed(() => route.params.id as string);
 const { data: projectData, pending, error, refresh } = await useFetch(`/api/admin/projects/${projectId.value}`)
 const project = computed(() => projectData.value?.project);
 
+// Fetch progress data for consistent display
+const { data: progressData } = await useFetch(`/api/admin/projects/${projectId.value}/progress`, {
+  server: false
+});
+
+// Use calculated progress for consistency
+const projectProgress = computed(() => progressData.value?.project?.calculatedProgress || project.value?.progress || 0);
+
 // Active tab management
 const activeTab = ref("overview");
 
@@ -312,8 +320,13 @@ const getStatusColor = (status: string): string => {
                 </CardHeader>
                 <CardContent>
                   <div class="flex items-center gap-2">
-                    <Progress :value="project?.progress || 0" class="flex-1" />
-                    <span class="text-sm font-medium">{{ project?.progress || 0 }}%</span>
+                    <div class="w-full bg-muted rounded-full h-3">
+                      <div 
+                        class="h-3 rounded-full transition-all duration-500 bg-primary"
+                        :style="{ width: `${projectProgress}%` }"
+                      ></div>
+                    </div>
+                    <span class="text-sm font-medium">{{ projectProgress }}%</span>
                   </div>
                 </CardContent>
               </Card>
