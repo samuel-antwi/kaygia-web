@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from "vue";
-import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock } from "lucide-vue-next";
+import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock, Info, MoreVertical, ExternalLink } from "lucide-vue-next";
 import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProjectUpdates.vue";
 import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
 import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
@@ -26,6 +26,18 @@ const activeTab = ref("overview");
 const triggerUpdateForm = ref(false);
 const triggerDeliverableForm = ref(false);
 const triggerMilestoneForm = ref(false);
+
+// Simple formatting function for project type
+const formatProjectType = (type: string | null | undefined) => {
+  if (!type) return 'Not specified';
+  const types: Record<string, string> = {
+    'WEBSITE': 'Website',
+    'E_COMMERCE': 'E-commerce',
+    'WEB_APP': 'Web Application',
+    'LANDING_PAGE': 'Landing Page'
+  };
+  return types[type] || type;
+};
 
 // Quick actions - organized by visibility
 const clientFacingActions = [
@@ -142,12 +154,39 @@ const getStatusColor = (status: string): string => {
           </div>
         </div>
 
-        <Button as-child>
-          <NuxtLink :to="`/dashboard/projects/${projectId}`" target="_blank">
-            View Client Page
-          </NuxtLink>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <MoreVertical class="h-4 w-4 mr-2" />
+              View Options
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-48">
+            <DropdownMenuItem @click="$router.push(`/admin/projects/${projectId}`)">
+              <Info class="h-4 w-4 mr-2" />
+              View Project Details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <NuxtLink :to="`/dashboard/projects/${projectId}`" target="_blank" class="flex items-center">
+                <ExternalLink class="h-4 w-4 mr-2" />
+                View Client Page
+                <span class="ml-auto text-xs text-muted-foreground">↗</span>
+              </NuxtLink>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <!-- Preview URL Card -->
+      <PreviewUrlCard 
+        :project-id="projectId"
+        :project-title="project.title"
+        :preview-url="project.previewUrl"
+        :preview-password="project.previewPassword"
+        :preview-enabled="project.previewEnabled"
+        :preview-expires-at="project.previewExpiresAt"
+      />
 
       <!-- Quick Actions -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -218,16 +257,6 @@ const getStatusColor = (status: string): string => {
         </Card>
       </div>
 
-      <!-- Preview URL Card -->
-      <PreviewUrlCard 
-        :project-id="projectId"
-        :project-title="project.title"
-        :preview-url="project.previewUrl"
-        :preview-password="project.previewPassword"
-        :preview-enabled="project.previewEnabled"
-        :preview-expires-at="project.previewExpiresAt"
-      />
-
       <!-- Management Tabs -->
       <Card>
         <CardHeader>
@@ -266,45 +295,85 @@ const getStatusColor = (status: string): string => {
         <CardContent class="p-6">
           <!-- Overview Tab -->
           <div v-if="activeTab === 'overview'" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardHeader class="pb-2">
-                  <CardTitle class="text-base">Recent Updates</CardTitle>
+                  <CardTitle class="text-sm font-medium text-muted-foreground">Status</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div class="text-2xl font-bold">0</div>
-                  <p class="text-sm text-muted-foreground">Updates this week</p>
+                  <Badge variant="outline" class="text-sm">{{ project?.status }}</Badge>
                 </CardContent>
               </Card>
-
+              
               <Card>
                 <CardHeader class="pb-2">
-                  <CardTitle class="text-base">Pending Approvals</CardTitle>
+                  <CardTitle class="text-sm font-medium text-muted-foreground">Progress</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div class="text-2xl font-bold">0</div>
-                  <p class="text-sm text-muted-foreground">Deliverables awaiting review</p>
+                  <div class="flex items-center gap-2">
+                    <Progress :value="project?.progress || 0" class="flex-1" />
+                    <span class="text-sm font-medium">{{ project?.progress || 0 }}%</span>
+                  </div>
                 </CardContent>
               </Card>
-
+              
               <Card>
                 <CardHeader class="pb-2">
-                  <CardTitle class="text-base">Project Files</CardTitle>
+                  <CardTitle class="text-sm font-medium text-muted-foreground">Type</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div class="text-2xl font-bold">0</div>
-                  <p class="text-sm text-muted-foreground">Files uploaded</p>
+                  <p class="text-sm">{{ formatProjectType(project?.type) }}</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader class="pb-2">
+                  <CardTitle class="text-sm font-medium text-muted-foreground">Client</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p class="text-sm">{{ project?.client?.name || project?.client?.email }}</p>
                 </CardContent>
               </Card>
             </div>
 
-            <Alert>
-              <MessageSquare class="h-4 w-4" />
-              <AlertTitle>Getting Started</AlertTitle>
-              <AlertDescription>
-                Use the tabs above to manage client-facing features. Start by adding project updates to keep your client informed about progress.
-              </AlertDescription>
-            </Alert>
+            <!-- Management Overview -->
+            <Card>
+              <CardHeader>
+                <CardTitle>Project Management Overview</CardTitle>
+                <CardDescription>
+                  Use the tabs above to manage different aspects of this project. Each section provides tools to update content visible to the client.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div class="space-y-4">
+                  <Alert>
+                    <MessageSquare class="h-4 w-4" />
+                    <AlertTitle>Getting Started</AlertTitle>
+                    <AlertDescription>
+                      <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li><strong>Project Updates:</strong> Post progress updates that clients can see</li>
+                        <li><strong>Deliverables:</strong> Upload and manage project deliverables</li>
+                        <li><strong>Comments:</strong> View and respond to client questions</li>
+                        <li><strong>Progress Tracking:</strong> Update internal milestones (not visible to clients)</li>
+                        <li><strong>File Management:</strong> Manage project files and assets</li>
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div class="pt-4">
+                    <Button 
+                      @click="$router.push(`/admin/projects/${projectId}`)"
+                      variant="outline"
+                      class="w-full"
+                    >
+                      <FileText class="h-4 w-4 mr-2" />
+                      View Full Project Details
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <!-- Updates Tab -->

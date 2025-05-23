@@ -44,18 +44,6 @@ const formatDate = (date: string | Date): string => {
   }).format(dateObj);
 };
 
-// Get role badge
-const getRoleBadge = (role: string) => {
-  switch (role) {
-    case "ADMIN":
-    case "SUPER_ADMIN":
-      return { icon: ShieldCheck, color: "text-blue-600", bg: "bg-blue-100" };
-    case "CLIENT":
-      return { icon: User, color: "text-green-600", bg: "bg-green-100" };
-    default:
-      return { icon: User, color: "text-gray-600", bg: "bg-gray-100" };
-  }
-};
 
 // Submit admin reply
 const submitReply = async () => {
@@ -121,35 +109,86 @@ const submitReply = async () => {
 
       <!-- Comments List -->
       <div v-else class="space-y-4 mb-6">
-        <div v-for="comment in comments" :key="comment.id" 
-             class="border rounded-lg p-4"
-             :class="{
-               'border-blue-200 bg-blue-50/50': comment.userRole === 'ADMIN' || comment.userRole === 'SUPER_ADMIN',
-               'border-green-200 bg-green-50/50': comment.userRole === 'CLIENT'
-             }"
-        >
-          <div class="flex items-start gap-3">
-            <div :class="[getRoleBadge(comment.userRole).bg, 'p-2 rounded-full']">
-              <component :is="getRoleBadge(comment.userRole).icon" 
-                        :class="[getRoleBadge(comment.userRole).color, 'h-4 w-4']" />
+        <div class="flex items-center justify-between mb-4">
+          <h4 class="text-sm font-medium flex items-center gap-2">
+            <MessageSquare class="h-4 w-4" />
+            Conversation Thread
+          </h4>
+          <Badge variant="secondary">{{ comments.length }} messages</Badge>
+        </div>
+        
+        <div class="space-y-3">
+          <div 
+            v-for="comment in comments" 
+            :key="comment.id" 
+            :class="[
+              'relative rounded-lg p-4 transition-all',
+              comment.userRole === 'CLIENT' 
+                ? 'bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 ml-0 mr-12' 
+                : 'bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 ml-12 mr-0'
+            ]"
+          >
+            <!-- User indicator -->
+            <div 
+              class="absolute top-4 w-8 h-8 rounded-full flex items-center justify-center shadow-sm"
+              :class="[
+                comment.userRole === 'CLIENT' 
+                  ? '-left-4 bg-green-500' 
+                  : '-right-4 bg-blue-500'
+              ]"
+            >
+              <component 
+                :is="comment.userRole === 'CLIENT' ? User : ShieldCheck" 
+                class="h-4 w-4 text-white" 
+              />
             </div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2 mb-1">
-                <span class="font-medium text-sm">{{ comment.userName || 'Anonymous' }}</span>
-                <Badge variant="outline" class="text-xs">
-                  {{ comment.userRole }}
-                </Badge>
-                <span class="text-xs text-muted-foreground">{{ formatDate(comment.createdAt) }}</span>
+            
+            <!-- Comment header -->
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-semibold text-sm">
+                    {{ comment.userName || 'Anonymous' }}
+                  </span>
+                  <Badge 
+                    :variant="comment.userRole === 'CLIENT' ? 'secondary' : 'default'"
+                    class="text-xs"
+                  >
+                    {{ comment.userRole === 'CLIENT' ? 'Client' : comment.userRole }}
+                  </Badge>
+                  <span class="text-xs text-muted-foreground">
+                    {{ formatDate(comment.createdAt) }}
+                  </span>
+                </div>
+                <!-- Question indicator -->
+                <div v-if="comment.type === 'question' && comment.userRole === 'CLIENT'" 
+                     class="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-500">
+                  <AlertCircle class="h-3 w-3" />
+                  <span>Awaiting response</span>
+                </div>
               </div>
-              <p class="text-sm">{{ comment.message }}</p>
               
-              <!-- Show warning for questions -->
-              <div v-if="comment.type === 'question' && comment.userRole === 'CLIENT'" 
-                   class="mt-2 flex items-center gap-2 text-xs text-amber-600">
-                <AlertCircle class="h-3 w-3" />
-                <span>Client question - consider responding</span>
+              <!-- Type badge -->
+              <div class="flex items-center gap-2">
+                <Badge 
+                  v-if="comment.type === 'question'" 
+                  variant="outline" 
+                  class="text-xs"
+                >
+                  Question
+                </Badge>
+                <Badge 
+                  v-else-if="comment.type === 'response'" 
+                  variant="outline" 
+                  class="text-xs"
+                >
+                  Response
+                </Badge>
               </div>
             </div>
+            
+            <!-- Comment body -->
+            <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ comment.message }}</p>
           </div>
         </div>
       </div>

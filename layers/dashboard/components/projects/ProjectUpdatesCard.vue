@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { MessageSquare, Calendar, User, Bell, Send, X } from "lucide-vue-next";
+import { MessageSquare, Calendar, User, Bell, Send, X, ShieldCheck, AlertCircle } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 interface ProjectUpdate {
@@ -31,6 +31,7 @@ const { toast } = useToast();
 // Comment form state
 const showCommentForm = ref(false);
 const commentMessage = ref("");
+const commentType = ref<"comment" | "question">("comment");
 const isSubmitting = ref(false);
 
 // Fetch real updates from API
@@ -105,7 +106,7 @@ const submitComment = async () => {
       method: "POST",
       body: {
         message: commentMessage.value,
-        type: "comment"
+        type: commentType.value
       }
     });
 
@@ -115,6 +116,7 @@ const submitComment = async () => {
     });
     
     commentMessage.value = "";
+    commentType.value = "comment";
     showCommentForm.value = false;
     await refreshComments();
   } catch (error: any) {
@@ -159,24 +161,93 @@ const submitComment = async () => {
       
       <!-- Comments Section -->
       <div v-if="comments.length > 0" class="mt-6 pt-4 border-t">
-        <h4 class="text-sm font-medium mb-3">Comments & Questions</h4>
+        <h4 class="text-sm font-medium mb-4 flex items-center gap-2">
+          <MessageSquare class="h-4 w-4" />
+          Comments & Questions
+          <Badge variant="secondary" class="ml-auto">{{ comments.length }}</Badge>
+        </h4>
         <div class="space-y-3">
-          <div v-for="comment in comments" :key="comment.id" class="bg-muted/50 rounded-lg p-3">
-            <p class="text-sm">{{ comment.message }}</p>
-            <div class="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
-              <span>{{ comment.userName || 'Anonymous' }}</span>
-              <span>•</span>
-              <span>{{ formatDate(comment.createdAt) }}</span>
+          <div 
+            v-for="comment in comments" 
+            :key="comment.id" 
+            :class="[
+              'relative rounded-lg p-4 transition-all',
+              comment.userRole === 'CLIENT' 
+                ? 'bg-background border ml-0 mr-8' 
+                : 'bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 ml-8 mr-0'
+            ]"
+          >
+            <!-- User indicator -->
+            <div class="absolute -left-3 top-4 w-6 h-6 rounded-full flex items-center justify-center"
+                 :class="comment.userRole === 'CLIENT' ? 'bg-green-500' : 'bg-blue-500'"
+                 v-if="comment.userRole === 'CLIENT'">
+              <User class="h-3 w-3 text-white" />
             </div>
+            <div class="absolute -right-3 top-4 w-6 h-6 rounded-full flex items-center justify-center bg-blue-500"
+                 v-if="comment.userRole !== 'CLIENT'">
+              <ShieldCheck class="h-3 w-3 text-white" />
+            </div>
+            
+            <!-- Comment header -->
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-sm">
+                  {{ comment.userName || 'Anonymous' }}
+                </span>
+                <Badge 
+                  :variant="comment.userRole === 'CLIENT' ? 'secondary' : 'default'"
+                  class="text-xs"
+                >
+                  {{ comment.userRole === 'CLIENT' ? 'You' : 'Team Response' }}
+                </Badge>
+                <span class="text-xs text-muted-foreground">
+                  {{ formatDate(comment.createdAt) }}
+                </span>
+              </div>
+              <Badge 
+                v-if="comment.type === 'question'" 
+                variant="outline" 
+                class="text-xs"
+              >
+                Question
+              </Badge>
+            </div>
+            
+            <!-- Comment body -->
+            <p class="text-sm leading-relaxed">{{ comment.message }}</p>
           </div>
         </div>
       </div>
       
       <!-- Comment Form -->
       <div v-if="showCommentForm" class="mt-4 space-y-3">
+        <div class="flex gap-2">
+          <Select v-model="commentType" class="w-40">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="comment">
+                <div class="flex items-center gap-2">
+                  <MessageSquare class="h-3 w-3" />
+                  Comment
+                </div>
+              </SelectItem>
+              <SelectItem value="question">
+                <div class="flex items-center gap-2">
+                  <AlertCircle class="h-3 w-3 text-amber-600" />
+                  Question
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <div class="flex-1 text-xs text-muted-foreground flex items-center">
+            {{ commentType === 'question' ? 'Ask a question and get a response from the team' : 'Share feedback or updates' }}
+          </div>
+        </div>
         <Textarea
           v-model="commentMessage"
-          placeholder="Type your comment or question here..."
+          :placeholder="commentType === 'question' ? 'What would you like to know?' : 'Share your thoughts...'"
           rows="3"
           class="resize-none"
         />
@@ -188,10 +259,10 @@ const submitComment = async () => {
             class="flex-1"
           >
             <Send class="h-4 w-4 mr-2" />
-            {{ isSubmitting ? 'Posting...' : 'Post Comment' }}
+            {{ isSubmitting ? 'Posting...' : commentType === 'question' ? 'Ask Question' : 'Post Comment' }}
           </Button>
           <Button 
-            @click="showCommentForm = false; commentMessage = ''" 
+            @click="showCommentForm = false; commentMessage = ''; commentType = 'comment'" 
             variant="outline"
             size="sm"
           >

@@ -318,69 +318,74 @@ const saveEditedMilestone = async () => {
         </Button>
       </div>
 
-      <!-- Overall Progress Card -->
-      <Card class="border-blue-200 bg-blue-50/30">
-        <CardContent class="pt-6">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <Lock class="h-4 w-4 text-blue-600" />
-                <h4 class="font-medium">Internal Progress Overview</h4>
+      <!-- Progress Overview Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Overall Progress Card -->
+        <Card class="border-blue-200 bg-blue-50/30">
+          <CardContent class="pt-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <Lock class="h-4 w-4 text-blue-600" />
+                  <h4 class="font-medium">Internal Progress Overview</h4>
+                </div>
+                <span class="text-2xl font-bold text-blue-600">{{ overallProgress }}%</span>
               </div>
-              <span class="text-2xl font-bold text-blue-600">{{ overallProgress }}%</span>
-            </div>
-            
-            <div class="w-full bg-muted rounded-full h-3">
-              <div 
-                class="h-3 rounded-full transition-all duration-500 bg-primary"
-                :style="{ width: `${overallProgress}%` }"
-              ></div>
-            </div>
-            
-            <div class="flex justify-between text-sm text-muted-foreground">
-              <span>Current Phase: {{ project.currentPhase ? Object.values(phases).find(p => p.id === project.currentPhase)?.name : 'Not Started' }}</span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                @click="updateProjectProgress(overallProgress)"
-                :disabled="false"
-                class="border-blue-200 hover:bg-blue-50"
-              >
-                <Settings class="h-4 w-4 mr-1" />
-                Sync Progress to Client View
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <!-- Phase Breakdown -->
-      <Card class="border-blue-200 bg-blue-50/30">
-        <CardHeader>
-          <CardTitle class="text-base flex items-center gap-2">
-            <Lock class="h-4 w-4 text-blue-600" />
-            Phase Breakdown
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div class="space-y-3">
-            <div v-for="phase in Object.values(phases)" :key="phase.id" class="space-y-1">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-medium">{{ phase.name }}</span>
-                <span class="text-xs text-muted-foreground">
-                  {{ phaseProgress[phase.id]?.progress || 0 }}% ({{ phaseProgress[phase.id]?.milestones?.filter(m => m.status === 'completed').length || 0 }}/{{ phaseProgress[phase.id]?.milestones?.length || 0 }})
-                </span>
-              </div>
-              <div class="w-full bg-muted rounded-full h-2">
+              
+              <div class="w-full bg-muted rounded-full h-3">
                 <div 
-                  class="h-2 rounded-full transition-all duration-500 bg-primary"
-                  :style="{ width: `${phaseProgress[phase.id]?.progress || 0}%` }"
+                  class="h-3 rounded-full transition-all duration-500 bg-primary"
+                  :style="{ width: `${overallProgress}%` }"
                 ></div>
               </div>
+              
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-muted-foreground">
+                  Current Phase: {{ project.currentPhase ? Object.values(phases).find(p => p.id === project.currentPhase)?.name : 'Not Started' }}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  @click="updateProjectProgress(overallProgress)"
+                  :disabled="false"
+                  class="border-blue-200 hover:bg-blue-50"
+                >
+                  <Settings class="h-4 w-4 mr-1" />
+                  Sync to Client
+                </Button>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        
+        <!-- Phase Breakdown -->
+        <Card class="border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <CardTitle class="text-base flex items-center gap-2">
+              <Lock class="h-4 w-4 text-blue-600" />
+              Phase Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div class="space-y-3">
+              <div v-for="phase in Object.values(phases)" :key="phase.id" class="space-y-1">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium">{{ phase.name }}</span>
+                  <span class="text-xs text-muted-foreground">
+                    {{ phaseProgress[phase.id]?.progress || 0 }}% ({{ phaseProgress[phase.id]?.milestones?.filter(m => m.status === 'completed').length || 0 }}/{{ phaseProgress[phase.id]?.milestones?.length || 0 }})
+                  </span>
+                </div>
+                <div class="w-full bg-muted rounded-full h-2">
+                  <div 
+                    class="h-2 rounded-full transition-all duration-500 bg-primary"
+                    :style="{ width: `${phaseProgress[phase.id]?.progress || 0}%` }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
 
     <!-- Create Milestone Form -->
