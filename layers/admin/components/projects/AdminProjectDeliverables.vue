@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { Plus, Upload, Eye, Download, FileText, Image, ExternalLink, CheckCircle, Clock, XCircle } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 interface Props {
   projectId: string;
+  triggerCreate?: boolean;
 }
 
 const props = defineProps<Props>();
+
+// Watch for trigger to open create form
+watch(() => props.triggerCreate, (newValue) => {
+  if (newValue) {
+    showCreateForm.value = true;
+  }
+});
 const { toast } = useToast();
 
 // Form state

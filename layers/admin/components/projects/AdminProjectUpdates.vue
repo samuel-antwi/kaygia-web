@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { Plus, MessageSquare, Calendar, User, Edit, Trash2 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 interface Props {
   projectId: string;
+  triggerCreate?: boolean;
 }
 
 const props = defineProps<Props>();
+
+// Watch for trigger to open create form
+watch(() => props.triggerCreate, (newValue) => {
+  if (newValue) {
+    showCreateForm.value = true;
+  }
+});
 const { toast } = useToast();
 
 // Form state
@@ -22,8 +30,9 @@ const newUpdate = ref({
 });
 
 // Fetch project updates
-const { data: updatesData, refresh: refreshUpdates } = await useFetch(`/api/admin/projects/${props.projectId}/updates`, {
-  server: false
+const { data: updatesData, error: updatesError, refresh: refreshUpdates } = await useFetch(`/api/admin/projects/${props.projectId}/updates`, {
+  server: false,
+  default: () => ({ updates: [] })
 });
 
 const updates = computed(() => updatesData.value?.updates || []);

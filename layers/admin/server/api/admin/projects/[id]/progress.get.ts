@@ -52,18 +52,42 @@ export default defineEventHandler(async (event) => {
     }
 
     // Fetch milestones ordered by their order field
-    const milestones = await db.query.projectMilestones.findMany({
-      where: eq(projectMilestones.projectId, id),
-      orderBy: [asc(projectMilestones.order)],
-    });
+    let milestones: any[] = [];
+    try {
+      milestones = await db.query.projectMilestones.findMany({
+        where: eq(projectMilestones.projectId, id),
+        orderBy: [asc(projectMilestones.order)],
+      });
+    } catch (error: any) {
+      // Handle case where project_milestones table doesn't exist yet
+      if (
+        error.message?.includes('relation "project_milestones" does not exist')
+      ) {
+        console.warn(
+          "Project milestones table does not exist yet. Run database migrations."
+        );
+        milestones = [];
+      } else {
+        throw error;
+      }
+    }
 
     // Calculate progress statistics
     const totalMilestones = milestones.length;
-    const completedMilestones = milestones.filter(m => m.status === 'completed').length;
-    const inProgressMilestones = milestones.filter(m => m.status === 'in_progress').length;
-    const pendingMilestones = milestones.filter(m => m.status === 'pending').length;
-    
-    const overallProgress = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+    const completedMilestones = milestones.filter(
+      (m) => m.status === "completed"
+    ).length;
+    const inProgressMilestones = milestones.filter(
+      (m) => m.status === "in_progress"
+    ).length;
+    const pendingMilestones = milestones.filter(
+      (m) => m.status === "pending"
+    ).length;
+
+    const overallProgress =
+      totalMilestones > 0
+        ? Math.round((completedMilestones / totalMilestones) * 100)
+        : 0;
 
     return {
       success: true,

@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, nextTick } from "vue";
 import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings } from "lucide-vue-next";
+import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProjectUpdates.vue";
+import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
+import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
+import AdminProjectFiles from "~/layers/admin/components/projects/AdminProjectFiles.vue";
 
 definePageMeta({
   layout: "admin",
@@ -16,6 +20,11 @@ const project = computed(() => projectData.value?.project);
 // Active tab management
 const activeTab = ref("overview");
 
+// Trigger refs for child components
+const triggerUpdateForm = ref(false);
+const triggerDeliverableForm = ref(false);
+const triggerMilestoneForm = ref(false);
+
 // Quick actions
 const quickActions = [
   {
@@ -23,21 +32,39 @@ const quickActions = [
     label: "Add Project Update",
     icon: MessageSquare,
     description: "Post updates visible to client",
-    action: () => activeTab.value = "updates"
+    action: () => {
+      activeTab.value = "updates";
+      nextTick(() => {
+        triggerUpdateForm.value = true;
+        setTimeout(() => triggerUpdateForm.value = false, 100);
+      });
+    }
   },
   {
     id: "deliverable", 
     label: "Upload Deliverable",
     icon: Upload,
     description: "Upload files for client review",
-    action: () => activeTab.value = "deliverables"
+    action: () => {
+      activeTab.value = "deliverables";
+      nextTick(() => {
+        triggerDeliverableForm.value = true;
+        setTimeout(() => triggerDeliverableForm.value = false, 100);
+      });
+    }
   },
   {
     id: "progress",
     label: "Update Progress",
     icon: BarChart3,
     description: "Update project milestones",
-    action: () => activeTab.value = "progress"
+    action: () => {
+      activeTab.value = "progress";
+      nextTick(() => {
+        triggerMilestoneForm.value = true;
+        setTimeout(() => triggerMilestoneForm.value = false, 100);
+      });
+    }
   },
   {
     id: "files",
@@ -134,7 +161,7 @@ const getStatusColor = (status: string): string => {
               v-for="action in quickActions"
               :key="action.id"
               @click="action.action"
-              class="p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+              class="p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors hover:shadow-md"
             >
               <div class="flex items-center space-x-3">
                 <div class="p-2 bg-primary/10 rounded-lg">
@@ -222,17 +249,27 @@ const getStatusColor = (status: string): string => {
 
           <!-- Updates Tab -->
           <div v-if="activeTab === 'updates'">
-            <AdminProjectUpdates :project-id="projectId" />
+            <AdminProjectUpdates 
+              :project-id="projectId" 
+              :trigger-create="triggerUpdateForm" 
+            />
           </div>
 
           <!-- Deliverables Tab -->
           <div v-if="activeTab === 'deliverables'">
-            <AdminProjectDeliverables :project-id="projectId" />
+            <AdminProjectDeliverables 
+              :project-id="projectId" 
+              :trigger-create="triggerDeliverableForm" 
+            />
           </div>
 
           <!-- Progress Tab -->
           <div v-if="activeTab === 'progress'">
-            <AdminProjectProgress :project-id="projectId" :project="project" />
+            <AdminProjectProgress 
+              :project-id="projectId" 
+              :project="project" 
+              :trigger-create="triggerMilestoneForm" 
+            />
           </div>
 
           <!-- Files Tab -->

@@ -63,7 +63,10 @@ export default defineEventHandler(async (event) => {
       deliverables,
     };
   } catch (error: any) {
-    console.error(`[API][Admin] Error fetching project ${id} deliverables:`, error);
+    console.error(
+      `[API][Admin] Error fetching project ${id} deliverables:`,
+      error
+    );
 
     if (error.statusCode === 404) {
       throw error;
@@ -71,7 +74,8 @@ export default defineEventHandler(async (event) => {
 
     throw createError({
       statusCode: 500,
-      statusMessage: "Internal Server Error: Could not fetch project deliverables.",
+      statusMessage:
+        "Internal Server Error: Could not fetch project deliverables.",
       data: error.message,
     });
   }
