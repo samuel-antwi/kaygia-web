@@ -80,6 +80,7 @@ const { user } = useAuth()
 - **Validation**: Always validate with Zod schemas
 - **Database**: Only use Drizzle ORM, no direct SQL
 - **Session access**: `const session = await getUserSession(event)`
+- **IMPORTANT**: Never import `getUserSession` in API endpoints - it's automatically available globally in Nuxt server context
 
 ### Layer-Specific Features
 - **Marketing**: SEO-optimized public pages with contact forms
@@ -102,8 +103,9 @@ useRoute(), useRouter(), useHead(), useFetch()
 import { Menu } from "lucide-vue-next"
 import { toast } from "~/components/ui/toast/use-toast"
 
-// Session access in API routes
-const session = await getUserSession(event)
+// Session access in API routes (NEVER import getUserSession)
+const session = await getUserSession(event) // ✅ Just use it directly
+// import { getUserSession } from "#auth" // ❌ NEVER do this
 ```
 
 ### Security Considerations

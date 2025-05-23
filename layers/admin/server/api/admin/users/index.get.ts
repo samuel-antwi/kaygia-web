@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
         active: true,
         createdAt: true,
         updatedAt: true,
+        avatarUrl: true,
         // Exclude password hash and other sensitive data
       },
     });

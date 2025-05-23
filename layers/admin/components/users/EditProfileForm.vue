@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CheckIcon, XIcon, Loader2 } from "lucide-vue-next";
+import { CheckIcon, XIcon, Loader2, Upload, UserCircle, Trash2 } from "lucide-vue-next";
 import { z } from "zod";
 import { useToast } from "@/components/ui/toast/use-toast";
 
@@ -16,6 +16,7 @@ const props = defineProps<{
     name: string | null;
     email: string;
     company?: string | null;
+    avatarUrl?: string | null;
   };
   dialog?: boolean; // Optional prop to indicate if this form is rendered in a dialog
 }>();
@@ -34,6 +35,9 @@ const formData = ref({
 
 const isSubmitting = ref(false);
 const errors = ref<Record<string, string>>({});
+const isUploadingAvatar = ref(false);
+const avatarPreview = ref<string | null>(props.user.avatarUrl || null);
+const fileInput = ref<HTMLInputElement>();
 
 // Form validation schema
 const formSchema = z.object({
@@ -106,11 +110,178 @@ async function handleSubmit() {
     isSubmitting.value = false;
   }
 }
+
+// Handle avatar file selection
+function handleAvatarSelect(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  
+  if (!file) return;
+  
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    toast({
+      title: "Error",
+      description: "Please select an image file",
+      variant: "destructive",
+    });
+    return;
+  }
+  
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    toast({
+      title: "Error",
+      description: "Image size must be less than 5MB",
+      variant: "destructive",
+    });
+    return;
+  }
+  
+  // Read file and upload
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target?.result as string;
+    avatarPreview.value = dataUrl;
+    await uploadAvatar(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+// Upload avatar to server
+async function uploadAvatar(dataUrl: string) {
+  isUploadingAvatar.value = true;
+  
+  try {
+    const { data, error } = await useFetch(
+      `/api/admin/users/${props.user.id}/avatar`,
+      {
+        method: "POST",
+        body: { avatarDataUrl: dataUrl },
+      }
+    );
+    
+    if (error.value) {
+      toast({
+        title: "Error",
+        description: "Failed to upload avatar",
+        variant: "destructive",
+      });
+      avatarPreview.value = props.user.avatarUrl || null;
+    } else if (data.value) {
+      const response = data.value as ApiResponseSuccess;
+      toast({
+        title: "Success",
+        description: "Avatar uploaded successfully",
+      });
+      emit("profileUpdated", response.user);
+    }
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "Failed to upload avatar",
+      variant: "destructive",
+    });
+    avatarPreview.value = props.user.avatarUrl || null;
+  } finally {
+    isUploadingAvatar.value = false;
+  }
+}
+
+// Delete avatar
+async function deleteAvatar() {
+  if (!confirm("Are you sure you want to remove the avatar?")) return;
+  
+  isUploadingAvatar.value = true;
+  
+  try {
+    const { error } = await useFetch(
+      `/api/admin/users/${props.user.id}/avatar`,
+      {
+        method: "DELETE",
+      }
+    );
+    
+    if (error.value) {
+      toast({
+        title: "Error",
+        description: "Failed to delete avatar",
+        variant: "destructive",
+      });
+    } else {
+      avatarPreview.value = null;
+      toast({
+        title: "Success",
+        description: "Avatar removed successfully",
+      });
+      emit("profileUpdated", { ...props.user, avatarUrl: null });
+    }
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "Failed to delete avatar",
+      variant: "destructive",
+    });
+  } finally {
+    isUploadingAvatar.value = false;
+  }
+}
 </script>
 
 <template>
   <div>
     <form @submit.prevent="handleSubmit" class="space-y-4">
+      <!-- Avatar Upload Section -->
+      <div class="space-y-2">
+        <Label>Profile Picture</Label>
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <Avatar class="h-20 w-20">
+              <AvatarImage v-if="avatarPreview" :src="avatarPreview" />
+              <AvatarFallback>
+                <UserCircle class="h-12 w-12 text-muted-foreground" />
+              </AvatarFallback>
+            </Avatar>
+            <div v-if="isUploadingAvatar" class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+              <Loader2 class="h-6 w-6 animate-spin text-white" />
+            </div>
+          </div>
+          <div class="space-y-2">
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="handleAvatarSelect"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              @click="fileInput?.click()"
+              :disabled="isUploadingAvatar"
+            >
+              <Upload class="h-4 w-4 mr-2" />
+              Upload Photo
+            </Button>
+            <Button
+              v-if="avatarPreview"
+              type="button"
+              variant="ghost"
+              size="sm"
+              @click="deleteAvatar"
+              :disabled="isUploadingAvatar"
+              class="text-destructive hover:text-destructive"
+            >
+              <Trash2 class="h-4 w-4 mr-2" />
+              Remove
+            </Button>
+            <p class="text-xs text-muted-foreground">Max size: 5MB. JPG, PNG, GIF</p>
+          </div>
+        </div>
+      </div>
+      
+      <Separator />
       <div class="space-y-2">
         <Label for="name">Name</Label>
         <Input

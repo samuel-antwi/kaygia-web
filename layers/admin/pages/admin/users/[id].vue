@@ -24,7 +24,7 @@ import {
 } from "lucide-vue-next";
 
 // Import UI Components
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,6 +89,7 @@ interface UserWithStats {
   updatedAt: Date;
   lastLoggedIn: Date | null;
   company: string | null;
+  avatarUrl: string | null;
   stats: UserStats;
   recentTickets?: any[];
   recentProjects?: any[];
@@ -209,6 +210,7 @@ function handleProfileUpdated(updatedUser: any) {
                 <div class="relative">
                   <div class="absolute inset-0 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-xl opacity-20"></div>
                   <Avatar class="h-28 w-28 border-4 border-white shadow-xl relative">
+                    <AvatarImage v-if="user.avatarUrl" :src="user.avatarUrl" />
                     <AvatarFallback
                       :class="{
                         'bg-gradient-to-br from-primary to-primary/80 text-white': hasAdminAccess(user.role),
