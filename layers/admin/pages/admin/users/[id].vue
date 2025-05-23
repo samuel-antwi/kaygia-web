@@ -8,6 +8,19 @@ import {
   Building,
   Calendar,
   UserCog,
+  Shield,
+  Activity,
+  Clock,
+  MoreVertical,
+  Edit,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Settings,
+  BarChart,
+  Users,
+  FolderOpen,
+  MessageSquare,
 } from "lucide-vue-next";
 
 // Import UI Components
@@ -30,6 +43,13 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Import the user components
@@ -125,234 +145,393 @@ function handleProfileUpdated(updatedUser: any) {
 </script>
 
 <template>
-  <div class="container py-6 space-y-6">
-    <!-- Back Button -->
-    <NuxtLink
-      to="/admin/users"
-      class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
-    >
-      <ArrowLeft class="w-4 h-4 mr-1" />
-      Back to Users
-    </NuxtLink>
-
-    <!-- Loading State -->
-    <div v-if="pending" class="flex items-center justify-center py-20">
-      <Loader2 class="h-10 w-10 animate-spin text-muted-foreground" />
-      <p class="ml-3 text-muted-foreground">Loading user details...</p>
-    </div>
-
-    <!-- Error State -->
-    <div
-      v-else-if="error || !user"
-      class="p-6 bg-destructive/10 border border-destructive/20 rounded-md"
-    >
-      <div class="flex items-center">
-        <AlertTriangle class="h-6 w-6 text-destructive mr-3" />
-        <div>
-          <p class="text-destructive font-semibold">Error Loading User</p>
-          <p class="text-destructive/90 mt-1 text-sm">
-            {{
-              error?.data?.statusMessage ||
-              error?.data?.message ||
-              error?.message ||
-              "Could not load user data or user does not exist."
-            }}
-          </p>
-        </div>
-      </div>
-      <Button @click="refresh" variant="outline" size="sm" class="mt-4">
-        Retry
+  <div class="container py-8 max-w-7xl mx-auto">
+    <!-- Header Navigation -->
+    <div class="mb-8">
+      <Button variant="ghost" size="sm" asChild>
+        <NuxtLink to="/admin/users" class="flex items-center gap-2">
+          <ArrowLeft class="w-4 h-4" />
+          Back to Users
+        </NuxtLink>
       </Button>
     </div>
 
-    <!-- User Data Loaded State -->
-    <div v-else class="space-y-6 max-w-4xl">
-      <!-- User Header Card -->
-      <Card>
-        <CardContent
-          class="pt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6"
-        >
-          <Avatar class="h-24 w-24">
-            <AvatarFallback
-              :class="
-                hasAdminAccess(user.role)
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted'
-              "
-              class="text-3xl"
-            >
-              {{
-                user.name?.charAt(0)?.toUpperCase() ||
-                user.email.charAt(0).toUpperCase()
-              }}
-            </AvatarFallback>
-          </Avatar>
-          <div class="flex-grow text-center md:text-left">
-            <h1 class="text-2xl font-semibold">
-              {{ user.name || "Unnamed User" }}
-            </h1>
-            <p
-              class="text-muted-foreground flex items-center justify-center md:justify-start"
-            >
-              <Mail class="h-4 w-4 mr-1.5" />
-              {{ user.email }}
-            </p>
-            <div
-              v-if="user.company"
-              class="text-muted-foreground flex items-center justify-center md:justify-start mt-1"
-            >
-              <Building class="h-4 w-4 mr-1.5" />
-              {{ user.company }}
+    <!-- Loading State -->
+    <div v-if="pending" class="flex flex-col items-center justify-center py-32">
+      <div class="relative">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-20 h-20 bg-primary/10 rounded-full animate-ping"></div>
+        </div>
+        <Loader2 class="h-10 w-10 animate-spin text-primary relative z-10" />
+      </div>
+      <p class="mt-4 text-muted-foreground font-medium">Loading user details...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error || !user" class="max-w-md mx-auto mt-32">
+      <Card class="border-destructive/20 bg-destructive/5">
+        <CardContent class="pt-6">
+          <div class="flex flex-col items-center text-center space-y-4">
+            <div class="p-3 bg-destructive/10 rounded-full">
+              <AlertTriangle class="h-8 w-8 text-destructive" />
             </div>
-            <div
-              class="mt-2 flex items-center justify-center md:justify-start space-x-2"
-            >
-              <Badge
-                variant="outline"
-                :class="{
-                  'bg-primary/10 text-primary border-primary/20':
-                    user.role === 'ADMIN',
-                  'bg-destructive/10 text-destructive border-destructive/20 font-semibold':
-                    user.role === 'SUPER_ADMIN',
-                  'bg-muted text-muted-foreground border-muted-foreground/20':
-                    user.role === 'CLIENT',
-                }"
-              >
-                {{ user.role }}
-              </Badge>
-              <Badge
-                :variant="user.active ? 'default' : 'destructive'"
-                :class="{
-                  'bg-green-100 text-green-800 hover:bg-green-100': user.active,
-                  'bg-red-100 text-red-800 hover:bg-red-100': !user.active,
-                }"
-              >
-                {{ user.active ? "Active" : "Inactive" }}
-              </Badge>
-              <Badge
-                :variant="user.emailVerified ? 'default' : 'outline'"
-                :class="{
-                  'bg-green-100 text-green-800 hover:bg-green-100':
-                    user.emailVerified,
-                  'bg-orange-100 text-orange-800 hover:bg-orange-100':
-                    !user.emailVerified,
-                }"
-              >
-                {{ user.emailVerified ? "Verified" : "Not Verified" }}
-              </Badge>
+            <div>
+              <p class="text-lg font-semibold text-destructive">Error Loading User</p>
+              <p class="text-sm text-muted-foreground mt-1">
+                {{
+                  error?.data?.statusMessage ||
+                  error?.data?.message ||
+                  error?.message ||
+                  "Could not load user data or user does not exist."
+                }}
+              </p>
             </div>
+            <Button @click="refresh" variant="outline" size="sm">
+              Try Again
+            </Button>
           </div>
-          <Dialog v-model:open="showEditDialog">
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                class="flex items-center gap-1.5 shrink-0 mt-4 md:mt-0"
-              >
-                <UserCog class="h-4 w-4" />
-                Edit Profile
-              </Button>
-            </DialogTrigger>
-            <DialogContent class="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Edit User Profile</DialogTitle>
-                <DialogDescription>
-                  Make changes to the user's profile information. Click save
-                  when you're done.
-                </DialogDescription>
-              </DialogHeader>
-              <EditProfileForm
-                :user="user"
-                :dialog="true"
-                @profile-updated="handleProfileUpdated"
-                @cancel="showEditDialog = false"
-              />
-            </DialogContent>
-          </Dialog>
         </CardContent>
       </Card>
+    </div>
 
-      <!-- Tabs -->
-      <div class="max-w-4xl">
-        <Tabs default-value="details" class="w-full">
-          <TabsList class="grid w-full grid-cols-3">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="management">Management</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-          </TabsList>
+    <!-- User Data Loaded State -->
+    <div v-else class="space-y-8">
+      <!-- User Header Section -->
+      <div class="relative">
+        <!-- Background Gradient -->
+        <div class="absolute inset-0 h-32 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-2xl"></div>
+        
+        <Card class="relative overflow-hidden border-0 shadow-lg">
+          <CardContent class="p-0">
+            <div class="flex flex-col lg:flex-row">
+              <!-- Left Section: Avatar and Basic Info -->
+              <div class="p-8 flex flex-col lg:flex-row items-center lg:items-start gap-6 flex-1">
+                <div class="relative">
+                  <div class="absolute inset-0 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-xl opacity-20"></div>
+                  <Avatar class="h-28 w-28 border-4 border-white shadow-xl relative">
+                    <AvatarFallback
+                      :class="{
+                        'bg-gradient-to-br from-primary to-primary/80 text-white': hasAdminAccess(user.role),
+                        'bg-gradient-to-br from-slate-500 to-slate-600 text-white': !hasAdminAccess(user.role)
+                      }"
+                      class="text-3xl font-bold"
+                    >
+                      {{
+                        user.name?.charAt(0)?.toUpperCase() ||
+                        user.email.charAt(0).toUpperCase()
+                      }}
+                    </AvatarFallback>
+                  </Avatar>
+                  <!-- Online Status Indicator -->
+                  <div class="absolute bottom-2 right-2 h-6 w-6 bg-green-500 border-3 border-white rounded-full"></div>
+                </div>
+
+                <div class="flex-1 text-center lg:text-left space-y-4">
+                  <div>
+                    <h1 class="text-3xl font-bold tracking-tight">
+                      {{ user.name || "Unnamed User" }}
+                    </h1>
+                    <p class="text-muted-foreground mt-1 flex items-center justify-center lg:justify-start gap-2">
+                      <Mail class="h-4 w-4" />
+                      {{ user.email }}
+                    </p>
+                    <p v-if="user.company" class="text-muted-foreground mt-1 flex items-center justify-center lg:justify-start gap-2">
+                      <Building class="h-4 w-4" />
+                      {{ user.company }}
+                    </p>
+                  </div>
+
+                  <!-- Status Badges -->
+                  <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                    <Badge
+                      :class="{
+                        'bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 px-3 py-1': user.role === 'SUPER_ADMIN',
+                        'bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 px-3 py-1': user.role === 'ADMIN',
+                        'bg-slate-100 text-slate-700 border-slate-200': user.role === 'CLIENT',
+                      }"
+                    >
+                      <Shield class="h-3 w-3 mr-1" />
+                      {{ user.role }}
+                    </Badge>
+                    
+                    <Badge
+                      :class="{
+                        'bg-green-100 text-green-700 border-green-200': user.active,
+                        'bg-red-100 text-red-700 border-red-200': !user.active,
+                      }"
+                    >
+                      <component :is="user.active ? CheckCircle : XCircle" class="h-3 w-3 mr-1" />
+                      {{ user.active ? "Active" : "Inactive" }}
+                    </Badge>
+                    
+                    <Badge
+                      :class="{
+                        'bg-blue-100 text-blue-700 border-blue-200': user.emailVerified,
+                        'bg-amber-100 text-amber-700 border-amber-200': !user.emailVerified,
+                      }"
+                    >
+                      <component :is="user.emailVerified ? CheckCircle : AlertCircle" class="h-3 w-3 mr-1" />
+                      {{ user.emailVerified ? "Verified" : "Unverified" }}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Section: Quick Stats and Actions -->
+              <div class="bg-muted/30 p-8 flex flex-col justify-between gap-6 lg:w-80">
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <p class="text-2xl font-bold text-primary">{{ user.stats?.totalProjects || 0 }}</p>
+                    <p class="text-xs text-muted-foreground">Projects</p>
+                  </div>
+                  <div class="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <p class="text-2xl font-bold text-primary">{{ user.stats?.totalTickets || 0 }}</p>
+                    <p class="text-xs text-muted-foreground">Tickets</p>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                  <Dialog v-model:open="showEditDialog">
+                    <DialogTrigger asChild>
+                      <Button class="flex-1" variant="default">
+                        <Edit class="h-4 w-4 mr-2" />
+                        Edit Profile
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent class="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Edit User Profile</DialogTitle>
+                        <DialogDescription>
+                          Make changes to the user's profile information. Click save
+                          when you're done.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <EditProfileForm
+                        :user="user"
+                        :dialog="true"
+                        @profile-updated="handleProfileUpdated"
+                        @cancel="showEditDialog = false"
+                      />
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <MoreVertical class="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>View Activity Log</DropdownMenuItem>
+                      <DropdownMenuItem>Export Data</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem class="text-destructive">Delete User</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Main Content Tabs -->
+      <Tabs default-value="details" class="w-full">
+        <TabsList class="grid w-full grid-cols-3 h-14 p-1 bg-muted/50">
+          <TabsTrigger value="details" class="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Activity class="h-4 w-4 mr-2" />
+            Details
+          </TabsTrigger>
+          <TabsTrigger value="management" class="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Settings class="h-4 w-4 mr-2" />
+            Management
+          </TabsTrigger>
+          <TabsTrigger value="activity" class="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Clock class="h-4 w-4 mr-2" />
+            Activity
+          </TabsTrigger>
+        </TabsList>
 
           <!-- Details Tab -->
-          <TabsContent value="details" class="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Details & Statistics</CardTitle>
-              </CardHeader>
-              <CardContent class="space-y-6">
-                <!-- User Stats -->
-                <UserStats :stats="user.stats" />
-                <Separator />
-                <!-- Additional Details -->
-                <div class="text-sm space-y-2">
-                  <div class="flex items-center">
-                    <Calendar class="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span>Joined: {{ formatDate(user.createdAt) }}</span>
+          <TabsContent value="details" class="mt-6 space-y-6">
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card class="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent class="p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-muted-foreground">Total Projects</p>
+                      <p class="text-3xl font-bold mt-1">{{ user.stats?.totalProjects || 0 }}</p>
+                    </div>
+                    <div class="p-3 bg-primary/10 rounded-full">
+                      <FolderOpen class="h-6 w-6 text-primary" />
+                    </div>
                   </div>
-                  <div v-if="user.lastLoggedIn" class="flex items-center">
-                    <span class="h-4 w-4 mr-2 text-muted-foreground">🕒</span>
-                    <span>Last Login: {{ formatDate(user.lastLoggedIn) }}</span>
+                </CardContent>
+              </Card>
+              
+              <Card class="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent class="p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-muted-foreground">Active Projects</p>
+                      <p class="text-3xl font-bold mt-1">{{ user.stats?.projectsByStatus?.IN_PROGRESS || 0 }}</p>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-full">
+                      <Activity class="h-6 w-6 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card class="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent class="p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-muted-foreground">Support Tickets</p>
+                      <p class="text-3xl font-bold mt-1">{{ user.stats?.totalTickets || 0 }}</p>
+                    </div>
+                    <div class="p-3 bg-blue-100 rounded-full">
+                      <MessageSquare class="h-6 w-6 text-blue-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card class="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent class="p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-sm text-muted-foreground">Open Tickets</p>
+                      <p class="text-3xl font-bold mt-1">{{ user.stats?.ticketsByStatus?.OPEN || 0 }}</p>
+                    </div>
+                    <div class="p-3 bg-amber-100 rounded-full">
+                      <AlertCircle class="h-6 w-6 text-amber-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <!-- User Information Card -->
+            <Card class="border-0 shadow-sm">
+              <CardHeader class="pb-4">
+                <CardTitle class="text-lg flex items-center gap-2">
+                  <UserCog class="h-5 w-5" />
+                  User Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-4">
+                    <div>
+                      <p class="text-sm text-muted-foreground mb-1">Account Created</p>
+                      <p class="font-medium flex items-center gap-2">
+                        <Calendar class="h-4 w-4 text-muted-foreground" />
+                        {{ formatDate(user.createdAt) }}
+                      </p>
+                    </div>
+                    <div v-if="user.lastLoggedIn">
+                      <p class="text-sm text-muted-foreground mb-1">Last Active</p>
+                      <p class="font-medium flex items-center gap-2">
+                        <Clock class="h-4 w-4 text-muted-foreground" />
+                        {{ formatDate(user.lastLoggedIn) }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="space-y-4">
+                    <div>
+                      <p class="text-sm text-muted-foreground mb-1">Account Type</p>
+                      <p class="font-medium">{{ user.role }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-muted-foreground mb-1">User ID</p>
+                      <p class="font-mono text-sm">{{ user.id }}</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+            <!-- Detailed Stats Component -->
+            <UserStats :stats="user.stats" />
           </TabsContent>
 
           <!-- Management Tab -->
-          <TabsContent value="management" class="mt-4 space-y-4">
-            <RoleManagement
-              :user="user"
-              :current-user="currentUser"
-              :on-role-changed="refresh"
-            />
-            <AccountStatusManagement
-              :user="user"
-              :on-status-changed="refresh"
-            />
-            <PasswordManagement :user="user" />
-            <EmailVerificationManagement
-              :user="user"
-              :on-verification-changed="refresh"
-            />
+          <TabsContent value="management" class="mt-6">
+            <!-- Management Overview -->
+            <div class="mb-6">
+              <Card class="border-0 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
+                <CardContent class="p-6">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h3 class="text-lg font-semibold mb-1">Account Management</h3>
+                      <p class="text-sm text-muted-foreground">Manage user permissions, security settings, and account status</p>
+                    </div>
+                    <Settings class="h-8 w-8 text-muted-foreground/50" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <!-- Management Cards Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <RoleManagement
+                :user="user"
+                :current-user="currentUser"
+                :on-role-changed="refresh"
+                class="h-fit"
+              />
+              <AccountStatusManagement
+                :user="user"
+                :on-status-changed="refresh"
+                class="h-fit"
+              />
+              <PasswordManagement :user="user" class="h-fit" />
+              <EmailVerificationManagement
+                :user="user"
+                :on-verification-changed="refresh"
+                class="h-fit"
+              />
+            </div>
           </TabsContent>
 
           <!-- Activity Tab -->
-          <TabsContent value="activity" class="mt-4 space-y-4">
-            <RecentItems
-              v-if="user.recentTickets && user.recentTickets.length > 0"
-              title="Recent Tickets"
-              :items="user.recentTickets"
-              item-type="tickets"
-              view-all-link="/admin/tickets"
-            />
-            <RecentItems
-              v-if="user.recentProjects && user.recentProjects.length > 0"
-              title="Recent Projects"
-              :items="user.recentProjects"
-              item-type="projects"
-              view-all-link="/admin/projects"
-            />
-            <Card
-              v-if="
-                (!user.recentTickets || user.recentTickets.length === 0) &&
-                (!user.recentProjects || user.recentProjects.length === 0)
-              "
+          <TabsContent value="activity" class="mt-6 space-y-6">
+            <div v-if="(user.recentTickets && user.recentTickets.length > 0) || (user.recentProjects && user.recentProjects.length > 0)" class="space-y-6">
+              <RecentItems
+                v-if="user.recentTickets && user.recentTickets.length > 0"
+                title="Recent Tickets"
+                :items="user.recentTickets"
+                item-type="tickets"
+                view-all-link="/admin/tickets"
+                class="shadow-sm"
+              />
+              <RecentItems
+                v-if="user.recentProjects && user.recentProjects.length > 0"
+                title="Recent Projects"
+                :items="user.recentProjects"
+                item-type="projects"
+                view-all-link="/admin/projects"
+                class="shadow-sm"
+              />
+            </div>
+            
+            <!-- Empty State -->
+            <div
+              v-else
+              class="flex flex-col items-center justify-center py-16"
             >
-              <CardContent class="pt-6 text-center text-muted-foreground">
-                No recent activity found for this user.
-              </CardContent>
-            </Card>
+              <div class="p-4 bg-muted/50 rounded-full mb-4">
+                <Activity class="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p class="text-lg font-medium text-muted-foreground">No Recent Activity</p>
+              <p class="text-sm text-muted-foreground mt-1">This user hasn't created any projects or tickets yet.</p>
+            </div>
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   </div>
 </template>

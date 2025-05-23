@@ -103,92 +103,149 @@ const changeUserRole = async (newRole: string) => {
 </script>
 
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle>Role Management</CardTitle>
+  <Card class="border-0 shadow-md hover:shadow-lg transition-shadow">
+    <CardHeader class="pb-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <CardTitle class="text-lg flex items-center gap-2">
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <ShieldCheck class="h-5 w-5 text-primary" />
+            </div>
+            Role Management
+          </CardTitle>
+          <CardDescription class="mt-1.5">
+            Control user permissions and access levels
+          </CardDescription>
+        </div>
+      </div>
     </CardHeader>
     <CardContent class="space-y-4">
-      <p class="text-sm text-muted-foreground mb-2">
-        Change user's role in the system:
-      </p>
-
-      <div
-        v-if="!canManageRoles"
-        class="text-sm p-4 border rounded-md bg-muted/30"
-      >
-        <AlertTriangle class="h-4 w-4 inline-block mr-2 text-amber-500" />
-        <span>Only Super Admins can change user roles</span>
-      </div>
-
-      <div v-else class="relative space-y-2">
-        <Button
-          variant="outline"
-          size="sm"
-          class="w-full flex items-center justify-between"
-          :class="{ 'opacity-50': isChangingRole }"
-          :disabled="isChangingRole || props.user.role === 'CLIENT'"
-          @click="changeUserRole('CLIENT')"
-        >
-          <div class="flex items-center">
-            <UserCog class="h-4 w-4 mr-2" />
-            <span>Set as CLIENT</span>
-          </div>
-          <span v-if="props.user.role === 'CLIENT'"> (Current) </span>
-        </Button>
-
-        <Button
-          variant="default"
-          size="sm"
-          class="w-full flex items-center justify-between"
-          :class="{ 'opacity-50': isChangingRole }"
-          :disabled="isChangingRole || props.user.role === 'ADMIN'"
-          @click="changeUserRole('ADMIN')"
-        >
-          <div class="flex items-center">
-            <ShieldCheck class="h-4 w-4 mr-2" />
-            <span>Set as ADMIN</span>
-          </div>
-          <span v-if="props.user.role === 'ADMIN'"> (Current) </span>
-        </Button>
-
-        <Button
-          variant="destructive"
-          size="sm"
-          class="w-full flex items-center justify-between"
-          :class="{ 'opacity-50': isChangingRole }"
-          :disabled="isChangingRole || props.user.role === 'SUPER_ADMIN'"
-          @click="changeUserRole('SUPER_ADMIN')"
-        >
-          <div class="flex items-center">
-            <Key class="h-4 w-4 mr-2" />
-            <span>Set as SUPER ADMIN</span>
-          </div>
-          <span v-if="props.user.role === 'SUPER_ADMIN'"> (Current) </span>
-        </Button>
-
-        <!-- Loading spinner overlay -->
-        <div
-          v-if="isChangingRole"
-          class="absolute inset-0 flex items-center justify-center bg-background/50 rounded"
-        >
-          <Loader2 class="h-4 w-4 animate-spin" />
+      <!-- Current Role Display -->
+      <div class="p-4 bg-muted/50 rounded-lg border">
+        <p class="text-xs text-muted-foreground uppercase tracking-wide mb-1">Current Role</p>
+        <div class="flex items-center gap-2">
+          <Badge 
+            :class="{
+              'bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0': props.user.role === 'SUPER_ADMIN',
+              'bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0': props.user.role === 'ADMIN',
+              'bg-slate-100 text-slate-700 border-slate-200': props.user.role === 'CLIENT',
+            }"
+            class="px-3 py-1"
+          >
+            <component 
+              :is="props.user.role === 'SUPER_ADMIN' ? Key : props.user.role === 'ADMIN' ? ShieldCheck : UserCog" 
+              class="h-3 w-3 mr-1" 
+            />
+            {{ props.user.role }}
+          </Badge>
         </div>
       </div>
 
-      <Alert class="mt-2" :variant="canManageRoles ? 'destructive' : 'default'">
-        <AlertTriangle class="h-4 w-4" />
-        <AlertTitle>Important</AlertTitle>
-        <AlertDescription>
-          <p>
-            Changing a user's role affects their permissions and access across
-            the system.
-          </p>
-          <p v-if="canManageRoles" class="mt-1 font-semibold">
-            Super Admins have full control over the entire system including role
-            management.
-          </p>
+      <Alert v-if="!canManageRoles" class="border-amber-200 bg-amber-50">
+        <AlertTriangle class="h-4 w-4 text-amber-600" />
+        <AlertTitle class="text-amber-800">Permission Required</AlertTitle>
+        <AlertDescription class="text-amber-700">
+          Only Super Admins can change user roles. Contact a Super Admin if you need to modify this user's permissions.
         </AlertDescription>
       </Alert>
+
+      <div v-else class="space-y-3">
+        <p class="text-sm text-muted-foreground">Select a new role:</p>
+        
+        <div class="grid gap-3">
+          <!-- Client Role Option -->
+          <button
+            @click="changeUserRole('CLIENT')"
+            :disabled="isChangingRole || props.user.role === 'CLIENT'"
+            class="relative p-4 rounded-lg border-2 text-left transition-all"
+            :class="{
+              'border-primary bg-primary/5 cursor-not-allowed': props.user.role === 'CLIENT',
+              'border-gray-200 hover:border-gray-300 hover:bg-gray-50': props.user.role !== 'CLIENT' && !isChangingRole,
+              'opacity-50 cursor-not-allowed': isChangingRole
+            }"
+          >
+            <div class="flex items-start gap-3">
+              <div class="p-2 bg-gray-100 rounded-lg">
+                <UserCog class="h-5 w-5 text-gray-600" />
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">Client</span>
+                  <Badge v-if="props.user.role === 'CLIENT'" variant="secondary" class="text-xs">Current</Badge>
+                </div>
+                <p class="text-sm text-muted-foreground mt-1">
+                  Basic access to own projects and support tickets
+                </p>
+              </div>
+            </div>
+          </button>
+
+          <!-- Admin Role Option -->
+          <button
+            @click="changeUserRole('ADMIN')"
+            :disabled="isChangingRole || props.user.role === 'ADMIN'"
+            class="relative p-4 rounded-lg border-2 text-left transition-all"
+            :class="{
+              'border-primary bg-primary/5 cursor-not-allowed': props.user.role === 'ADMIN',
+              'border-blue-200 hover:border-blue-300 hover:bg-blue-50': props.user.role !== 'ADMIN' && !isChangingRole,
+              'opacity-50 cursor-not-allowed': isChangingRole
+            }"
+          >
+            <div class="flex items-start gap-3">
+              <div class="p-2 bg-blue-100 rounded-lg">
+                <ShieldCheck class="h-5 w-5 text-blue-600" />
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">Admin</span>
+                  <Badge v-if="props.user.role === 'ADMIN'" variant="secondary" class="text-xs">Current</Badge>
+                </div>
+                <p class="text-sm text-muted-foreground mt-1">
+                  Manage all projects, users, and system content
+                </p>
+              </div>
+            </div>
+          </button>
+
+          <!-- Super Admin Role Option -->
+          <button
+            @click="changeUserRole('SUPER_ADMIN')"
+            :disabled="isChangingRole || props.user.role === 'SUPER_ADMIN'"
+            class="relative p-4 rounded-lg border-2 text-left transition-all"
+            :class="{
+              'border-primary bg-primary/5 cursor-not-allowed': props.user.role === 'SUPER_ADMIN',
+              'border-purple-200 hover:border-purple-300 hover:bg-purple-50': props.user.role !== 'SUPER_ADMIN' && !isChangingRole,
+              'opacity-50 cursor-not-allowed': isChangingRole
+            }"
+          >
+            <div class="flex items-start gap-3">
+              <div class="p-2 bg-purple-100 rounded-lg">
+                <Key class="h-5 w-5 text-purple-600" />
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">Super Admin</span>
+                  <Badge v-if="props.user.role === 'SUPER_ADMIN'" variant="secondary" class="text-xs">Current</Badge>
+                </div>
+                <p class="text-sm text-muted-foreground mt-1">
+                  Full system control including role management
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div
+          v-if="isChangingRole"
+          class="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg z-10"
+        >
+          <div class="flex flex-col items-center gap-2">
+            <Loader2 class="h-6 w-6 animate-spin text-primary" />
+            <p class="text-sm font-medium">Updating role...</p>
+          </div>
+        </div>
+      </div>
     </CardContent>
   </Card>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { AlertTriangle, Loader2, UserX, UserCheck } from "lucide-vue-next";
+import { AlertTriangle, Loader2, UserX, UserCheck, CheckCircle, XCircle, AlertCircle } from "lucide-vue-next";
 
 interface AccountStatusManagementProps {
   user: {
@@ -74,46 +74,90 @@ const toggleAccountStatus = async () => {
 </script>
 
 <template>
-  <Card>
-    <CardHeader class="flex">
-      <CardTitle>
+  <Card class="border-0 shadow-md hover:shadow-lg transition-shadow">
+    <CardHeader class="pb-4">
+      <div class="flex items-start justify-between">
         <div>
-          <span v-if="props.user.active" class="flex items-center">
-            <UserCheck class="h-5 w-5 mr-2 text-green-600" />
-            Account Status: Active
-          </span>
-          <span v-else>
-            <UserX class="h-5 w-5 mr-2 text-red-600" />
-            Account Status: Inactive
-          </span>
+          <CardTitle class="text-lg flex items-center gap-2">
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <component 
+                :is="props.user.active ? UserCheck : UserX" 
+                :class="props.user.active ? 'text-green-600' : 'text-red-600'"
+                class="h-5 w-5" 
+              />
+            </div>
+            Account Status
+          </CardTitle>
+          <CardDescription class="mt-1.5">
+            Control user access to the system
+          </CardDescription>
         </div>
-      </CardTitle>
+      </div>
     </CardHeader>
     <CardContent class="space-y-4">
-      <p class="text-sm text-muted-foreground">
-        <span v-if="props.user.active">
-          This user can currently log in and access the system.
-        </span>
-        <span v-else>
-          This user cannot currently log in. Their account has been deactivated.
-        </span>
-      </p>
+      <!-- Status Display -->
+      <div 
+        class="p-4 rounded-lg border-2"
+        :class="{
+          'bg-green-50 border-green-200': props.user.active,
+          'bg-red-50 border-red-200': !props.user.active
+        }"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-medium flex items-center gap-2">
+              <component 
+                :is="props.user.active ? CheckCircle : XCircle" 
+                :class="props.user.active ? 'text-green-600' : 'text-red-600'"
+                class="h-5 w-5" 
+              />
+              {{ props.user.active ? 'Active Account' : 'Inactive Account' }}
+            </p>
+            <p class="text-sm mt-1" :class="props.user.active ? 'text-green-700' : 'text-red-700'">
+              <span v-if="props.user.active">
+                User can log in and access the system
+              </span>
+              <span v-else>
+                User is blocked from accessing the system
+              </span>
+            </p>
+          </div>
+          <Badge 
+            :variant="props.user.active ? 'default' : 'destructive'"
+            :class="{
+              'bg-green-100 text-green-800 border-green-300': props.user.active,
+              'bg-red-100 text-red-800 border-red-300': !props.user.active
+            }"
+          >
+            {{ props.user.active ? 'ACTIVE' : 'INACTIVE' }}
+          </Badge>
+        </div>
+      </div>
 
+      <!-- Action Section -->
       <div class="space-y-4">
+        <Alert v-if="!props.user.active" class="border-amber-200 bg-amber-50">
+          <AlertCircle class="h-4 w-4 text-amber-600" />
+          <AlertDescription class="text-amber-700">
+            This user cannot access their account until it is reactivated.
+          </AlertDescription>
+        </Alert>
+        
         <Dialog v-model:open="dialogOpen">
           <DialogTrigger as-child>
             <Button
-              :variant="props.user.active ? 'destructive' : 'default'"
-              class="flex justify-between items-center"
+              :variant="props.user.active ? 'outline' : 'default'"
+              class="w-full"
+              :class="{
+                'border-red-200 hover:bg-red-50 hover:text-red-700': props.user.active,
+                'bg-green-600 hover:bg-green-700': !props.user.active
+              }"
             >
-              <span v-if="props.user.active">Deactivate Account</span>
-              <span v-else>Activate Account</span>
-              <span v-if="props.user.active">
-                <UserX class="h-4 w-4 ml-2" />
-              </span>
-              <span v-else>
-                <UserCheck class="h-4 w-4 ml-2" />
-              </span>
+              <component 
+                :is="props.user.active ? UserX : UserCheck" 
+                class="h-4 w-4 mr-2" 
+              />
+              {{ props.user.active ? 'Deactivate Account' : 'Activate Account' }}
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -140,12 +184,33 @@ const toggleAccountStatus = async () => {
                 </span>
               </DialogDescription>
             </DialogHeader>
-            <Alert variant="destructive" class="my-4" v-if="props.user.active">
-              <AlertTriangle class="h-4 w-4" />
-              <AlertTitle>Warning</AlertTitle>
-              <AlertDescription>
-                The user will immediately lose access to their account and any
-                ongoing sessions will be terminated.
+            <Alert 
+              :variant="props.user.active ? 'destructive' : 'default'" 
+              class="my-4"
+              :class="{
+                'border-red-200 bg-red-50': props.user.active,
+                'border-green-200 bg-green-50': !props.user.active
+              }"
+            >
+              <component 
+                :is="props.user.active ? AlertTriangle : CheckCircle" 
+                class="h-4 w-4"
+                :class="{
+                  'text-red-600': props.user.active,
+                  'text-green-600': !props.user.active
+                }" 
+              />
+              <AlertTitle :class="props.user.active ? 'text-red-800' : 'text-green-800'">
+                {{ props.user.active ? 'Warning' : 'Note' }}
+              </AlertTitle>
+              <AlertDescription :class="props.user.active ? 'text-red-700' : 'text-green-700'">
+                <span v-if="props.user.active">
+                  The user will immediately lose access to their account and any
+                  ongoing sessions will be terminated.
+                </span>
+                <span v-else>
+                  The user will regain full access to their account and can log in immediately.
+                </span>
               </AlertDescription>
             </Alert>
             <DialogFooter>

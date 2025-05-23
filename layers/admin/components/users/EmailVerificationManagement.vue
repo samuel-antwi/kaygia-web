@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { AlertTriangle, Loader2, Mail, CheckCircle2 } from "lucide-vue-next";
+import { AlertTriangle, Loader2, Mail, CheckCircle2, Send, ShieldCheck, AlertCircle } from "lucide-vue-next";
 
 interface EmailVerificationManagementProps {
   user: {
@@ -120,38 +120,93 @@ const resendVerificationEmail = async () => {
 </script>
 
 <template>
-  <Card>
-    <CardHeader class="flex flex-row">
-      <CardTitle>
-        <span v-if="props.user.emailVerified" class="flex items-center">
-          <CheckCircle2 class="h-5 w-5 mr-2 text-green-600" />
-          Email Status: Verified
-        </span>
-        <span v-else class="flex items-center">
-          <Mail class="h-5 w-5 mr-2 text-orange-600" />
-          Email Status: Not Verified
-        </span>
-      </CardTitle>
+  <Card class="border-0 shadow-md hover:shadow-lg transition-shadow">
+    <CardHeader class="pb-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <CardTitle class="text-lg flex items-center gap-2">
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <Mail class="h-5 w-5 text-primary" />
+            </div>
+            Email Verification
+          </CardTitle>
+          <CardDescription class="mt-1.5">
+            Manage email verification status
+          </CardDescription>
+        </div>
+      </div>
     </CardHeader>
     <CardContent class="space-y-4">
-      <p class="text-sm text-muted-foreground">
-        <span v-if="props.user.emailVerified">
-          This user's email address ({{ props.user.email }}) has been verified.
-        </span>
-        <span v-else>
-          This user's email address ({{ props.user.email }}) has not been
-          verified yet. They may have limited functionality until they verify
-          their email.
-        </span>
-      </p>
+      <!-- Verification Status -->
+      <div 
+        class="p-4 rounded-lg border-2"
+        :class="{
+          'bg-green-50 border-green-200': props.user.emailVerified,
+          'bg-amber-50 border-amber-200': !props.user.emailVerified
+        }"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <component 
+                :is="props.user.emailVerified ? CheckCircle2 : AlertCircle" 
+                :class="props.user.emailVerified ? 'text-green-600' : 'text-amber-600'"
+                class="h-5 w-5" 
+              />
+              <p class="font-medium" :class="props.user.emailVerified ? 'text-green-900' : 'text-amber-900'">
+                {{ props.user.emailVerified ? 'Email Verified' : 'Email Not Verified' }}
+              </p>
+            </div>
+            <p class="text-sm" :class="props.user.emailVerified ? 'text-green-700' : 'text-amber-700'">
+              {{ props.user.email }}
+            </p>
+            <p v-if="!props.user.emailVerified" class="text-xs text-amber-600 mt-1">
+              Limited functionality until email is verified
+            </p>
+          </div>
+          <Badge 
+            :variant="props.user.emailVerified ? 'default' : 'secondary'"
+            :class="{
+              'bg-green-100 text-green-800 border-green-300': props.user.emailVerified,
+              'bg-amber-100 text-amber-800 border-amber-300': !props.user.emailVerified
+            }"
+          >
+            {{ props.user.emailVerified ? 'VERIFIED' : 'PENDING' }}
+          </Badge>
+        </div>
+      </div>
 
-      <div class="space-y-4" v-if="!props.user.emailVerified">
-        <Dialog v-model:open="confirmDialogOpen">
-          <DialogTrigger as-child>
-            <Button variant="default" class="w-full">
-              Manually Verify Email
-            </Button>
-          </DialogTrigger>
+      <!-- Verification Actions -->
+      <div v-if="props.user.emailVerified" class="flex items-center justify-center py-4">
+        <div class="text-center">
+          <CheckCircle2 class="h-8 w-8 text-green-600 mx-auto mb-2" />
+          <p class="text-sm text-muted-foreground">Email verification complete</p>
+        </div>
+      </div>
+      
+      <div v-else class="space-y-3">
+        <div class="grid grid-cols-1 gap-3">
+          <Button
+            variant="outline"
+            class="w-full"
+            @click="resendVerificationEmail"
+            :disabled="isSendingVerification"
+          >
+            <Send class="h-4 w-4 mr-2" v-if="!isSendingVerification" />
+            <Loader2
+              v-if="isSendingVerification"
+              class="h-4 w-4 mr-2 animate-spin"
+            />
+            {{ isSendingVerification ? 'Sending...' : 'Resend Verification Email' }}
+          </Button>
+          
+          <Dialog v-model:open="confirmDialogOpen">
+            <DialogTrigger as-child>
+              <Button variant="default" class="w-full">
+                <ShieldCheck class="h-4 w-4 mr-2" />
+                Manually Verify Email
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Manually Verify Email</DialogTitle>
@@ -164,12 +219,12 @@ const resendVerificationEmail = async () => {
                 verification process.
               </DialogDescription>
             </DialogHeader>
-            <Alert class="my-4">
-              <AlertTriangle class="h-4 w-4" />
-              <AlertTitle>Important</AlertTitle>
-              <AlertDescription>
-                Only do this if you're certain this is the user's correct email
-                address. Manual verification bypasses security checks.
+            <Alert class="my-4 border-amber-200 bg-amber-50">
+              <AlertTriangle class="h-4 w-4 text-amber-600" />
+              <AlertTitle class="text-amber-800">Security Warning</AlertTitle>
+              <AlertDescription class="text-amber-700">
+                Manual verification bypasses the normal security process. Only verify if you're 
+                absolutely certain this email address belongs to the user.
               </AlertDescription>
             </Alert>
             <DialogFooter>
@@ -192,20 +247,11 @@ const resendVerificationEmail = async () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        <Button
-          variant="outline"
-          class="w-full"
-          @click="resendVerificationEmail"
-          :disabled="isSendingVerification"
-        >
-          <Loader2
-            v-if="isSendingVerification"
-            class="mr-2 h-4 w-4 animate-spin"
-          />
-          <span v-if="isSendingVerification">Sending...</span>
-          <span v-else>Resend Verification Email</span>
-        </Button>
+        </div>
+        
+        <p class="text-xs text-center text-muted-foreground">
+          Verification emails expire after 24 hours
+        </p>
       </div>
     </CardContent>
   </Card>

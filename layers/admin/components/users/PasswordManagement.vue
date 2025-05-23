@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { AlertTriangle, Loader2, KeyRound } from "lucide-vue-next";
+import { AlertTriangle, Loader2, KeyRound, Mail, Shield, Clock } from "lucide-vue-next";
 
 interface PasswordManagementProps {
   user: {
@@ -68,26 +68,53 @@ const initiatePasswordReset = async () => {
 </script>
 
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle class="flex items-center">
-        <KeyRound class="h-5 w-5 mr-2" />
-        Password Management
-      </CardTitle>
+  <Card class="border-0 shadow-md hover:shadow-lg transition-shadow">
+    <CardHeader class="pb-4">
+      <div class="flex items-start justify-between">
+        <div>
+          <CardTitle class="text-lg flex items-center gap-2">
+            <div class="p-2 bg-primary/10 rounded-lg">
+              <KeyRound class="h-5 w-5 text-primary" />
+            </div>
+            Password Management
+          </CardTitle>
+          <CardDescription class="mt-1.5">
+            Reset user password and manage security
+          </CardDescription>
+        </div>
+      </div>
     </CardHeader>
     <CardContent class="space-y-4">
-      <p class="text-sm text-muted-foreground">
-        Help the user reset their password or manage account security:
-      </p>
+      <!-- Security Info -->
+      <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start gap-3">
+          <Shield class="h-5 w-5 text-blue-600 mt-0.5" />
+          <div class="flex-1">
+            <p class="font-medium text-blue-900">Password Reset Process</p>
+            <ul class="text-sm text-blue-700 mt-1 space-y-1">
+              <li class="flex items-center gap-2">
+                <Mail class="h-3 w-3" />
+                Email sent to: {{ props.user.email }}
+              </li>
+              <li class="flex items-center gap-2">
+                <Clock class="h-3 w-3" />
+                Link expires after 1 hour
+              </li>
+              <li class="flex items-center gap-2">
+                <KeyRound class="h-3 w-3" />
+                Current password remains valid until reset
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <div class="space-y-4">
-        <!-- Password Reset Button -->
-        <div>
           <Dialog v-model:open="dialogOpen">
             <DialogTrigger as-child>
-              <Button class="flex justify-between items-center">
-                <span>Send Password Reset Email</span>
-                <KeyRound class="h-4 w-4 ml-2" />
+              <Button class="w-full" variant="default">
+                <Mail class="h-4 w-4 mr-2" />
+                Send Password Reset Email
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -100,13 +127,12 @@ const initiatePasswordReset = async () => {
                   the link in the email.
                 </DialogDescription>
               </DialogHeader>
-              <Alert variant="destructive" class="my-4">
-                <AlertTriangle class="h-4 w-4" />
-                <AlertTitle>Important</AlertTitle>
-                <AlertDescription>
-                  The reset link will expire after 1 hour. The user's current
-                  password will remain valid until they complete the reset
-                  process.
+              <Alert class="my-4 border-amber-200 bg-amber-50">
+                <AlertTriangle class="h-4 w-4 text-amber-600" />
+                <AlertTitle class="text-amber-800">Security Notice</AlertTitle>
+                <AlertDescription class="text-amber-700">
+                  The reset link will expire after 1 hour for security reasons. The user's current
+                  password will remain valid until they complete the reset process.
                 </AlertDescription>
               </Alert>
               <DialogFooter>
@@ -133,9 +159,12 @@ const initiatePasswordReset = async () => {
           </Dialog>
         </div>
 
-        <p class="text-xs text-muted-foreground italic">
-          The user will receive an email with a secure link to reset their
-          password. The link will expire after 1 hour.
+      </div>
+      
+      <!-- Additional Actions -->
+      <div class="pt-2 border-t">
+        <p class="text-xs text-muted-foreground">
+          Need to force a password change? Contact system support for additional security options.
         </p>
       </div>
     </CardContent>
