@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from "vue";
-import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock, Info, MoreVertical, ExternalLink } from "lucide-vue-next";
+import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock, Info, MoreVertical, ExternalLink, ChevronRight } from "lucide-vue-next";
 import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProjectUpdates.vue";
 import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
 import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
@@ -35,6 +35,16 @@ const triggerUpdateForm = ref(false);
 const triggerDeliverableForm = ref(false);
 const triggerMilestoneForm = ref(false);
 
+// Ref for scrolling to tab content
+const tabSectionRef = ref<HTMLElement>();
+
+// Function to scroll to tab content
+const scrollToTabContent = () => {
+  if (tabSectionRef.value) {
+    tabSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
 // Simple formatting function for project type
 const formatProjectType = (type: string | null | undefined) => {
   if (!type) return 'Not specified';
@@ -51,11 +61,13 @@ const formatProjectType = (type: string | null | undefined) => {
 const clientFacingActions = [
   {
     id: "update",
+    tabId: "updates",
     label: "Add Project Update",
     icon: MessageSquare,
     description: "Post updates visible to client",
     action: () => {
       activeTab.value = "updates";
+      scrollToTabContent();
       nextTick(() => {
         triggerUpdateForm.value = true;
         setTimeout(() => triggerUpdateForm.value = false, 100);
@@ -64,11 +76,13 @@ const clientFacingActions = [
   },
   {
     id: "deliverable", 
+    tabId: "deliverables",
     label: "Upload Deliverable",
     icon: Upload,
     description: "Upload files for client review",
     action: () => {
       activeTab.value = "deliverables";
+      scrollToTabContent();
       nextTick(() => {
         triggerDeliverableForm.value = true;
         setTimeout(() => triggerDeliverableForm.value = false, 100);
@@ -80,11 +94,13 @@ const clientFacingActions = [
 const internalActions = [
   {
     id: "progress",
+    tabId: "progress",
     label: "Update Progress",
     icon: BarChart3,
     description: "Track internal milestones",
     action: () => {
       activeTab.value = "progress";
+      scrollToTabContent();
       nextTick(() => {
         triggerMilestoneForm.value = true;
         setTimeout(() => triggerMilestoneForm.value = false, 100);
@@ -93,10 +109,14 @@ const internalActions = [
   },
   {
     id: "files",
+    tabId: "files",
     label: "Manage Files",
     icon: FileText,
     description: "Organize internal files",
-    action: () => activeTab.value = "files"
+    action: () => {
+      activeTab.value = "files";
+      scrollToTabContent();
+    }
   }
 ];
 
@@ -211,22 +231,24 @@ const getStatusColor = (status: string): string => {
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
-              <div
+              <button
                 v-for="action in clientFacingActions"
                 :key="action.id"
                 @click="action.action"
-                class="p-4 border border-green-200 bg-green-50/50 rounded-lg cursor-pointer hover:bg-green-50 transition-colors hover:shadow-md"
+                class="w-full p-4 border-2 border-green-200 bg-white rounded-lg text-left transition-all hover:border-green-400 hover:bg-green-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 group"
+                :class="{ 'ring-2 ring-green-500 border-green-400 bg-green-50': activeTab === action.tabId }"
               >
                 <div class="flex items-center space-x-3">
-                  <div class="p-2 bg-green-100 rounded-lg">
+                  <div class="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                     <component :is="action.icon" class="h-5 w-5 text-green-600" />
                   </div>
-                  <div>
-                    <h3 class="font-medium">{{ action.label }}</h3>
+                  <div class="flex-1">
+                    <h3 class="font-medium text-gray-900">{{ action.label }}</h3>
                     <p class="text-sm text-muted-foreground">{{ action.description }}</p>
                   </div>
+                  <ChevronRight class="h-5 w-5 text-gray-400 group-hover:text-green-600 transition-colors" />
                 </div>
-              </div>
+              </button>
             </div>
           </CardContent>
         </Card>
@@ -244,29 +266,32 @@ const getStatusColor = (status: string): string => {
           </CardHeader>
           <CardContent>
             <div class="space-y-3">
-              <div
+              <button
                 v-for="action in internalActions"
                 :key="action.id"
                 @click="action.action"
-                class="p-4 border border-blue-200 bg-blue-50/50 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors hover:shadow-md"
+                class="w-full p-4 border-2 border-blue-200 bg-white rounded-lg text-left transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
+                :class="{ 'ring-2 ring-blue-500 border-blue-400 bg-blue-50': activeTab === action.tabId }"
               >
                 <div class="flex items-center space-x-3">
-                  <div class="p-2 bg-blue-100 rounded-lg">
+                  <div class="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
                     <component :is="action.icon" class="h-5 w-5 text-blue-600" />
                   </div>
-                  <div>
-                    <h3 class="font-medium">{{ action.label }}</h3>
+                  <div class="flex-1">
+                    <h3 class="font-medium text-gray-900">{{ action.label }}</h3>
                     <p class="text-sm text-muted-foreground">{{ action.description }}</p>
                   </div>
+                  <ChevronRight class="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
                 </div>
-              </div>
+              </button>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <!-- Management Tabs -->
-      <Card>
+      <div ref="tabSectionRef" class="scroll-mt-6">
+        <Card>
         <CardHeader>
           <div class="flex space-x-4 border-b">
             <button
@@ -425,6 +450,7 @@ const getStatusColor = (status: string): string => {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   </div>
 </template>
