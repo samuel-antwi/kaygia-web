@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { Upload, Download, Eye, FileText, Image, Archive, Trash2, FolderOpen, Filter, Search } from "lucide-vue-next";
+import { Upload, Download, Eye, FileText, Image, Archive, Trash2, FolderOpen, Filter, Search, Lock } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 interface Props {
@@ -210,22 +210,34 @@ const getTypeBadgeColor = (type: string) => {
 
 <template>
   <div class="space-y-6">
+    <!-- Internal Notice -->
+    <Alert class="bg-blue-50 border-blue-200">
+      <Lock class="h-4 w-4 text-blue-600" />
+      <AlertTitle class="text-blue-800">Internal File Management</AlertTitle>
+      <AlertDescription class="text-blue-700">
+        These files are for internal organization only. To share files with clients, use the "Deliverables" tab instead.
+      </AlertDescription>
+    </Alert>
+    
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-semibold">Project Files</h3>
+        <h3 class="text-lg font-semibold">Internal Project Files</h3>
         <p class="text-sm text-muted-foreground">
-          Upload and organize files for client access and project use
+          Store and organize files for internal team use
         </p>
       </div>
     </div>
 
     <!-- Upload Section -->
-    <Card>
+    <Card class="border-blue-200">
       <CardHeader>
-        <CardTitle>Upload Files</CardTitle>
+        <CardTitle class="flex items-center gap-2">
+          <Lock class="h-5 w-5 text-blue-600" />
+          Upload Internal Files
+        </CardTitle>
         <CardDescription>
-          Upload files that clients can access through their project dashboard
+          Upload files for internal reference only (not visible to clients)
         </CardDescription>
       </CardHeader>
       <CardContent>

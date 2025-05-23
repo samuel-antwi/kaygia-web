@@ -199,26 +199,38 @@ const getFileTypeIcon = (fileType?: string | null) => {
 
 <template>
   <div class="space-y-6">
+    <!-- Client Visibility Notice -->
+    <Alert class="bg-green-50 border-green-200">
+      <Eye class="h-4 w-4 text-green-600" />
+      <AlertTitle class="text-green-800">Client-Visible Deliverables</AlertTitle>
+      <AlertDescription class="text-green-700">
+        Deliverables uploaded here will be visible to the client for download and approval. Ensure all files are finalized and ready for client review.
+      </AlertDescription>
+    </Alert>
+    
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-semibold">Project Deliverables</h3>
+        <h3 class="text-lg font-semibold">Client Deliverables</h3>
         <p class="text-sm text-muted-foreground">
-          Upload files, previews, and links for client review and approval
+          Share files, previews, and links for client review and approval
         </p>
       </div>
       <Button @click="showCreateForm = true" class="flex items-center">
         <Plus class="h-4 w-4 mr-2" />
-        Add Deliverable
+        Add Client Deliverable
       </Button>
     </div>
 
     <!-- Create Deliverable Form -->
-    <Card v-if="showCreateForm">
+    <Card v-if="showCreateForm" class="border-green-200">
       <CardHeader>
-        <CardTitle>Create New Deliverable</CardTitle>
+        <CardTitle class="flex items-center gap-2">
+          <Eye class="h-5 w-5 text-green-600" />
+          Create Client Deliverable
+        </CardTitle>
         <CardDescription>
-          Upload files or links that clients can review and approve
+          Upload files or links that clients can download and approve
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { Plus, MessageSquare, Calendar, User, Edit, Trash2 } from "lucide-vue-next";
+import { Plus, MessageSquare, Calendar, User, Edit, Trash2, Eye } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 interface Props {
@@ -151,26 +151,38 @@ const getUpdateTypeInfo = (type: string) => {
 
 <template>
   <div class="space-y-6">
+    <!-- Client Visibility Notice -->
+    <Alert class="bg-green-50 border-green-200">
+      <Eye class="h-4 w-4 text-green-600" />
+      <AlertTitle class="text-green-800">Client-Visible Content</AlertTitle>
+      <AlertDescription class="text-green-700">
+        Updates posted here will be visible to the client in their project dashboard. Ensure all content is professional and client-appropriate.
+      </AlertDescription>
+    </Alert>
+    
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h3 class="text-lg font-semibold">Project Updates</h3>
+        <h3 class="text-lg font-semibold">Client-Facing Updates</h3>
         <p class="text-sm text-muted-foreground">
-          Manage updates that clients see on their project dashboard
+          Post updates that clients will see on their dashboard
         </p>
       </div>
       <Button @click="showCreateForm = true" class="flex items-center">
         <Plus class="h-4 w-4 mr-2" />
-        Add Update
+        Add Client Update
       </Button>
     </div>
 
     <!-- Create Update Form -->
-    <Card v-if="showCreateForm">
+    <Card v-if="showCreateForm" class="border-green-200">
       <CardHeader>
-        <CardTitle>Create New Update</CardTitle>
+        <CardTitle class="flex items-center gap-2">
+          <Eye class="h-5 w-5 text-green-600" />
+          Create Client Update
+        </CardTitle>
         <CardDescription>
-          This update will be visible to the client on their project dashboard
+          This update will be immediately visible to the client
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">

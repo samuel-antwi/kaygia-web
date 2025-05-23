@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from "vue";
-import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings } from "lucide-vue-next";
+import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock } from "lucide-vue-next";
 import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProjectUpdates.vue";
 import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
 import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
@@ -25,8 +25,8 @@ const triggerUpdateForm = ref(false);
 const triggerDeliverableForm = ref(false);
 const triggerMilestoneForm = ref(false);
 
-// Quick actions
-const quickActions = [
+// Quick actions - organized by visibility
+const clientFacingActions = [
   {
     id: "update",
     label: "Add Project Update",
@@ -52,12 +52,15 @@ const quickActions = [
         setTimeout(() => triggerDeliverableForm.value = false, 100);
       });
     }
-  },
+  }
+];
+
+const internalActions = [
   {
     id: "progress",
     label: "Update Progress",
     icon: BarChart3,
-    description: "Update project milestones",
+    description: "Track internal milestones",
     action: () => {
       activeTab.value = "progress";
       nextTick(() => {
@@ -70,7 +73,7 @@ const quickActions = [
     id: "files",
     label: "Manage Files",
     icon: FileText,
-    description: "Organize project files",
+    description: "Organize internal files",
     action: () => activeTab.value = "files"
   }
 ];
@@ -145,37 +148,73 @@ const getStatusColor = (status: string): string => {
       </div>
 
       <!-- Quick Actions -->
-      <Card>
-        <CardHeader>
-          <CardTitle class="flex items-center">
-            <Settings class="h-5 w-5 mr-2" />
-            Quick Actions
-          </CardTitle>
-          <CardDescription>
-            Manage client-facing features for this project
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div
-              v-for="action in quickActions"
-              :key="action.id"
-              @click="action.action"
-              class="p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors hover:shadow-md"
-            >
-              <div class="flex items-center space-x-3">
-                <div class="p-2 bg-primary/10 rounded-lg">
-                  <component :is="action.icon" class="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 class="font-medium">{{ action.label }}</h3>
-                  <p class="text-sm text-muted-foreground">{{ action.description }}</p>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Client-Facing Actions -->
+        <Card>
+          <CardHeader>
+            <CardTitle class="flex items-center">
+              <Eye class="h-5 w-5 mr-2 text-green-600" />
+              Client-Facing Actions
+            </CardTitle>
+            <CardDescription>
+              These actions create content visible to your client
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div class="space-y-3">
+              <div
+                v-for="action in clientFacingActions"
+                :key="action.id"
+                @click="action.action"
+                class="p-4 border border-green-200 bg-green-50/50 rounded-lg cursor-pointer hover:bg-green-50 transition-colors hover:shadow-md"
+              >
+                <div class="flex items-center space-x-3">
+                  <div class="p-2 bg-green-100 rounded-lg">
+                    <component :is="action.icon" class="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 class="font-medium">{{ action.label }}</h3>
+                    <p class="text-sm text-muted-foreground">{{ action.description }}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <!-- Internal Actions -->
+        <Card>
+          <CardHeader>
+            <CardTitle class="flex items-center">
+              <Lock class="h-5 w-5 mr-2 text-blue-600" />
+              Internal Management
+            </CardTitle>
+            <CardDescription>
+              These actions are for internal tracking only
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div class="space-y-3">
+              <div
+                v-for="action in internalActions"
+                :key="action.id"
+                @click="action.action"
+                class="p-4 border border-blue-200 bg-blue-50/50 rounded-lg cursor-pointer hover:bg-blue-50 transition-colors hover:shadow-md"
+              >
+                <div class="flex items-center space-x-3">
+                  <div class="p-2 bg-blue-100 rounded-lg">
+                    <component :is="action.icon" class="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 class="font-medium">{{ action.label }}</h3>
+                    <p class="text-sm text-muted-foreground">{{ action.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <!-- Management Tabs -->
       <Card>
@@ -183,21 +222,29 @@ const getStatusColor = (status: string): string => {
           <div class="flex space-x-4 border-b">
             <button
               v-for="tab in [
-                { id: 'overview', label: 'Overview' },
-                { id: 'updates', label: 'Project Updates' },
-                { id: 'deliverables', label: 'Deliverables' },
-                { id: 'progress', label: 'Progress Tracking' },
-                { id: 'files', label: 'File Management' }
+                { id: 'overview', label: 'Overview', icon: null },
+                { id: 'updates', label: 'Project Updates', icon: Eye, type: 'client' },
+                { id: 'deliverables', label: 'Deliverables', icon: Eye, type: 'client' },
+                { id: 'progress', label: 'Progress Tracking', icon: Lock, type: 'internal' },
+                { id: 'files', label: 'File Management', icon: Lock, type: 'internal' }
               ]"
               :key="tab.id"
               @click="activeTab = tab.id"
               :class="[
-                'px-4 py-2 font-medium transition-colors border-b-2',
+                'px-4 py-2 font-medium transition-colors border-b-2 flex items-center gap-2',
                 activeTab === tab.id
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               ]"
             >
+              <component 
+                v-if="tab.icon" 
+                :is="tab.icon" 
+                :class="[
+                  'h-3 w-3',
+                  tab.type === 'client' ? 'text-green-600' : 'text-blue-600'
+                ]" 
+              />
               {{ tab.label }}
             </button>
           </div>

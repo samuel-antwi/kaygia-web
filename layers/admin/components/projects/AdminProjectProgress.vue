@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { Plus, CheckCircle, Clock, Circle, Settings, Trash2, Edit3 } from "lucide-vue-next";
+import { Plus, CheckCircle, Clock, Circle, Settings, Trash2, Edit3, Lock } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 
 interface Props {
@@ -247,40 +247,52 @@ const saveEditedMilestone = async () => {
   <div class="space-y-6">
     <!-- Header with Overall Progress -->
     <div class="space-y-4">
+      <Alert class="bg-blue-50 border-blue-200">
+        <Lock class="h-4 w-4 text-blue-600" />
+        <AlertTitle class="text-blue-800">Internal Tracking Only</AlertTitle>
+        <AlertDescription class="text-blue-700">
+          This progress tracking is for internal project management only. Clients cannot see these milestones or progress updates.
+        </AlertDescription>
+      </Alert>
+      
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-semibold">Project Progress</h3>
+          <h3 class="text-lg font-semibold">Internal Project Progress</h3>
           <p class="text-sm text-muted-foreground">
-            Manage milestones and track project completion
+            Track milestones for internal team coordination
           </p>
         </div>
         <Button @click="showCreateForm = true" class="flex items-center">
           <Plus class="h-4 w-4 mr-2" />
-          Add Milestone
+          Add Internal Milestone
         </Button>
       </div>
 
       <!-- Overall Progress Card -->
-      <Card>
+      <Card class="border-blue-200 bg-blue-50/30">
         <CardContent class="pt-6">
           <div class="space-y-4">
             <div class="flex items-center justify-between">
-              <h4 class="font-medium">Overall Progress</h4>
-              <span class="text-2xl font-bold text-primary">{{ overallProgress }}%</span>
+              <div class="flex items-center gap-2">
+                <Lock class="h-4 w-4 text-blue-600" />
+                <h4 class="font-medium">Internal Progress Overview</h4>
+              </div>
+              <span class="text-2xl font-bold text-blue-600">{{ overallProgress }}%</span>
             </div>
             
             <Progress :value="overallProgress" class="h-3" />
             
             <div class="flex justify-between text-sm text-muted-foreground">
-              <span>{{ milestones.filter(m => m.status === 'completed').length }} of {{ milestones.length }} milestones completed</span>
+              <span>{{ milestones.filter(m => m.status === 'completed').length }} of {{ milestones.length }} internal milestones completed</span>
               <Button 
                 variant="outline" 
                 size="sm" 
                 @click="updateProjectProgress(overallProgress)"
                 :disabled="false"
+                class="border-blue-200 hover:bg-blue-50"
               >
                 <Settings class="h-4 w-4 mr-1" />
-                Sync Progress
+                Sync Internal Progress
               </Button>
             </div>
           </div>
@@ -289,11 +301,14 @@ const saveEditedMilestone = async () => {
     </div>
 
     <!-- Create Milestone Form -->
-    <Card v-if="showCreateForm">
+    <Card v-if="showCreateForm" class="border-blue-200">
       <CardHeader>
-        <CardTitle>Create New Milestone</CardTitle>
+        <CardTitle class="flex items-center gap-2">
+          <Lock class="h-5 w-5 text-blue-600" />
+          Create Internal Milestone
+        </CardTitle>
         <CardDescription>
-          Add a milestone to track project progress
+          Add a milestone for internal tracking (not visible to clients)
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
