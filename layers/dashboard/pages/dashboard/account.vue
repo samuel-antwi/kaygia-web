@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
 import { Input } from "@/components/ui/input";
 import {
   FormControl,
@@ -39,6 +40,7 @@ const { toast } = useToast();
 const isUploadingAvatar = ref(false);
 const avatarPreview = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement>();
+const showDeleteDialog = ref(false);
 
 // Set initial avatar preview when user data loads
 watch(user, (newUser) => {
@@ -229,9 +231,8 @@ async function uploadAvatar(dataUrl: string) {
 
 // Delete avatar
 async function deleteAvatar() {
-  if (!confirm("Are you sure you want to remove your avatar?")) return;
-  
   isUploadingAvatar.value = true;
+  showDeleteDialog.value = false; // Close dialog
   
   try {
     const { error } = await useFetch('/api/profile/avatar', {
@@ -336,12 +337,13 @@ async function deleteAvatar() {
                     <Upload class="h-4 w-4 mr-2" />
                     Change Photo
                   </Button>
+                  
                   <Button
                     v-if="avatarPreview"
                     type="button"
                     variant="ghost"
                     size="sm"
-                    @click="deleteAvatar"
+                    @click="showDeleteDialog = true"
                     :disabled="isUploadingAvatar"
                     class="text-destructive hover:text-destructive bg-white/80 backdrop-blur-sm"
                   >
@@ -506,6 +508,16 @@ async function deleteAvatar() {
 
       </div>
     </div>
+    
+    <!-- Delete Avatar Confirmation Dialog -->
+    <DeleteConfirmDialog
+      v-model:open="showDeleteDialog"
+      title="Remove Profile Picture"
+      description="Are you sure you want to remove your profile picture?"
+      confirm-text="Remove Picture"
+      :loading="isUploadingAvatar"
+      @confirm="deleteAvatar"
+    />
   </div>
 </template>
 
