@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
 import { Input } from "@/components/ui/input";
 import {
   FormControl,

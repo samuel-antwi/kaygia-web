@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { Upload, Download, Eye, FileText, Image, Archive, Trash2, FolderOpen, Filter, Search, Lock } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
+import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
 
 interface Props {
   projectId: string;

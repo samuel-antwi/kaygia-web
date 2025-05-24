@@ -2,6 +2,7 @@
 import { CheckIcon, XIcon, Loader2, Upload, UserCircle, Trash2 } from "lucide-vue-next";
 import { z } from "zod";
 import { useToast } from "@/components/ui/toast/use-toast";
+import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
 
 // Define the expected API response type
 interface ApiResponseSuccess {
