@@ -67,7 +67,7 @@ import RecentItems from "../../../components/users/RecentItems.vue";
 import { useFormatting } from "~/layers/admin/composables/useFormatting";
 import { hasAdminAccess, canDeleteUsers, isSuperAdmin } from "~/layers/admin/utils/adminAccess";
 import { useToast } from "@/components/ui/toast/use-toast";
-import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
+import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
 
 definePageMeta({
   layout: "admin",
@@ -652,7 +652,7 @@ async function restoreUser() {
     </div>
     
     <!-- Delete Confirmation Dialog -->
-    <DeleteConfirmDialog
+    <ConfirmDialog
       v-model:open="showDeleteDialog"
       title="Delete User"
       :description="`Are you sure you want to delete ${user?.name || user?.email}? This action cannot be undone.`"
@@ -663,7 +663,7 @@ async function restoreUser() {
     />
     
     <!-- Restore Confirmation Dialog -->
-    <DeleteConfirmDialog
+    <ConfirmDialog
       v-model:open="showRestoreDialog"
       title="Restore User"
       :description="`Are you sure you want to restore ${user?.name || user?.email}? They will be able to log in again.`"

@@ -4,7 +4,7 @@ import { AlertTriangle, Loader2, UserX, RotateCcw, Search, ArrowLeft, MoreHorizo
 import { useToast } from "@/components/ui/toast/use-toast";
 import { useFormatting } from "~/layers/admin/composables/useFormatting";
 import { isSuperAdmin } from "~/layers/admin/utils/adminAccess";
-import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
+import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
 import type { ColumnDef } from "@tanstack/vue-table";
 import {
   FlexRender,
@@ -374,7 +374,7 @@ const formatDeletedDate = (date: string | Date | null) => {
     </div>
 
     <!-- Restore Confirmation Dialog -->
-    <DeleteConfirmDialog
+    <ConfirmDialog
       v-model:open="restoreDialog.open"
       title="Restore User"
       :description="`Are you sure you want to restore ${restoreDialog.userName}? They will be able to log in again.`"

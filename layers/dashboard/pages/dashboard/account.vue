@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
+import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
 import { Input } from "@/components/ui/input";
 import {
   FormControl,
@@ -510,7 +510,7 @@ async function deleteAvatar() {
     </div>
     
     <!-- Delete Avatar Confirmation Dialog -->
-    <DeleteConfirmDialog
+    <ConfirmDialog
       v-model:open="showDeleteDialog"
       title="Remove Profile Picture"
       description="Are you sure you want to remove your profile picture?"

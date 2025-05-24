@@ -2,7 +2,7 @@
 import { CheckIcon, XIcon, Loader2, Upload, UserCircle, Trash2 } from "lucide-vue-next";
 import { z } from "zod";
 import { useToast } from "@/components/ui/toast/use-toast";
-import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
+import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
 
 // Define the expected API response type
 interface ApiResponseSuccess {
@@ -345,7 +345,7 @@ async function deleteAvatar() {
     </form>
     
     <!-- Delete Avatar Dialog -->
-    <DeleteConfirmDialog
+    <ConfirmDialog
       v-model:open="showDeleteDialog"
       title="Remove Profile Picture"
       description="Are you sure you want to remove this user's profile picture?"

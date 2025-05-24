@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { Upload, Download, Eye, FileText, Image, Archive, Trash2, FolderOpen, Filter, Search, Lock } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
+import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
 
 interface Props {
   projectId: string;
@@ -464,7 +464,7 @@ const getTypeBadgeColor = (type: string) => {
     </Card>
     
     <!-- Delete Confirmation Dialog -->
-    <DeleteConfirmDialog
+    <ConfirmDialog
       v-model:open="deleteDialog.open"
       title="Delete File"
       :description="`This file will be permanently removed from the project. This action cannot be undone.`"

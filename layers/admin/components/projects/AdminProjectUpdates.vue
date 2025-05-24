@@ -2,7 +2,7 @@
 import { ref, computed, watch } from "vue";
 import { Plus, MessageSquare, Calendar, User, Edit, Trash2, Eye } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
+import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
 
 interface Props {
   projectId: string;
@@ -317,7 +317,7 @@ const getUpdateTypeInfo = (type: string) => {
     </div>
     
     <!-- Delete Confirmation Dialog -->
-    <DeleteConfirmDialog
+    <ConfirmDialog
       v-model:open="deleteDialog.open"
       title="Delete Update"
       :description="`This update will be permanently removed and will no longer be visible to the client. This action cannot be undone.`"
