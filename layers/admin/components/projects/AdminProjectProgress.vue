@@ -3,7 +3,6 @@ import { ref, computed, watch } from "vue";
 import { Plus, CheckCircle, Clock, Circle, Settings, Trash2, Edit3, Lock, AlertCircle } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import type { PROJECT_PHASES } from "~/server/utils/project-phases";
-import DeleteConfirmDialog from "~/layers/admin/components/ui/DeleteConfirmDialog.vue";
 
 interface Props {
   projectId: string;

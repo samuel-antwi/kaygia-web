@@ -38,6 +38,7 @@ const errors = ref<Record<string, string>>({});
 const isUploadingAvatar = ref(false);
 const avatarPreview = ref<string | null>(props.user.avatarUrl || null);
 const fileInput = ref<HTMLInputElement>();
+const showDeleteDialog = ref(false);
 
 // Form validation schema
 const formSchema = z.object({
@@ -190,8 +191,6 @@ async function uploadAvatar(dataUrl: string) {
 
 // Delete avatar
 async function deleteAvatar() {
-  if (!confirm("Are you sure you want to remove the avatar?")) return;
-  
   isUploadingAvatar.value = true;
   
   try {
@@ -269,7 +268,7 @@ async function deleteAvatar() {
               type="button"
               variant="ghost"
               size="sm"
-              @click="deleteAvatar"
+              @click="showDeleteDialog = true"
               :disabled="isUploadingAvatar"
               class="text-destructive hover:text-destructive"
             >
@@ -343,5 +342,15 @@ async function deleteAvatar() {
         </Button>
       </div>
     </form>
+    
+    <!-- Delete Avatar Dialog -->
+    <DeleteConfirmDialog
+      v-model:open="showDeleteDialog"
+      title="Remove Profile Picture"
+      description="Are you sure you want to remove this user's profile picture?"
+      confirm-text="Remove Picture"
+      :loading="isUploadingAvatar"
+      @confirm="deleteAvatar"
+    />
   </div>
 </template>

@@ -2,7 +2,6 @@
 import { ref, computed, watch } from "vue";
 import { Plus, MessageSquare, Calendar, User, Edit, Trash2, Eye } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import DeleteConfirmDialog from "~/layers/admin/components/ui/DeleteConfirmDialog.vue";
 
 interface Props {
   projectId: string;
