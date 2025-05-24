@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { AlertTriangle, Loader2, Search, UserCog } from "lucide-vue-next";
+import { AlertTriangle, Loader2, Search, UserCog, UserX } from "lucide-vue-next";
 import type { InferSelectModel } from "drizzle-orm";
 import type { users as usersSchema } from "~/server/db/schema";
 import { useToast } from "@/components/ui/toast/use-toast";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess, isSuperAdmin } from "~/layers/admin/utils/adminAccess";
 
 definePageMeta({
   layout: "admin",
@@ -45,6 +45,9 @@ interface ApiResponse {
 
 const searchQuery = ref("");
 const { toast } = useToast();
+
+// Get current user to check if they're super admin
+const { user: currentUser } = useAuth();
 
 // Fetch users data
 const { data, pending, error, refresh } = await useFetch<ApiResponse>(
@@ -126,6 +129,12 @@ const viewUser = (userId: string) => {
         </span>
         <span v-else>Refresh</span>
       </Button>
+      <NuxtLink v-if="currentUser && isSuperAdmin(currentUser.role)" to="/admin/users/deleted">
+        <Button variant="outline">
+          <UserX class="h-4 w-4 mr-2" />
+          Deleted Users
+        </Button>
+      </NuxtLink>
       <NuxtLink to="/admin/users/create">
         <Button>
           <UserPlus class="h-4 w-4 mr-2" />

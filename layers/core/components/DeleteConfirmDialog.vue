@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Trash2, AlertTriangle } from 'lucide-vue-next';
+import { Trash2, AlertTriangle, RefreshCw } from 'lucide-vue-next';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,9 @@ interface Props {
   variant?: 'default' | 'danger';
   showWarning?: boolean;
   warningText?: string;
+  showIcon?: boolean;
+  loadingText?: string;
+  iconType?: 'delete' | 'restore' | 'none';
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -33,7 +36,10 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'danger',
   loading: false,
   showWarning: true,
-  warningText: 'This action cannot be undone.'
+  warningText: 'This action cannot be undone.',
+  showIcon: true,
+  loadingText: 'Processing...',
+  iconType: 'delete'
 });
 
 const emit = defineEmits<{
@@ -44,7 +50,8 @@ const emit = defineEmits<{
 
 // Computed property for dynamic description
 const finalDescription = computed(() => {
-  if (props.itemName) {
+  // Only auto-generate delete description if no description is provided and itemName exists
+  if (!props.description && props.itemName && props.iconType === 'delete') {
     return `Are you sure you want to delete "${props.itemName}"? This action cannot be undone.`;
   }
   return props.description;
@@ -69,8 +76,24 @@ function handleConfirm() {
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2">
-          <div class="p-2 bg-destructive/10 rounded-lg">
-            <Trash2 class="h-4 w-4 text-destructive" />
+          <div 
+            v-if="showIcon && iconType !== 'none'" 
+            :class="[
+              'p-2 rounded-lg',
+              iconType === 'delete' ? 'bg-destructive/10' : 'bg-primary/10'
+            ]"
+          >
+            <Trash2 
+              v-if="iconType === 'delete'" 
+              :class="[
+                'h-4 w-4',
+                iconType === 'delete' ? 'text-destructive' : 'text-primary'
+              ]" 
+            />
+            <RefreshCw 
+              v-else-if="iconType === 'restore'" 
+              class="h-4 w-4 text-primary" 
+            />
           </div>
           {{ title }}
         </DialogTitle>
@@ -79,9 +102,22 @@ function handleConfirm() {
         </DialogDescription>
       </DialogHeader>
       
-      <Alert v-if="showWarning && warningText" class="mt-4 border-destructive/20 bg-destructive/5">
-        <AlertTriangle class="h-4 w-4 text-destructive" />
-        <AlertDescription class="text-destructive/90">
+      <Alert 
+        v-if="showWarning && warningText" 
+        :class="[
+          'mt-4',
+          variant === 'danger' ? 'border-destructive/20 bg-destructive/5' : 'border-primary/20 bg-primary/5'
+        ]"
+      >
+        <AlertTriangle 
+          :class="[
+            'h-4 w-4',
+            variant === 'danger' ? 'text-destructive' : 'text-primary'
+          ]" 
+        />
+        <AlertDescription 
+          :class="variant === 'danger' ? 'text-destructive/90' : 'text-primary/90'"
+        >
           {{ warningText }}
         </AlertDescription>
       </Alert>
@@ -101,9 +137,12 @@ function handleConfirm() {
           :disabled="loading"
           class="w-full sm:w-auto"
         >
-          <Trash2 class="h-4 w-4 mr-2" v-if="!loading" />
-          <div v-else class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
-          {{ loading ? 'Deleting...' : confirmText }}
+          <template v-if="!loading && showIcon && iconType !== 'none'">
+            <Trash2 v-if="iconType === 'delete'" class="h-4 w-4 mr-2" />
+            <RefreshCw v-else-if="iconType === 'restore'" class="h-4 w-4 mr-2" />
+          </template>
+          <div v-if="loading" class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+          {{ loading ? loadingText : confirmText }}
         </Button>
       </DialogFooter>
     </DialogContent>

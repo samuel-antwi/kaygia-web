@@ -47,6 +47,7 @@ export default defineEventHandler(async (event) => {
         company: true,
         lastLoggedIn: true,
         avatarUrl: true,
+        deletedAt: true,
         // Exclude password hash and other sensitive data
       },
     });

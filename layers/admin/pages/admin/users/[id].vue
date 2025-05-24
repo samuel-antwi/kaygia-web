@@ -21,6 +21,8 @@ import {
   Users,
   FolderOpen,
   MessageSquare,
+  UserX,
+  RotateCcw,
 } from "lucide-vue-next";
 
 // Import UI Components
@@ -63,7 +65,7 @@ import RecentItems from "../../../components/users/RecentItems.vue";
 
 // Import Composables
 import { useFormatting } from "~/layers/admin/composables/useFormatting";
-import { hasAdminAccess, canDeleteUsers } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess, canDeleteUsers, isSuperAdmin } from "~/layers/admin/utils/adminAccess";
 import { useToast } from "@/components/ui/toast/use-toast";
 import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
 
@@ -92,6 +94,7 @@ interface UserWithStats {
   lastLoggedIn: Date | null;
   company: string | null;
   avatarUrl: string | null;
+  deletedAt: Date | null;
   stats: UserStats;
   recentTickets?: any[];
   recentProjects?: any[];
@@ -144,6 +147,10 @@ const showEditDialog = ref(false);
 const showDeleteDialog = ref(false);
 const isDeleting = ref(false);
 
+// State for restore dialog
+const showRestoreDialog = ref(false);
+const isRestoring = ref(false);
+
 const { toast } = useToast();
 const router = useRouter();
 
@@ -161,7 +168,7 @@ async function deleteUser() {
   
   try {
     const response = await $fetch(`/api/admin/users/${user.value.id}`, {
-      method: 'DELETE'
+      method: 'DELETE' as any
     });
     
     if (response.success) {
@@ -182,6 +189,38 @@ async function deleteUser() {
   } finally {
     isDeleting.value = false;
     showDeleteDialog.value = false;
+  }
+}
+
+// Function to handle user restoration
+async function restoreUser() {
+  if (!user.value) return;
+  
+  isRestoring.value = true;
+  
+  try {
+    const response = await $fetch(`/api/admin/users/${user.value.id}/restore`, {
+      method: 'POST'
+    });
+    
+    if (response.success) {
+      toast({
+        title: "Success",
+        description: "User restored successfully",
+      });
+      
+      // Refresh the user data
+      await refresh();
+      showRestoreDialog.value = false;
+    }
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.data?.statusMessage || "Failed to restore user",
+      variant: "destructive",
+    });
+  } finally {
+    isRestoring.value = false;
   }
 }
 </script>
@@ -316,6 +355,14 @@ async function deleteUser() {
                       <component :is="user.emailVerified ? CheckCircle : AlertCircle" class="h-3 w-3 mr-1" />
                       {{ user.emailVerified ? "Verified" : "Unverified" }}
                     </Badge>
+                    
+                    <Badge
+                      v-if="user.deletedAt"
+                      class="bg-gray-900 text-white border-gray-900"
+                    >
+                      <UserX class="h-3 w-3 mr-1" />
+                      Deleted
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -336,7 +383,7 @@ async function deleteUser() {
 
                 <!-- Action Buttons -->
                 <div class="flex gap-2">
-                  <Dialog v-model:open="showEditDialog">
+                  <Dialog v-if="!user.deletedAt" v-model:open="showEditDialog">
                     <DialogTrigger asChild>
                       <Button class="flex-1" variant="default">
                         <Edit class="h-4 w-4 mr-2" />
@@ -360,6 +407,16 @@ async function deleteUser() {
                     </DialogContent>
                   </Dialog>
                   
+                  <Button 
+                    v-if="user.deletedAt && isSuperAdmin(currentUser.role)"
+                    class="flex-1"
+                    variant="default"
+                    @click="showRestoreDialog = true"
+                  >
+                    <RotateCcw class="h-4 w-4 mr-2" />
+                    Restore User
+                  </Button>
+                  
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="icon">
@@ -369,9 +426,16 @@ async function deleteUser() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>View Activity Log</DropdownMenuItem>
                       <DropdownMenuItem>Export Data</DropdownMenuItem>
-                      <DropdownMenuSeparator v-if="canDeleteUsers(currentUser.role)" />
+                      <DropdownMenuSeparator v-if="isSuperAdmin(currentUser.role)" />
                       <DropdownMenuItem 
-                        v-if="canDeleteUsers(currentUser.role)"
+                        v-if="isSuperAdmin(currentUser.role) && user.deletedAt"
+                        @click="showRestoreDialog = true"
+                        class="text-green-600 focus:text-green-600"
+                      >
+                        Restore User
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        v-if="canDeleteUsers(currentUser.role) && !user.deletedAt"
                         @click="showDeleteDialog = true"
                         class="text-destructive focus:text-destructive"
                       >
@@ -596,6 +660,20 @@ async function deleteUser() {
       confirm-text="Delete User"
       :loading="isDeleting"
       @confirm="deleteUser"
+    />
+    
+    <!-- Restore Confirmation Dialog -->
+    <DeleteConfirmDialog
+      v-model:open="showRestoreDialog"
+      title="Restore User"
+      :description="`Are you sure you want to restore ${user?.name || user?.email}? They will be able to log in again.`"
+      confirm-text="Restore User"
+      :loading="isRestoring"
+      loading-text="Restoring..."
+      variant="default"
+      icon-type="restore"
+      :show-warning="false"
+      @confirm="restoreUser"
     />
   </div>
 </template>
