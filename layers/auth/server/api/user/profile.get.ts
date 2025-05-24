@@ -1,7 +1,7 @@
 import { H3Event } from "h3";
 import { getDb } from "~/server/utils/db";
 import { users } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
@@ -20,9 +20,12 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
-    // Find user by email and explicitly select needed fields
+    // Find user by email and explicitly select needed fields, excluding deleted users
     const user = await db.query.users.findFirst({
-      where: eq(users.email, userEmail),
+      where: and(
+        eq(users.email, userEmail),
+        isNull(users.deletedAt)
+      ),
       columns: {
         id: true,
         email: true,

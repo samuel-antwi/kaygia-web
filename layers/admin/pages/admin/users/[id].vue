@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -63,7 +63,9 @@ import RecentItems from "../../../components/users/RecentItems.vue";
 
 // Import Composables
 import { useFormatting } from "~/layers/admin/composables/useFormatting";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess, canDeleteUsers } from "~/layers/admin/utils/adminAccess";
+import { useToast } from "@/components/ui/toast/use-toast";
+import DeleteConfirmDialog from "~/layers/core/components/DeleteConfirmDialog.vue";
 
 definePageMeta({
   layout: "admin",
@@ -138,10 +140,49 @@ const user = computed(() => data.value?.user);
 // State for edit dialog
 const showEditDialog = ref(false);
 
+// State for delete dialog
+const showDeleteDialog = ref(false);
+const isDeleting = ref(false);
+
+const { toast } = useToast();
+const router = useRouter();
+
 // Function to handle profile update and close dialog
 function handleProfileUpdated(updatedUser: any) {
   refresh(); // Refresh the main user data
   showEditDialog.value = false;
+}
+
+// Function to handle user deletion
+async function deleteUser() {
+  if (!user.value) return;
+  
+  isDeleting.value = true;
+  
+  try {
+    const response = await $fetch(`/api/admin/users/${user.value.id}`, {
+      method: 'DELETE'
+    });
+    
+    if (response.success) {
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+      
+      // Redirect to users list
+      await router.push('/admin/users');
+    }
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.data?.statusMessage || "Failed to delete user",
+      variant: "destructive",
+    });
+  } finally {
+    isDeleting.value = false;
+    showDeleteDialog.value = false;
+  }
 }
 </script>
 
@@ -328,8 +369,14 @@ function handleProfileUpdated(updatedUser: any) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>View Activity Log</DropdownMenuItem>
                       <DropdownMenuItem>Export Data</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem class="text-destructive">Delete User</DropdownMenuItem>
+                      <DropdownMenuSeparator v-if="canDeleteUsers(currentUser.role)" />
+                      <DropdownMenuItem 
+                        v-if="canDeleteUsers(currentUser.role)"
+                        @click="showDeleteDialog = true"
+                        class="text-destructive focus:text-destructive"
+                      >
+                        Delete User
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -539,5 +586,16 @@ function handleProfileUpdated(updatedUser: any) {
           </TabsContent>
         </Tabs>
     </div>
+    
+    <!-- Delete Confirmation Dialog -->
+    <DeleteConfirmDialog
+      v-model:open="showDeleteDialog"
+      title="Delete User"
+      :description="`Are you sure you want to delete ${user?.name || user?.email}? This action cannot be undone.`"
+      :item-name="user?.name || user?.email || ''"
+      confirm-text="Delete User"
+      :loading="isDeleting"
+      @confirm="deleteUser"
+    />
   </div>
 </template>

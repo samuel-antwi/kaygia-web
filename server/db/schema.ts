@@ -47,6 +47,7 @@ export const users = pgTable("users", {
   role: roleEnum("role").default("CLIENT").notNull(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   active: boolean("active").default(true).notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const projects = pgTable("projects", {

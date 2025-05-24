@@ -1,7 +1,7 @@
 import { defineEventHandler } from "h3";
 import { getDb } from "~/server/utils/db";
 import { users } from "~/server/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, isNull } from "drizzle-orm";
 import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
@@ -22,8 +22,9 @@ export default defineEventHandler(async (event) => {
   try {
     const db = getDb(event);
 
-    // Fetch all users with selected columns for security
+    // Fetch all users with selected columns for security, excluding soft-deleted users
     const allUsers = await db.query.users.findMany({
+      where: isNull(users.deletedAt),
       orderBy: [desc(users.createdAt)],
       columns: {
         // Exclude sensitive information

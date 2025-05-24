@@ -2,7 +2,7 @@ import * as bcrypt from "bcrypt";
 import { H3Event } from "h3";
 import { getDb } from "~/server/utils/db";
 import { users } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
@@ -17,9 +17,12 @@ export default defineEventHandler(async (event: H3Event) => {
       };
     }
 
-    // Check if the user exists
+    // Check if the user exists and is not deleted
     const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
+      where: and(
+        eq(users.email, email),
+        isNull(users.deletedAt)
+      ),
       columns: {
         id: true,
         email: true,
@@ -94,6 +97,11 @@ export default defineEventHandler(async (event: H3Event) => {
     return { success: true };
   } catch (error: any) {
     console.error("Login error:", error);
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
 
     return {
       success: false,
