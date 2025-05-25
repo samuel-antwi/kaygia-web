@@ -1,6 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { defineNuxtConfig } from "nuxt/config";
-import type { UserConfig } from "vite";
 
 export default defineNuxtConfig({
   devtools: { enabled: true },
@@ -76,4 +75,6 @@ export default defineNuxtConfig({
       "window.global": {},
     },
   },
+
+
 });
