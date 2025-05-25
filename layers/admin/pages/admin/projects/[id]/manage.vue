@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from "vue";
+import { computed, ref, nextTick, watch } from "vue";
 import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock, Info, MoreVertical, ExternalLink, ChevronRight } from "lucide-vue-next";
 import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProjectUpdates.vue";
 import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
@@ -27,8 +27,28 @@ const { data: progressData } = await useFetch(`/api/admin/projects/${projectId.v
 // Use calculated progress for consistency
 const projectProgress = computed(() => progressData.value?.project?.calculatedProgress || project.value?.progress || 0);
 
+// Define tab types
+type TabId = 'overview' | 'updates' | 'deliverables' | 'progress' | 'comments' | 'files';
+
 // Active tab management
-const activeTab = ref("overview");
+const activeTab = ref<TabId>("overview");
+
+// Track if components have been initialized
+const initializedTabs = ref<Record<TabId, boolean>>({
+  overview: true,
+  updates: false,
+  deliverables: false,
+  progress: false,
+  comments: false,
+  files: false
+});
+
+// Watch for tab changes to initialize components
+watch(activeTab, (newTab) => {
+  if (!initializedTabs.value[newTab]) {
+    initializedTabs.value[newTab] = true;
+  }
+});
 
 // Trigger refs for child components
 const triggerUpdateForm = ref(false);
@@ -304,7 +324,7 @@ const getStatusColor = (status: string): string => {
                 { id: 'files', label: 'File Management', icon: Lock, type: 'internal' }
               ]"
               :key="tab.id"
-              @click="activeTab = tab.id"
+              @click="activeTab = tab.id as TabId"
               :class="[
                 'px-4 py-2 font-medium transition-colors border-b-2 flex items-center gap-2',
                 activeTab === tab.id
@@ -325,9 +345,9 @@ const getStatusColor = (status: string): string => {
           </div>
         </CardHeader>
 
-        <CardContent class="p-6">
+        <CardContent class="p-6 min-h-[400px]">
           <!-- Overview Tab -->
-          <div v-if="activeTab === 'overview'" class="space-y-6">
+          <div v-show="activeTab === 'overview'" class="space-y-6">
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
@@ -415,38 +435,62 @@ const getStatusColor = (status: string): string => {
           </div>
 
           <!-- Updates Tab -->
-          <div v-if="activeTab === 'updates'">
+          <div v-show="activeTab === 'updates'" class="min-h-[300px]">
             <AdminProjectUpdates 
+              v-if="initializedTabs.updates"
               :project-id="projectId" 
               :trigger-create="triggerUpdateForm" 
             />
+            <div v-else class="flex items-center justify-center h-[300px]">
+              <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
           </div>
 
           <!-- Deliverables Tab -->
-          <div v-if="activeTab === 'deliverables'">
+          <div v-show="activeTab === 'deliverables'" class="min-h-[300px]">
             <AdminProjectDeliverables 
+              v-if="initializedTabs.deliverables"
               :project-id="projectId" 
               :trigger-create="triggerDeliverableForm" 
             />
+            <div v-else class="flex items-center justify-center h-[300px]">
+              <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
           </div>
 
           <!-- Progress Tab -->
-          <div v-if="activeTab === 'progress'">
+          <div v-show="activeTab === 'progress'" class="min-h-[300px]">
             <AdminProjectProgress 
+              v-if="initializedTabs.progress"
               :project-id="projectId" 
               :project="project" 
               :trigger-create="triggerMilestoneForm" 
             />
+            <div v-else class="flex items-center justify-center h-[300px]">
+              <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
           </div>
 
           <!-- Comments Tab -->
-          <div v-if="activeTab === 'comments'">
-            <AdminProjectComments :project-id="projectId" />
+          <div v-show="activeTab === 'comments'" class="min-h-[300px]">
+            <AdminProjectComments 
+              v-if="initializedTabs.comments"
+              :project-id="projectId" 
+            />
+            <div v-else class="flex items-center justify-center h-[300px]">
+              <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
           </div>
 
           <!-- Files Tab -->
-          <div v-if="activeTab === 'files'">
-            <AdminProjectFiles :project-id="projectId" />
+          <div v-show="activeTab === 'files'" class="min-h-[300px]">
+            <AdminProjectFiles 
+              v-if="initializedTabs.files"
+              :project-id="projectId" 
+            />
+            <div v-else class="flex items-center justify-center h-[300px]">
+              <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+            </div>
           </div>
         </CardContent>
       </Card>
