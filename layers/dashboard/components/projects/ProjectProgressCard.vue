@@ -42,6 +42,16 @@ const getProgressPercentage = (): number => {
 
 // Get current phase description with hybrid support
 const getCurrentPhaseDisplay = (): string => {
+  // For pending projects, always show awaiting approval regardless of phase data
+  if (props.status === "PENDING") {
+    return "Awaiting Approval";
+  }
+  
+  // For cancelled projects, always show cancelled
+  if (props.status === "CANCELLED") {
+    return "Project Cancelled";
+  }
+  
   // If we have phase data from the hybrid system, use it
   if (props.currentPhaseName) {
     return props.currentPhaseName;
@@ -49,8 +59,6 @@ const getCurrentPhaseDisplay = (): string => {
   
   // Otherwise, fall back to status-based phase
   switch (props.status) {
-    case "PENDING":
-      return "Awaiting Approval";
     case "APPROVED":
       return "Project Planning";
     case "IN_PROGRESS":
@@ -59,8 +67,6 @@ const getCurrentPhaseDisplay = (): string => {
       return "Final Review";
     case "COMPLETED":
       return "Project Complete";
-    case "CANCELLED":
-      return "Project Cancelled";
     default:
       return "Unknown Phase";
   }
