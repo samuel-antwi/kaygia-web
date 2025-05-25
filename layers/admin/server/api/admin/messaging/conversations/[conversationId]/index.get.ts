@@ -56,10 +56,26 @@ export default defineEventHandler(async (event) => {
     .where(eq(messages.conversationId, conversationId))
     .then(res => res[0]?.count || 0)
 
+  // Get assigned team member if exists
+  let assignedTo = null
+  if (conversation.createdBy) {
+    const assignedUser = await db.query.users.findFirst({
+      where: eq(users.id, conversation.createdBy),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
+      }
+    })
+    assignedTo = assignedUser
+  }
+
   return {
     conversation: {
       ...conversation,
-      messageCount
+      messageCount,
+      assignedTo
     }
   }
 })

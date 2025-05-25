@@ -15,6 +15,8 @@ import {
 import type { Message } from '~/layers/dashboard/types/messaging'
 import type { AdminConversation } from '~/layers/admin/types/messaging'
 import { formatDateTime, formatRelativeTime } from '~/layers/admin/utils/dateFormatting'
+import { isSuperAdmin } from '~/layers/admin/utils/adminAccess'
+import AssignTeamDialog from '~/layers/admin/components/messaging/AssignTeamDialog.vue'
 
 definePageMeta({
   layout: 'admin'
@@ -24,6 +26,12 @@ const route = useRoute()
 const router = useRouter()
 const conversationId = computed(() => route.params.id as string)
 
+// Get current user
+const { user } = useAuth()
+
+// Check if user can assign team members
+const canAssignTeamMembers = computed(() => isSuperAdmin(user.value?.role))
+
 // State
 const conversation = ref<AdminConversation | null>(null)
 const messages = ref<Message[]>([])
@@ -32,8 +40,11 @@ const sending = ref(false)
 const messageContent = ref('')
 const selectedMessages = ref<string[]>([])
 
+// Refs for dialogs
+const assignTeamDialog = ref<InstanceType<typeof AssignTeamDialog>>()
+
 // Fetch conversation details
-const { data: convData } = await useFetch<{ conversation: AdminConversation }>(`/api/admin/messaging/conversations/${conversationId.value}`)
+const { data: convData, refresh: refreshConversation } = await useFetch<{ conversation: AdminConversation }>(`/api/admin/messaging/conversations/${conversationId.value}`)
 
 watchEffect(() => {
   if (convData.value?.conversation) {
@@ -111,8 +122,19 @@ const flagSelectedMessages = async () => {
 }
 
 const assignTeamMember = async () => {
-  // TODO: Implement team assignment
-  console.log('Assign team member')
+  if (!canAssignTeamMembers.value) {
+    console.warn('Only super admins can assign team members')
+    return
+  }
+  
+  await nextTick()
+  assignTeamDialog.value?.open()
+}
+
+// Handle assignment completion
+const onTeamAssigned = async (memberId: string) => {
+  // Refresh conversation to show updated assignment
+  await refreshConversation()
 }
 
 // Use the imported formatDateTime function instead
@@ -158,11 +180,14 @@ const getUserInitials = (name: string) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem @click="assignTeamMember">
+            <DropdownMenuItem 
+              v-if="canAssignTeamMembers"
+              @click="assignTeamMember"
+            >
               <UserPlus class="h-4 w-4 mr-2" />
               Assign Team Member
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator v-if="canAssignTeamMembers" />
             <DropdownMenuItem @click="archiveConversation" class="text-destructive">
               <Archive class="h-4 w-4 mr-2" />
               Archive Conversation
@@ -323,7 +348,13 @@ const getUserInitials = (name: string) => {
               </div>
             </div>
             
-            <Button variant="outline" size="sm" class="w-full" @click="assignTeamMember">
+            <Button 
+              v-if="canAssignTeamMembers"
+              variant="outline" 
+              size="sm" 
+              class="w-full" 
+              @click="assignTeamMember"
+            >
               <UserPlus class="h-4 w-4 mr-2" />
               Add Team Member
             </Button>
@@ -378,5 +409,13 @@ const getUserInitials = (name: string) => {
         </Card>
       </div>
     </div>
+    
+    <!-- Assign Team Dialog -->
+    <AssignTeamDialog
+      ref="assignTeamDialog"
+      :conversation-id="conversationId"
+      :current-assignee="conversation?.assignedTo"
+      @assigned="onTeamAssigned"
+    />
   </div>
 </template>

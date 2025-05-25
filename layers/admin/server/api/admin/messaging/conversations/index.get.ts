@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { eq, desc, and, or, like, sql } from 'drizzle-orm'
+import { eq, desc, and, or, like, sql, inArray, isNotNull } from 'drizzle-orm'
 import { conversations, conversationParticipants, messages, users, projects } from '~/server/db/schema'
 import { getDb } from '~/server/utils/db'
 
@@ -117,8 +117,42 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Get assigned team members for conversations
+  const conversationIds = Array.from(conversationMap.keys())
+  const assignedMembers = await db
+    .select({
+      conversationId: conversations.id,
+      assignedTo: {
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role
+      }
+    })
+    .from(conversations)
+    .innerJoin(users, eq(conversations.createdBy, users.id))
+    .where(
+      conversationIds.length > 0
+        ? and(
+            inArray(conversations.id, conversationIds),
+            isNotNull(conversations.createdBy)
+          )
+        : undefined
+    )
+
+  // Map assigned members to conversations
+  const assignmentMap = new Map(
+    assignedMembers.map(row => [row.conversationId, row.assignedTo])
+  )
+
+  // Add assigned team members to conversations
+  const conversationsWithAssignees = Array.from(conversationMap.values()).map(conv => ({
+    ...conv,
+    assignedTo: assignmentMap.get(conv.id) || null
+  }))
+
   return {
-    conversations: Array.from(conversationMap.values()),
+    conversations: conversationsWithAssignees,
     total: Number(count)
   }
 })

@@ -3,10 +3,18 @@ import { ref, computed } from 'vue'
 import { MessageSquare, Search, Users, Clock, MoreVertical, Archive, UserPlus } from 'lucide-vue-next'
 import type { AdminConversation } from '~/layers/admin/types/messaging'
 import { formatRelativeTime } from '~/layers/admin/utils/dateFormatting'
+import AssignTeamDialog from '~/layers/admin/components/messaging/AssignTeamDialog.vue'
+import { isSuperAdmin } from '~/layers/admin/utils/adminAccess'
 
 definePageMeta({
   layout: 'admin'
 })
+
+// Get current user
+const { user } = useAuth()
+
+// Check if user can assign team members
+const canAssignTeamMembers = computed(() => isSuperAdmin(user.value?.role))
 
 // State
 const conversations = ref<AdminConversation[]>([])
@@ -15,8 +23,12 @@ const searchQuery = ref('')
 const statusFilter = ref<'all' | 'active' | 'archived'>('all')
 const selectedConversations = ref<string[]>([])
 
+// Refs for dialogs
+const assignTeamDialog = ref<InstanceType<typeof AssignTeamDialog>>()
+const selectedConversationForAssignment = ref<AdminConversation | null>(null)
+
 // Fetch conversations
-const { data, pending } = await useFetch('/api/admin/messaging/conversations', {
+const { data, pending, refresh } = await useFetch('/api/admin/messaging/conversations', {
   query: {
     status: computed(() => statusFilter.value === 'all' ? undefined : statusFilter.value),
     search: searchQuery
@@ -64,6 +76,19 @@ const toggleSelectAll = () => {
 
 // Use the imported formatRelativeTime function
 const formatTime = formatRelativeTime
+
+// Handle team assignment
+const handleAssignTeam = async (conversation: AdminConversation) => {
+  selectedConversationForAssignment.value = conversation
+  await nextTick()
+  assignTeamDialog.value?.open()
+}
+
+// Handle assignment completion
+const onTeamAssigned = async (memberId: string) => {
+  // Refresh conversations to show updated assignment
+  await refresh()
+}
 </script>
 
 <template>
@@ -159,6 +184,7 @@ const formatTime = formatRelativeTime
               Archive Selected
             </Button>
             <Button
+              v-if="canAssignTeamMembers"
               variant="outline"
               size="sm"
               :disabled="selectedConversations.length === 0"
@@ -271,7 +297,10 @@ const formatTime = formatRelativeTime
                   <DropdownMenuItem @click.stop="$router.push(`/admin/messages/${conversation.id}`)">
                     View Conversation
                   </DropdownMenuItem>
-                  <DropdownMenuItem @click.stop>
+                  <DropdownMenuItem 
+                    v-if="canAssignTeamMembers"
+                    @click.stop="() => handleAssignTeam(conversation)"
+                  >
                     Assign Team Member
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -296,5 +325,13 @@ const formatTime = formatRelativeTime
         <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
       </div>
     </Card>
+    
+    <!-- Assign Team Dialog -->
+    <AssignTeamDialog
+      ref="assignTeamDialog"
+      :conversation-id="selectedConversationForAssignment?.id || ''"
+      :current-assignee="selectedConversationForAssignment?.assignedTo"
+      @assigned="onTeamAssigned"
+    />
   </div>
 </template>
