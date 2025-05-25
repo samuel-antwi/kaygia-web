@@ -73,18 +73,9 @@ export default defineEventHandler(async (event) => {
     })
     .returning()
 
-  // Update conversation's updated_at
-  await db
-    .update(conversations)
-    .set({ updatedAt: new Date() })
-    .where(eq(conversations.id, conversationId))
-
-  // TODO: Handle file attachments if fileIds provided
-  // TODO: Send real-time notification via WebSocket
-
   // Get sender info for response
   const sender = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
+    where: eq(users.id, session.user!.id),
     columns: {
       id: true,
       name: true,
@@ -92,6 +83,25 @@ export default defineEventHandler(async (event) => {
       role: true
     }
   })
+
+  // Update conversation's updated_at
+  await db
+    .update(conversations)
+    .set({ updatedAt: new Date() })
+    .where(eq(conversations.id, conversationId))
+
+  // Send real-time notification via WebSocket
+  const { websocketEvents } = await import('~/server/utils/websocket')
+  const messageWithSender = {
+    ...newMessage,
+    sender,
+    files: [],
+    readBy: [],
+    isOwn: false // Will be set correctly on client side
+  }
+  websocketEvents.emitNewMessage(conversationId, messageWithSender)
+
+  // TODO: Handle file attachments if fileIds provided
 
   return {
     message: {

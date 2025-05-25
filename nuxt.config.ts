@@ -47,6 +47,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     DATABASE_URL: process.env.DATABASE_URL,
     DIRECT_URL: process.env.DIRECT_URL,
+    redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
 
     public: {
       SUPABASE_URL: process.env.SUPABASE_URL,

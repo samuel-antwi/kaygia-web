@@ -1,10 +1,18 @@
 import { useMessagingStore } from '../stores/messagingStore'
-import type { SendMessagePayload, CreateConversationPayload } from '../types/messaging'
+import type { SendMessagePayload, CreateConversationPayload, Message } from '../types/messaging'
 import { useToast } from '~/components/ui/toast/use-toast'
 
 export const useMessaging = () => {
   const store = useMessagingStore()
   const { toast } = useToast()
+  const { 
+    joinConversation: socketJoinConversation, 
+    leaveConversation: socketLeaveConversation,
+    startTyping,
+    stopTyping,
+    markMessageAsRead: socketMarkAsRead,
+    isConnected: socketConnected
+  } = useSocket()
   
   const toastError = (message: string) => {
     toast({
@@ -76,8 +84,16 @@ export const useMessaging = () => {
     const conversation = conversations.value.find(c => c.id === conversationId)
     if (!conversation) return
 
+    // Leave previous conversation if any
+    if (store.activeConversation && store.activeConversation.id !== conversationId) {
+      socketLeaveConversation(store.activeConversation.id)
+    }
+
     store.setActiveConversation(conversation)
     await loadMessages(conversationId)
+    
+    // Join conversation via WebSocket for real-time updates
+    socketJoinConversation(conversationId)
     
     // Mark messages as read
     const userState = useUserState()
@@ -90,6 +106,11 @@ export const useMessaging = () => {
     
     if (unreadMessageIds.length > 0) {
       await store.markMessagesAsRead(conversationId, unreadMessageIds)
+      
+      // Emit socket events for each read message
+      unreadMessageIds.forEach(messageId => {
+        socketMarkAsRead(messageId, conversationId)
+      })
     }
   }
 
@@ -125,14 +146,19 @@ export const useMessaging = () => {
 
   // Group messages by date
   const groupedMessages = computed(() => {
-    const groups: Record<string, typeof messages.value> = {}
+    const groups: Record<string, Message[]> = {}
     
     messages.value.forEach(message => {
       const date = new Date(message.createdAt).toDateString()
       if (!groups[date]) {
         groups[date] = []
       }
-      groups[date].push(message)
+      // Create a mutable copy to ensure type compatibility
+      groups[date].push({
+        ...message,
+        files: message.files ? message.files.map(file => ({ ...file })) : undefined,
+        readBy: message.readBy ? message.readBy.map(receipt => ({ ...receipt })) : undefined
+      })
     })
     
     return Object.entries(groups).map(([date, msgs]) => ({
@@ -152,8 +178,39 @@ export const useMessaging = () => {
     return conversations.value.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0)
   })
 
+  // Typing indicator state
+  const typingUsers = ref<Set<string>>(new Set())
+  let typingTimer: NodeJS.Timeout | null = null
+
+  const handleTyping = (conversationId: string) => {
+    if (!activeConversation.value || activeConversation.value.id !== conversationId) return
+    
+    startTyping(conversationId)
+    
+    // Clear previous timer
+    if (typingTimer) {
+      clearTimeout(typingTimer)
+    }
+    
+    // Stop typing after 3 seconds of inactivity
+    typingTimer = setTimeout(() => {
+      stopTyping(conversationId)
+    }, 3000)
+  }
+
+  const handleStopTyping = (conversationId: string) => {
+    if (typingTimer) {
+      clearTimeout(typingTimer)
+      typingTimer = null
+    }
+    stopTyping(conversationId)
+  }
+
   onUnmounted(() => {
     store.clearStore()
+    if (typingTimer) {
+      clearTimeout(typingTimer)
+    }
   })
 
   return {
@@ -166,6 +223,8 @@ export const useMessaging = () => {
     hasMore: readonly(hasMore),
     groupedMessages: readonly(groupedMessages),
     totalUnreadCount: readonly(totalUnreadCount),
+    typingUsers: readonly(typingUsers),
+    isConnected: socketConnected,
     
     // Actions
     loadConversations,
@@ -174,6 +233,11 @@ export const useMessaging = () => {
     createConversation,
     selectConversation,
     loadMoreMessages,
+    setActiveConversation: store.setActiveConversation,
+    
+    // WebSocket actions
+    handleTyping,
+    handleStopTyping,
     
     // Utilities
     formatMessageTime,

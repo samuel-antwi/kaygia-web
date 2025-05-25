@@ -11,6 +11,19 @@ interface MessagingState {
   error: string | null
 }
 
+// Utility function to create mutable copies of messages
+const deepCopyMessage = (message: Message): Message => ({
+  ...message,
+  files: message.files ? message.files.map(file => ({ ...file })) : undefined,
+  readBy: message.readBy ? message.readBy.map(receipt => ({ ...receipt })) : undefined
+})
+
+// Utility function to create mutable copies of conversations
+const deepCopyConversation = (conversation: Conversation): Conversation => ({
+  ...conversation,
+  lastMessage: conversation.lastMessage ? deepCopyMessage(conversation.lastMessage) : undefined
+})
+
 export const useMessagingStore = defineStore('messaging', {
   state: (): MessagingState => ({
     conversations: [],
@@ -32,7 +45,7 @@ export const useMessagingStore = defineStore('messaging', {
         if (projectId) params.append('projectId', projectId)
         
         const data = await $fetch<{ conversations: Conversation[], total: number }>(`/api/messaging/conversations?${params}`)
-        this.conversations = data.conversations
+        this.conversations = data.conversations.map(deepCopyConversation)
       } catch (error: any) {
         this.error = error.data?.message || 'Failed to fetch conversations'
         throw error
@@ -51,12 +64,15 @@ export const useMessagingStore = defineStore('messaging', {
         
         const data = await $fetch<{ messages: Message[], hasMore: boolean }>(`/api/messaging/conversations/${conversationId}/messages?${params}`)
         
+        // Ensure messages are mutable (deep copy for nested arrays)
+        const mutableMessages = data.messages.map(deepCopyMessage)
+        
         if (before) {
           // Prepend older messages
-          this.messages = [...data.messages, ...this.messages]
+          this.messages = [...mutableMessages, ...this.messages]
         } else {
           // Replace with new messages
-          this.messages = data.messages
+          this.messages = mutableMessages
         }
         
         this.hasMore = data.hasMore
@@ -78,8 +94,8 @@ export const useMessagingStore = defineStore('messaging', {
           body: payload
         })
         
-        // Add message to local state
-        this.messages.push(data.message)
+        // Add message to local state (ensure it's mutable with deep copy)
+        this.messages.push(deepCopyMessage(data.message))
         
         // Update conversation's last message
         const conversation = this.conversations.find(c => c.id === conversationId)
@@ -107,10 +123,11 @@ export const useMessagingStore = defineStore('messaging', {
           body: payload
         })
         
-        // Add to local state
-        this.conversations.unshift(data.conversation)
+        // Add to local state (ensure it's mutable)
+        const mutableConversation = deepCopyConversation(data.conversation)
+        this.conversations.unshift(mutableConversation)
         
-        return data.conversation
+        return mutableConversation
       } catch (error: any) {
         this.error = error.data?.message || 'Failed to create conversation'
         throw error
@@ -143,19 +160,30 @@ export const useMessagingStore = defineStore('messaging', {
       }
     },
 
-    // Real-time updates (to be implemented with WebSocket)
+    // Real-time updates via WebSocket
     addMessage(message: Message) {
+      // Set isOwn property based on current user
+      const currentUser = useUserState().user.value
+      const mutableMessage = deepCopyMessage(message)
+      if (currentUser) {
+        mutableMessage.isOwn = mutableMessage.senderId === currentUser.id
+      }
+
       // Check if message belongs to current conversation
-      if (this.activeConversation?.id === message.conversationId) {
-        this.messages.push(message)
+      if (this.activeConversation?.id === mutableMessage.conversationId) {
+        // Avoid duplicates
+        const existingMessage = this.messages.find(m => m.id === mutableMessage.id)
+        if (!existingMessage) {
+          this.messages.push(mutableMessage)
+        }
       }
       
       // Update conversation's last message
-      const conversation = this.conversations.find(c => c.id === message.conversationId)
+      const conversation = this.conversations.find(c => c.id === mutableMessage.conversationId)
       if (conversation) {
-        conversation.lastMessage = message
-        conversation.updatedAt = new Date()
-        if (!message.isOwn) {
+        conversation.lastMessage = mutableMessage
+        conversation.updatedAt = new Date(mutableMessage.createdAt)
+        if (!mutableMessage.isOwn) {
           conversation.unreadCount = (conversation.unreadCount || 0) + 1
         }
       }
