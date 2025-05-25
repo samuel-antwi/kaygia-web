@@ -112,15 +112,15 @@
       </div>
 
       <!-- Typing indicators -->
-      <div v-if="typingUsers.size > 0" class="flex items-center gap-2 text-sm text-muted-foreground">
+      <div v-if="typingUsers.length > 0" class="flex items-center gap-2 text-sm text-muted-foreground">
         <div class="flex space-x-1">
           <div class="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style="animation-delay: 0s" />
           <div class="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style="animation-delay: 0.1s" />
           <div class="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style="animation-delay: 0.2s" />
         </div>
         <span>
-          {{ Array.from(typingUsers).join(', ') }} 
-          {{ typingUsers.size === 1 ? 'is' : 'are' }} typing...
+          {{ typingUsers.join(', ') }} 
+          {{ typingUsers.length === 1 ? 'is' : 'are' }} typing...
         </span>
       </div>
 
@@ -141,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import { 
   ArrowLeft, 
   MessageSquare, 

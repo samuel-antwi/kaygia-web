@@ -51,6 +51,7 @@ export default defineNuxtConfig({
 
     public: {
       SUPABASE_URL: process.env.SUPABASE_URL,
+      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
       NUXT_PUBLIC_SITE_URL:
         process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000",
     },

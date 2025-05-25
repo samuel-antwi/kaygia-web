@@ -1,27 +1,27 @@
 <template>
-  <div class="flex h-full bg-background">
-    <!-- Desktop: Side-by-side layout -->
-    <div class="hidden lg:flex w-full">
+  <div class="h-full bg-background">
+    <!-- Desktop layout -->
+    <div class="hidden lg:flex h-full">
       <!-- Conversation list -->
-      <div class="w-80 border-r">
+      <div class="w-80 border-r flex-shrink-0">
         <ConversationList />
       </div>
       
       <!-- Message thread -->
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <MessageThread />
       </div>
     </div>
 
-    <!-- Mobile: Stack layout with navigation -->
-    <div class="lg:hidden w-full">
-      <!-- Conversation list view -->
-      <div v-if="!activeConversation" class="h-full">
+    <!-- Mobile layout -->
+    <div class="lg:hidden h-full">
+      <!-- Show conversation list when no active conversation -->
+      <div v-show="!activeConversation" class="h-full">
         <ConversationList />
       </div>
       
-      <!-- Message thread view -->
-      <div v-else class="h-full">
+      <!-- Show message thread when conversation is active -->
+      <div v-show="activeConversation" class="h-full">
         <MessageThread @back="handleBack" />
       </div>
     </div>

@@ -137,7 +137,7 @@ const sending = ref(false)
 const isTyping = ref(false)
 
 // Refs
-const textareaRef = ref<HTMLTextAreaElement>()
+const textareaRef = ref<InstanceType<typeof HTMLTextAreaElement>>()
 const fileInput = ref<HTMLInputElement>()
 
 // Computed
@@ -180,10 +180,17 @@ const stopTyping = () => {
 // Event handlers
 const handleInput = () => {
   // Auto-resize textarea
-  if (textareaRef.value) {
-    textareaRef.value.style.height = 'auto'
-    textareaRef.value.style.height = `${textareaRef.value.scrollHeight}px`
-  }
+  nextTick(() => {
+    const textarea = textareaRef.value
+    if (textarea) {
+      // Try to get the actual element - it might be the component instance or the element itself
+      const element = (textarea as any).$el || textarea
+      if (element && element.style) {
+        element.style.height = 'auto'
+        element.style.height = `${element.scrollHeight}px`
+      }
+    }
+  })
   
   // Handle typing indicators
   if (message.value.trim().length > 0) {
@@ -243,7 +250,10 @@ const handleSend = async () => {
     
     // Reset textarea height
     if (textareaRef.value) {
-      textareaRef.value.style.height = 'auto'
+      const element = (textareaRef.value as any).$el || textareaRef.value
+      if (element && element.style) {
+        element.style.height = 'auto'
+      }
     }
     
     // Stop typing indicator
@@ -288,7 +298,7 @@ const removeFile = (index: number) => {
   error.value = ''
 }
 
-const uploadFiles = async (files: File[]) => {
+const uploadFiles = async (_files: File[]) => {
   // TODO: Implement actual file upload
   uploadProgress.value = 0
   
@@ -307,6 +317,11 @@ onUnmounted(() => {
 // Focus textarea when component mounts
 onMounted(async () => {
   await nextTick()
-  textareaRef.value?.focus()
+  if (textareaRef.value) {
+    const element = (textareaRef.value as any).$el || textareaRef.value
+    if (element && typeof element.focus === 'function') {
+      element.focus()
+    }
+  }
 })
 </script>

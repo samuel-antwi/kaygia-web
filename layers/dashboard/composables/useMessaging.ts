@@ -5,14 +5,7 @@ import { useToast } from '~/components/ui/toast/use-toast'
 export const useMessaging = () => {
   const store = useMessagingStore()
   const { toast } = useToast()
-  const { 
-    joinConversation: socketJoinConversation, 
-    leaveConversation: socketLeaveConversation,
-    startTyping,
-    stopTyping,
-    markMessageAsRead: socketMarkAsRead,
-    isConnected: socketConnected
-  } = useSocket()
+  const realtimeMessaging = useRealtimeMessaging()
   
   const toastError = (message: string) => {
     toast({
@@ -48,6 +41,7 @@ export const useMessaging = () => {
     try {
       await store.fetchMessages(conversationId, before)
     } catch (error) {
+      console.error('Failed to load messages:', error)
       toastError('Failed to load messages')
     }
   }
@@ -82,18 +76,21 @@ export const useMessaging = () => {
 
   const selectConversation = async (conversationId: string) => {
     const conversation = conversations.value.find(c => c.id === conversationId)
-    if (!conversation) return
+    if (!conversation) {
+      console.error('Conversation not found:', conversationId)
+      return
+    }
 
     // Leave previous conversation if any
     if (store.activeConversation && store.activeConversation.id !== conversationId) {
-      socketLeaveConversation(store.activeConversation.id)
+      await realtimeMessaging.leaveConversation(store.activeConversation.id)
     }
 
     store.setActiveConversation(conversation)
     await loadMessages(conversationId)
     
-    // Join conversation via WebSocket for real-time updates
-    socketJoinConversation(conversationId)
+    // Join conversation via Supabase Realtime for real-time updates
+    await realtimeMessaging.setupConversation(conversationId)
     
     // Mark messages as read
     const userState = useUserState()
@@ -107,9 +104,9 @@ export const useMessaging = () => {
     if (unreadMessageIds.length > 0) {
       await store.markMessagesAsRead(conversationId, unreadMessageIds)
       
-      // Emit socket events for each read message
+      // Mark messages as read in store
       unreadMessageIds.forEach(messageId => {
-        socketMarkAsRead(messageId, conversationId)
+        store.handleMessageRead(messageId, userId)
       })
     }
   }
@@ -146,19 +143,15 @@ export const useMessaging = () => {
 
   // Group messages by date
   const groupedMessages = computed(() => {
+    const currentMessages = messages.value
     const groups: Record<string, Message[]> = {}
     
-    messages.value.forEach(message => {
+    currentMessages.forEach(message => {
       const date = new Date(message.createdAt).toDateString()
       if (!groups[date]) {
         groups[date] = []
       }
-      // Create a mutable copy to ensure type compatibility
-      groups[date].push({
-        ...message,
-        files: message.files ? message.files.map(file => ({ ...file })) : undefined,
-        readBy: message.readBy ? message.readBy.map(receipt => ({ ...receipt })) : undefined
-      })
+      groups[date].push(message)
     })
     
     return Object.entries(groups).map(([date, msgs]) => ({
@@ -178,14 +171,13 @@ export const useMessaging = () => {
     return conversations.value.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0)
   })
 
-  // Typing indicator state
-  const typingUsers = ref<Set<string>>(new Set())
+  // Typing indicator timer
   let typingTimer: NodeJS.Timeout | null = null
 
   const handleTyping = (conversationId: string) => {
     if (!activeConversation.value || activeConversation.value.id !== conversationId) return
     
-    startTyping(conversationId)
+    realtimeMessaging.startTyping(conversationId)
     
     // Clear previous timer
     if (typingTimer) {
@@ -194,7 +186,7 @@ export const useMessaging = () => {
     
     // Stop typing after 3 seconds of inactivity
     typingTimer = setTimeout(() => {
-      stopTyping(conversationId)
+      realtimeMessaging.stopTyping(conversationId)
     }, 3000)
   }
 
@@ -203,11 +195,12 @@ export const useMessaging = () => {
       clearTimeout(typingTimer)
       typingTimer = null
     }
-    stopTyping(conversationId)
+    realtimeMessaging.stopTyping(conversationId)
   }
 
   onUnmounted(() => {
     store.clearStore()
+    realtimeMessaging.cleanup()
     if (typingTimer) {
       clearTimeout(typingTimer)
     }
@@ -215,16 +208,17 @@ export const useMessaging = () => {
 
   return {
     // State
-    conversations: readonly(conversations),
-    activeConversation: readonly(activeConversation),
-    messages: readonly(messages),
-    loading: readonly(loading),
-    sending: readonly(sending),
-    hasMore: readonly(hasMore),
-    groupedMessages: readonly(groupedMessages),
-    totalUnreadCount: readonly(totalUnreadCount),
-    typingUsers: readonly(typingUsers),
-    isConnected: socketConnected,
+    conversations,
+    activeConversation,
+    messages,
+    loading,
+    sending,
+    hasMore,
+    groupedMessages,
+    totalUnreadCount,
+    typingUsers: computed(() => realtimeMessaging.getTypingUsers()),
+    isConnected: realtimeMessaging.isConnected,
+    onlineUsers: realtimeMessaging.onlineUsers,
     
     // Actions
     loadConversations,
@@ -235,7 +229,7 @@ export const useMessaging = () => {
     loadMoreMessages,
     setActiveConversation: store.setActiveConversation,
     
-    // WebSocket actions
+    // Realtime actions
     handleTyping,
     handleStopTyping,
     

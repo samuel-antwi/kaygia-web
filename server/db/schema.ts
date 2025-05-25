@@ -246,6 +246,77 @@ export const emailVerifications = pgTable("email_verifications", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Messaging tables
+export const conversationTypeEnum = pgEnum("conversation_type", ["project", "support", "general"]);
+export const conversationStatusEnum = pgEnum("conversation_status", ["active", "archived", "closed"]);
+
+export const conversations = pgTable("conversations", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  title: text("title"),
+  type: conversationTypeEnum("type").default("project").notNull(),
+  status: conversationStatusEnum("status").default("active").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastMessageAt: timestamp("last_message_at"),
+  createdBy: text("created_by").references(() => users.id),
+});
+
+export const conversationParticipants = pgTable("conversation_participants", {
+  conversationId: text("conversation_id")
+    .references(() => conversations.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: text("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  role: text("role").default("member"), // owner, admin, member
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  lastReadAt: timestamp("last_read_at"),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.conversationId, table.userId] })
+}));
+
+export const messages = pgTable("messages", {
+  id: text("id").primaryKey().notNull(),
+  conversationId: text("conversation_id")
+    .references(() => conversations.id, { onDelete: "cascade" })
+    .notNull(),
+  senderId: text("sender_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  content: text("content").notNull(),
+  type: text("type").default("text"), // text, file, system
+  metadata: jsonb("metadata").default({}), // For reactions, edits, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  editedAt: timestamp("edited_at"),
+  deletedAt: timestamp("deleted_at"),
+});
+
+export const messageFiles = pgTable("message_files", {
+  id: text("id").primaryKey().notNull(),
+  messageId: text("message_id")
+    .references(() => messages.id, { onDelete: "cascade" })
+    .notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  fileType: text("file_type").notNull(),
+  fileUrl: text("file_url").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const messageReadReceipts = pgTable("message_read_receipts", {
+  messageId: text("message_id")
+    .references(() => messages.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: text("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  readAt: timestamp("read_at").defaultNow().notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.messageId, table.userId] })
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -255,6 +326,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   emailVerifications: many(emailVerifications),
   projectFiles: many(projectFiles),
   projectComments: many(projectComments),
+  conversationParticipants: many(conversationParticipants),
+  messages: many(messages),
+  messageReadReceipts: many(messageReadReceipts),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -267,6 +341,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   deliverables: many(projectDeliverables),
   comments: many(projectComments),
   milestones: many(projectMilestones),
+  conversations: many(conversations),
 }));
 
 export const supportTicketsRelations = relations(
@@ -376,87 +451,8 @@ export const projectMilestonesRelations = relations(projectMilestones, ({ one })
   }),
 }));
 
-// ============================================
-// MESSAGING SCHEMA
-// ============================================
+// Messaging Relations
 
-// Conversations table
-export const conversations = pgTable("conversations", {
-  id: text("id").primaryKey().notNull(),
-  projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  title: varchar("title", { length: 255 }),
-  type: varchar("type", { length: 50 }).default("project"), // project, support, announcement
-  status: varchar("status", { length: 50 }).default("active"), // active, archived, locked
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  createdBy: text("created_by").references(() => users.id),
-});
-
-// Messages table
-export const messages = pgTable("messages", {
-  id: text("id").primaryKey().notNull(),
-  conversationId: text("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
-  senderId: text("sender_id").notNull().references(() => users.id),
-  content: text("content"),
-  type: varchar("type", { length: 50 }).default("text"), // text, file, system
-  metadata: jsonb("metadata").default({}), // For reactions, edits, etc.
-  editedAt: timestamp("edited_at"),
-  deletedAt: timestamp("deleted_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Message files table
-export const messageFiles = pgTable("message_files", {
-  id: text("id").primaryKey().notNull(),
-  messageId: text("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
-  fileName: varchar("file_name", { length: 255 }).notNull(),
-  fileSize: integer("file_size").notNull(),
-  fileType: varchar("file_type", { length: 100 }),
-  fileUrl: text("file_url").notNull(),
-  storagePath: text("storage_path").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Conversation participants table
-export const conversationParticipants = pgTable("conversation_participants", {
-  conversationId: text("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
-  userId: text("user_id").notNull().references(() => users.id),
-  role: varchar("role", { length: 50 }).default("member"), // owner, admin, member
-  joinedAt: timestamp("joined_at").defaultNow(),
-  leftAt: timestamp("left_at"),
-  notificationsEnabled: boolean("notifications_enabled").default(true),
-  lastReadAt: timestamp("last_read_at"),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.conversationId, table.userId] }),
-}));
-
-// Message read receipts table
-export const messageReadReceipts = pgTable("message_read_receipts", {
-  messageId: text("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
-  userId: text("user_id").notNull().references(() => users.id),
-  readAt: timestamp("read_at").defaultNow(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.messageId, table.userId] }),
-}));
-
-// Message reports table
-export const messageReports = pgTable("message_reports", {
-  id: text("id").primaryKey().notNull(),
-  messageId: text("message_id").notNull().references(() => messages.id),
-  reportedBy: text("reported_by").notNull().references(() => users.id),
-  reason: varchar("reason", { length: 100 }).notNull(),
-  description: text("description"),
-  status: varchar("status", { length: 50 }).default("pending"), // pending, reviewed, resolved
-  resolvedBy: text("resolved_by").references(() => users.id),
-  resolvedAt: timestamp("resolved_at"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// ============================================
-// MESSAGING RELATIONS
-// ============================================
-
-// Conversations relations
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
   project: one(projects, {
     fields: [conversations.projectId],
@@ -470,7 +466,6 @@ export const conversationsRelations = relations(conversations, ({ one, many }) =
   participants: many(conversationParticipants),
 }));
 
-// Messages relations
 export const messagesRelations = relations(messages, ({ one, many }) => ({
   conversation: one(conversations, {
     fields: [messages.conversationId],
@@ -482,10 +477,8 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
   }),
   files: many(messageFiles),
   readReceipts: many(messageReadReceipts),
-  reports: many(messageReports),
 }));
 
-// Message files relations
 export const messageFilesRelations = relations(messageFiles, ({ one }) => ({
   message: one(messages, {
     fields: [messageFiles.messageId],
@@ -493,7 +486,6 @@ export const messageFilesRelations = relations(messageFiles, ({ one }) => ({
   }),
 }));
 
-// Conversation participants relations
 export const conversationParticipantsRelations = relations(conversationParticipants, ({ one }) => ({
   conversation: one(conversations, {
     fields: [conversationParticipants.conversationId],
@@ -505,7 +497,6 @@ export const conversationParticipantsRelations = relations(conversationParticipa
   }),
 }));
 
-// Message read receipts relations
 export const messageReadReceiptsRelations = relations(messageReadReceipts, ({ one }) => ({
   message: one(messages, {
     fields: [messageReadReceipts.messageId],
@@ -513,22 +504,6 @@ export const messageReadReceiptsRelations = relations(messageReadReceipts, ({ on
   }),
   user: one(users, {
     fields: [messageReadReceipts.userId],
-    references: [users.id],
-  }),
-}));
-
-// Message reports relations
-export const messageReportsRelations = relations(messageReports, ({ one }) => ({
-  message: one(messages, {
-    fields: [messageReports.messageId],
-    references: [messages.id],
-  }),
-  reporter: one(users, {
-    fields: [messageReports.reportedBy],
-    references: [users.id],
-  }),
-  resolver: one(users, {
-    fields: [messageReports.resolvedBy],
     references: [users.id],
   }),
 }));

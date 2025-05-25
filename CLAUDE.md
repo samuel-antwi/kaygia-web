@@ -15,6 +15,9 @@ npm run db:generate   # Generate new Drizzle migrations
 npm run db:migrate    # Apply pending migrations
 npm run db:push       # Push schema changes without migrations
 npm run db:studio     # Open Drizzle Studio (database UI)
+
+# Storage Setup
+npm run setup:storage # Setup Supabase storage buckets
 ```
 
 ## Architecture Overview
@@ -39,13 +42,20 @@ Each layer is self-contained with its own pages, components, server routes, and 
 - **Schema**: Located in `server/db/schema.ts`
 - **Key entities**: users, projects, supportTickets, ticketComments, passwordResets, emailVerifications
 - **Access**: Use `useDrizzle()` composable in server routes
+- **Migrations**: Managed through Drizzle Kit in `server/db/migrations/`
 
 ### Authentication Flow
 - **Session-based**: Uses `nuxt-auth-utils` with 7-day cookie sessions
-- **Email verification**: Required for new accounts
-- **Password reset**: Token-based with time expiration
+- **Email verification**: Required for new accounts via Resend
+- **Password reset**: Token-based with 1-hour expiration
 - **Roles**: CLIENT, ADMIN, SUPER_ADMIN with middleware protection
 - **Access sessions**: `const session = await getUserSession(event)` in API routes
+
+### Real-time Features (In Development)
+- **WebSocket**: Socket.io integration for real-time updates
+- **Redis**: For scalable pub/sub messaging
+- **Supabase Realtime**: For database change notifications
+- **Composables**: `useRealtimeMessaging()` for client-side integration
 
 ## Development Guidelines
 
@@ -81,23 +91,25 @@ const { user } = useAuth()
 - **Database**: Only use Drizzle ORM, no direct SQL
 - **Session access**: `const session = await getUserSession(event)`
 - **IMPORTANT**: Never import `getUserSession` in API endpoints - it's automatically available globally in Nuxt server context
+- **Error handling**: Wrap handlers with `defineEventHandlerWithError` for automatic error handling
 
 ### Layer-Specific Features
 - **Marketing**: SEO-optimized public pages with contact forms
-- **Dashboard**: Project management, settings, ticket system for clients
+- **Dashboard**: Project management, support tickets, file uploads, messaging
 - **Auth**: Complete flow with registration, login, email verification, password reset
-- **Admin**: User management, project oversight, ticket administration
-- **Core**: Shared utilities, layouts, and base configurations
+- **Admin**: User management, project oversight, ticket administration, analytics
+- **Core**: Shared utilities, layouts, error handling, and base configurations
 
 ### State Management
 - **User state**: Use `useUserState()` composable for user data
 - **Project state**: Use store in `layers/dashboard/stores/projectStore.ts`
 - **Ticket state**: Use store in `layers/dashboard/stores/ticketStore.ts`
+- **Messaging**: Use store in `layers/dashboard/stores/messagingStore.ts`
 
 ### Common Import Patterns
 ```typescript
 // These are auto-imported by Nuxt - don't import manually
-useRoute(), useRouter(), useHead(), useFetch()
+useRoute(), useRouter(), useHead(), useFetch(), defineEventHandler()
 
 // Always import explicitly
 import { Menu } from "lucide-vue-next"
@@ -112,8 +124,16 @@ const session = await getUserSession(event) // ✅ Just use it directly
 - All `/dashboard/*` routes protected by auth middleware
 - All `/admin/*` routes protected by admin-only middleware  
 - Role validation enforced in API endpoints
-- Password hashing with bcrypt
+- Password hashing with bcrypt (10 rounds)
 - Email verification required for account activation
+- CSRF protection via session cookies
+
+### Error Handling
+- **Global system**: Custom error plugin with toast notifications
+- **Server-side**: Use `defineEventHandlerWithError` wrapper
+- **Client-side**: Use `useErrorHandler()` composable
+- **Error pages**: Custom 404.vue and 500.vue pages
+- **API errors**: Return consistent error format with status codes
 
 ## 🚨 CRITICAL RULE: PACKAGE MANAGEMENT
 
@@ -126,6 +146,8 @@ const session = await getUserSession(event) // ✅ Just use it directly
 - **resend** - Removing breaks email verification and password resets  
 - **drizzle-orm** - Removing breaks database access
 - **nuxt-auth-utils** - Removing breaks login functionality
+- **@supabase/supabase-js** - Removing breaks file storage
+- **socket.io** - Removing breaks real-time features
 - **Core dependencies** - Can break entire application
 
 #### **Safe approach:**
@@ -150,3 +172,23 @@ If packages are accidentally removed:
 2. Restore all missing packages immediately
 3. Run `npm install` to reinstall
 4. Test that authentication/email still works
+
+## Environment Variables
+Required for development:
+```env
+DATABASE_URL=             # PostgreSQL connection string
+DIRECT_URL=              # Direct DB connection for migrations
+NUXT_SESSION_PASSWORD=   # 32+ character session secret
+RESEND_API_KEY=          # Resend API key for emails
+FROM_EMAIL=              # Verified sender email
+NUXT_PUBLIC_SITE_URL=    # Full site URL (e.g., https://kaygia.com)
+SUPABASE_URL=            # Supabase project URL
+SUPABASE_ANON_KEY=       # Supabase anonymous/public key
+REDIS_URL=               # Redis connection URL (optional for dev)
+```
+
+## Testing Approach
+- **Unit tests**: Located in `tests/unit/` (when implemented)
+- **E2E tests**: Located in `tests/e2e/` (when implemented)
+- **Manual testing**: Use provided test scripts in `scripts/`
+- **Database testing**: Use Drizzle Studio for direct DB inspection

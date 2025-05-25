@@ -69,10 +69,10 @@ export const useMessagingStore = defineStore('messaging', {
         
         if (before) {
           // Prepend older messages
-          this.messages = [...mutableMessages, ...this.messages]
+          this.messages.unshift(...mutableMessages)
         } else {
-          // Replace with new messages
-          this.messages = mutableMessages
+          // Replace with new messages - ensure reactivity by clearing then adding
+          this.messages.splice(0, this.messages.length, ...mutableMessages)
         }
         
         this.hasMore = data.hasMore
@@ -154,9 +154,11 @@ export const useMessagingStore = defineStore('messaging', {
     },
 
     setActiveConversation(conversation: Conversation | null) {
-      this.activeConversation = conversation
+      // Make sure we're setting a reactive copy if conversation exists
+      this.activeConversation = conversation ? deepCopyConversation(conversation) : null
       if (!conversation) {
-        this.messages = []
+        // Clear messages with proper reactivity
+        this.messages.splice(0, this.messages.length)
       }
     },
 
@@ -193,6 +195,29 @@ export const useMessagingStore = defineStore('messaging', {
       const message = this.messages.find(m => m.id === messageId)
       if (message) {
         Object.assign(message, status)
+      }
+    },
+
+    // Handle Supabase Realtime events
+    handleNewMessage(message: Message) {
+      this.addMessage(message)
+    },
+
+    handleMessageUpdate(messageId: string, updates: Partial<Message>) {
+      this.updateMessageStatus(messageId, updates)
+    },
+
+    handleMessageRead(messageId: string, userId: string) {
+      const message = this.messages.find(m => m.id === messageId)
+      if (message && message.readBy) {
+        const existingReadBy = message.readBy.find(r => r.userId === userId)
+        if (!existingReadBy) {
+          message.readBy.push({
+            messageId,
+            userId,
+            readAt: new Date()
+          })
+        }
       }
     },
 

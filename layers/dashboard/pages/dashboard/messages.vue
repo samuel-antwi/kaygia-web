@@ -23,12 +23,4 @@ definePageMeta({
   title: 'Messages',
   layout: 'dashboard'
 })
-
-// Use the messaging composable to initialize WebSocket connection
-const { connect } = useSocket()
-
-// Initialize WebSocket connection when page loads
-onMounted(async () => {
-  await connect()
-})
 </script>
