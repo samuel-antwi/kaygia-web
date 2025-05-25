@@ -52,7 +52,12 @@
       <div v-else-if="filteredConversations.length === 0" class="p-4 text-center text-muted-foreground">
         <MessageSquare class="w-12 h-12 mx-auto mb-2 opacity-50" />
         <p>No conversations found</p>
-        <p class="text-sm">Start a new conversation from a project</p>
+        <p class="text-sm mt-1">Go to your project and click "Message Team" to start a conversation</p>
+        <Button variant="outline" size="sm" class="mt-3" as-child>
+          <NuxtLink to="/dashboard/projects">
+            View Projects
+          </NuxtLink>
+        </Button>
       </div>
 
       <div v-else class="space-y-1">
