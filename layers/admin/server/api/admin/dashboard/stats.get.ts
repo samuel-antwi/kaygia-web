@@ -1,7 +1,7 @@
 import { defineEventHandler } from "h3";
 import { getDb } from "~/server/utils/db";
 import { supportTickets, users, projects, conversations, messages } from "~/server/db/schema";
-import { count, eq, ne, and, or, gte, desc, sql } from "drizzle-orm";
+import { count, eq, ne, and, or, gte, desc, sql, isNull } from "drizzle-orm";
 import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
@@ -42,14 +42,22 @@ export default defineEventHandler(async (event) => {
         )
       );
 
-    // Get total user count
-    const totalUsers = await db.select({ count: count() }).from(users);
+    // Get total user count (excluding deleted)
+    const totalUsers = await db
+      .select({ count: count() })
+      .from(users)
+      .where(isNull(users.deletedAt));
 
-    // Get new users this month count
+    // Get new users this month count (excluding deleted)
     const newUsers = await db
       .select({ count: count() })
       .from(users)
-      .where(gte(users.createdAt, firstDayOfMonth));
+      .where(
+        and(
+          gte(users.createdAt, firstDayOfMonth),
+          isNull(users.deletedAt)
+        )
+      );
 
     // Get total project count
     const totalProjects = await db.select({ count: count() }).from(projects);
