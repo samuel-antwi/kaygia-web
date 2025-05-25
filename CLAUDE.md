@@ -61,16 +61,19 @@ Each layer is self-contained with its own pages, components, server routes, and 
 
 ### Component Organization
 - **Naming**: PascalCase for components (`ProjectCard.vue`), kebab-case for pages
+- **Structure**: 
+  - **Always put `<script setup>` at the top of Vue components**, followed by `<template>`, then `<style>` if needed
+  - Keep components under 300 lines, break into smaller modules
 - **Imports**: 
   - Never import Nuxt auto-imports (composables, utils)
   - Never import shadcn-vue components (auto-imported)
   - **Always import Lucide icons explicitly**: `import { Menu, User } from "lucide-vue-next"`
-- **Structure**: Keep components under 300 lines, break into smaller modules
 - **Currency**: Use pounds (£) not dollars ($) - UK-based project
 
 ### Code Patterns
 ```vue
 <script setup lang="ts">
+// Component structure: script -> template -> style
 // 1. Type imports
 import type { Project } from '~/types'
 // 2. Explicit icon imports  
@@ -83,6 +86,14 @@ const props = defineProps<Props>()
 // 4. Composables (auto-imported)
 const { user } = useAuth()
 </script>
+
+<template>
+  <!-- Component template -->
+</template>
+
+<style scoped>
+/* Optional scoped styles */
+</style>
 ```
 
 ### API Development
