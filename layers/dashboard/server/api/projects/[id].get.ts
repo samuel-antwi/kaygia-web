@@ -1,8 +1,13 @@
 import { defineEventHandler } from "h3";
 import { getDb } from "~/server/utils/db";
 import { projects, users, projectMilestones } from "~/server/db/schema";
-import { and, eq } from "drizzle-orm";
-import { calculateOverallProgress, getCurrentPhase, PROJECT_PHASES } from "~/server/utils/project-phases";
+import { and, eq, asc } from "drizzle-orm";
+import { 
+  getProjectPhases, 
+  calculatePhaseProgress, 
+  calculateOverallProgressByPhases,
+  getCurrentPhaseFromProgress 
+} from "~/server/utils/project-phases-dynamic";
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);
@@ -43,27 +48,66 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Fetch project milestones to calculate hybrid progress
+    // Fetch project milestones ordered by phase and milestone order
     const milestones = await db.query.projectMilestones.findMany({
       where: eq(projectMilestones.projectId, projectId),
+      orderBy: [
+        asc(projectMilestones.phaseOrder),
+        asc(projectMilestones.order)
+      ],
     });
 
-    // Calculate hybrid progress
-    const calculatedProgress = calculateOverallProgress(milestones, project.status);
-    const currentPhase = getCurrentPhase(milestones) || 'discovery'; // Default to discovery if no milestones
+    // Get dynamic phases based on project type and template
+    const phases = await getProjectPhases(project.type, project.phaseTemplate);
     
-    // Get current phase details
-    const currentPhaseDetails = currentPhase ? PROJECT_PHASES[Object.keys(PROJECT_PHASES).find(
-      key => PROJECT_PHASES[key as keyof typeof PROJECT_PHASES].id === currentPhase
-    ) as keyof typeof PROJECT_PHASES] : null;
+    // Calculate phase-specific progress
+    const phaseProgress: Record<string, number> = {};
+    const phasesWithMilestones: Array<{
+      id: string;
+      name: string;
+      order: number;
+      progress: number;
+      milestones: any[];
+      isComplete: boolean;
+    }> = [];
+    
+    Object.values(phases).forEach((phase: any) => {
+      const phaseMilestones = milestones.filter(m => m.phase === phase.id);
+      const progress = calculatePhaseProgress(phaseMilestones);
+      phaseProgress[phase.id] = progress;
+      
+      phasesWithMilestones.push({
+        id: phase.id,
+        name: phase.name,
+        order: phase.order,
+        progress,
+        milestones: phaseMilestones.map(m => ({
+          id: m.id,
+          name: m.name,
+          status: m.status,
+          description: m.description || undefined
+        })),
+        isComplete: phaseMilestones.length > 0 && phaseMilestones.every(m => m.status === 'completed')
+      });
+    });
+    
+    // Sort phases by order
+    phasesWithMilestones.sort((a, b) => a.order - b.order);
+    
+    // Calculate overall progress
+    const calculatedProgress = calculateOverallProgressByPhases(phases, phaseProgress);
+    
+    // Get current phase
+    const currentPhaseInfo = getCurrentPhaseFromProgress(phases, phaseProgress);
 
     return {
       success: true,
       project: {
         ...project,
-        progress: project.progress || calculatedProgress, // Use stored progress or calculated
-        currentPhase,
-        currentPhaseName: currentPhaseDetails?.name || null,
+        progress: calculatedProgress,
+        currentPhase: currentPhaseInfo?.id || null,
+        currentPhaseName: currentPhaseInfo?.name || null,
+        phases: phasesWithMilestones, // Include phase details for client display
       },
     };
   } catch (error) {

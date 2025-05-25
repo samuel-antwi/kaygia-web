@@ -1,5 +1,19 @@
 <script setup lang="ts">
-import { Calendar, Clock, CheckCircle, AlertCircle } from "lucide-vue-next";
+import { Calendar, Clock, CheckCircle } from "lucide-vue-next";
+
+interface Phase {
+  id: string;
+  name: string;
+  order: number;
+  progress: number;
+  milestones: Array<{
+    id: string;
+    name: string;
+    status: string;
+    description?: string;
+  }>;
+  isComplete: boolean;
+}
 
 interface Props {
   status: string;
@@ -10,6 +24,7 @@ interface Props {
   startDate?: Date | string | null;
   endDate?: Date | string | null;
   timelinePreference?: string | null;
+  phases?: Phase[];
 }
 
 const props = defineProps<Props>();
@@ -170,7 +185,51 @@ const getEstimatedCompletion = (createdAt: Date | string, timelinePreference?: s
       </div>
 
       <!-- Project Phases -->
-      <div class="space-y-3">
+      <div class="space-y-3" v-if="phases && phases.length > 0">
+        <h4 class="text-sm font-medium">Project Phases</h4>
+        <div class="space-y-2">
+          <div v-for="phase in phases" :key="phase.id" class="space-y-1">
+            <div class="flex items-center space-x-3">
+              <CheckCircle 
+                :class="phase.isComplete ? 'text-green-500' : 'text-muted-foreground'" 
+                class="h-4 w-4" 
+              />
+              <span 
+                class="text-sm" 
+                :class="phase.isComplete ? 'text-foreground font-medium' : 'text-muted-foreground'"
+              >
+                {{ phase.name }}
+              </span>
+              <span v-if="phase.progress > 0 && !phase.isComplete" class="text-xs text-muted-foreground">
+                ({{ phase.progress }}%)
+              </span>
+            </div>
+            <!-- Show milestone details if phase is current or has progress -->
+            <div 
+              v-if="phase.milestones.length > 0 && (phase.id === currentPhase || phase.progress > 0) && phase.progress < 100"
+              class="ml-7 space-y-1"
+            >
+              <div 
+                v-for="milestone in phase.milestones" 
+                :key="milestone.id"
+                class="text-xs text-muted-foreground flex items-center gap-2"
+              >
+                <span :class="{
+                  'text-green-600': milestone.status === 'completed',
+                  'text-blue-600': milestone.status === 'in_progress',
+                  'text-gray-400': milestone.status === 'pending'
+                }">
+                  {{ milestone.status === 'completed' ? '✓' : milestone.status === 'in_progress' ? '•' : '○' }}
+                </span>
+                {{ milestone.name }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Fallback to generic phases if no specific phases -->
+      <div class="space-y-3" v-else>
         <h4 class="text-sm font-medium">Project Phases</h4>
         <div class="space-y-2">
           <div class="flex items-center space-x-3">

@@ -32,6 +32,19 @@ interface Project {
   progress?: number;
   currentPhase?: string | null;
   currentPhaseName?: string | null;
+  phases?: Array<{
+    id: string;
+    name: string;
+    order: number;
+    progress: number;
+    milestones: Array<{
+      id: string;
+      name: string;
+      status: string;
+      description?: string;
+    }>;
+    isComplete: boolean;
+  }>;
   
   // Preview
   previewUrl?: string | null;
@@ -210,6 +223,7 @@ const getStatusText = (status: string): string => {
             :start-date="project.startDate"
             :end-date="project.endDate"
             :timeline-preference="project.timelinePreference"
+            :phases="project.phases"
           />
 
           <!-- Project Updates -->

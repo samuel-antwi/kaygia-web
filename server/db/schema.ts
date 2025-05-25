@@ -107,6 +107,9 @@ export const projects = pgTable("projects", {
   previewPassword: text("preview_password"), // Optional password protection
   previewEnabled: boolean("preview_enabled").default(true).notNull(),
   previewExpiresAt: timestamp("preview_expires_at"), // Optional expiration
+  
+  // Phase template tracking
+  phaseTemplate: text("phase_template"), // References template ID from project-phase-templates.ts
 });
 
 // Project files table
@@ -139,6 +142,7 @@ export const projectMilestones = pgTable("project_milestones", {
   status: text("status").notNull().default("pending"), // 'pending', 'in_progress', 'completed'
   order: real("order").notNull().default(0), // For ordering milestones
   phase: text("phase"), // 'discovery', 'design', 'development', 'testing', 'deployment'
+  phaseOrder: integer("phase_order").default(0).notNull(), // Order of the phase itself
   weight: integer("weight").default(1).notNull(), // Weight for progress calculation
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

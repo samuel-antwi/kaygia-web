@@ -27,6 +27,12 @@ interface Phase {
   order: number;
 }
 
+interface ProjectWithTemplate {
+  id: string;
+  phaseTemplate?: string | null;
+  type: string;
+}
+
 interface PhaseProgress {
   progress: number;
   milestones: Array<{

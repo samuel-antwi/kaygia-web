@@ -3,7 +3,12 @@ import { getDb } from "~/server/utils/db";
 import { projectMilestones, projects } from "~/server/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
-import { calculateOverallProgress, getCurrentPhase, PROJECT_PHASES } from "~/server/utils/project-phases";
+import { 
+  getProjectPhases, 
+  calculatePhaseProgress, 
+  calculateOverallProgressByPhases,
+  getCurrentPhaseFromProgress 
+} from "~/server/utils/project-phases-dynamic";
 
 export default defineEventHandler(async (event) => {
   // Get project ID from params
@@ -31,7 +36,7 @@ export default defineEventHandler(async (event) => {
   try {
     const db = getDb(event);
 
-    // Fetch project with basic info
+    // Fetch project with basic info including type and phase template
     const project = await db.query.projects.findFirst({
       where: eq(projects.id, id),
       columns: {
@@ -43,6 +48,8 @@ export default defineEventHandler(async (event) => {
         endDate: true,
         createdAt: true,
         updatedAt: true,
+        type: true,
+        phaseTemplate: true,
       },
     });
 
@@ -53,12 +60,15 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Fetch milestones ordered by their order field
+    // Fetch milestones ordered by phase order first, then milestone order
     let milestones: any[] = [];
     try {
       milestones = await db.query.projectMilestones.findMany({
         where: eq(projectMilestones.projectId, id),
-        orderBy: [asc(projectMilestones.order)],
+        orderBy: [
+          asc(projectMilestones.phaseOrder),
+          asc(projectMilestones.order)
+        ],
       });
     } catch (error: any) {
       // Handle case where project_milestones table doesn't exist yet
@@ -74,23 +84,30 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Calculate hybrid progress
-    const calculatedProgress = calculateOverallProgress(milestones, project.status);
-    const currentPhase = getCurrentPhase(milestones) || 'discovery'; // Default to discovery if no milestones
+    // Get dynamic phases based on project type and template
+    const phases = await getProjectPhases(project.type, project.phaseTemplate);
     
     // Calculate phase-specific progress
     const phaseProgress: Record<string, { progress: number; milestones: any[] }> = {};
+    const phaseProgressPercent: Record<string, number> = {};
     
-    Object.values(PROJECT_PHASES).forEach(phase => {
+    Object.values(phases).forEach((phase: any) => {
       const phaseMilestones = milestones.filter(m => m.phase === phase.id);
-      const completed = phaseMilestones.filter(m => m.status === 'completed').length;
-      const total = phaseMilestones.length;
+      const progress = calculatePhaseProgress(phaseMilestones);
       
       phaseProgress[phase.id] = {
-        progress: total > 0 ? Math.round((completed / total) * 100) : 0,
+        progress,
         milestones: phaseMilestones
       };
+      phaseProgressPercent[phase.id] = progress;
     });
+    
+    // Calculate overall progress based on phase completion
+    const calculatedProgress = calculateOverallProgressByPhases(phases, phaseProgressPercent);
+    
+    // Get current phase
+    const currentPhaseInfo = getCurrentPhaseFromProgress(phases, phaseProgressPercent);
+    const currentPhase = currentPhaseInfo?.id || Object.keys(phases)[0];
 
     // Calculate progress statistics
     const totalMilestones = milestones.length;
@@ -112,7 +129,7 @@ export default defineEventHandler(async (event) => {
         currentPhase,
       },
       milestones,
-      phases: PROJECT_PHASES,
+      phases,
       phaseProgress,
       progress: {
         total: totalMilestones,

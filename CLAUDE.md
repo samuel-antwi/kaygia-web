@@ -43,6 +43,7 @@ Each layer is self-contained with its own pages, components, server routes, and 
 - **Key entities**: users, projects, supportTickets, ticketComments, passwordResets, emailVerifications
 - **Access**: Use `useDrizzle()` composable in server routes
 - **Migrations**: Managed through Drizzle Kit in `server/db/migrations/`
+- **⚠️ CRITICAL**: See `docs/database/MIGRATION_GUIDELINES.md` to avoid duplicate migrations
 
 ### Authentication Flow
 - **Session-based**: Uses `nuxt-auth-utils` with 7-day cookie sessions
@@ -203,3 +204,23 @@ REDIS_URL=               # Redis connection URL (optional for dev)
 - **E2E tests**: Located in `tests/e2e/` (when implemented)
 - **Manual testing**: Use provided test scripts in `scripts/`
 - **Database testing**: Use Drizzle Studio for direct DB inspection
+
+## 🚫 Critical Rules for Database Migrations
+
+**NEVER manually create migration files!** This has caused duplicate migration issues.
+
+### ❌ WRONG:
+```bash
+# Never do this:
+touch server/db/migrations/0017_my_migration.sql
+echo "ALTER TABLE..." > server/db/migrations/0018_migration.sql
+```
+
+### ✅ CORRECT:
+```bash
+# Always do this:
+npm run db:generate  # Let Drizzle create migrations
+npm run db:migrate   # Apply migrations
+```
+
+**See `docs/database/MIGRATION_GUIDELINES.md` for full details.**
