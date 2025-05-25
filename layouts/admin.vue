@@ -13,6 +13,7 @@ import {
   Menu,
   MoreVertical,
   FolderKanban,
+  Briefcase,
 } from "lucide-vue-next";
 // Note: Assuming Button, Avatar, DropdownMenu etc. are globally available via shadcn-vue auto-imports
 
@@ -77,6 +78,7 @@ const adminNavItems = [
   { name: "Manage Tickets", icon: Ticket, path: "/admin/tickets" },
   { name: "Manage Users", icon: Users, path: "/admin/users" },
   { name: "Manage Projects", icon: FolderKanban, path: "/admin/projects" },
+  { name: "Feature Tracker", icon: Briefcase, path: "/admin/features" },
   // Add other admin sections as needed
 ];
 

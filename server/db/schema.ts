@@ -6,6 +6,9 @@ import {
   real,
   pgEnum,
   integer,
+  varchar,
+  jsonb,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -370,5 +373,162 @@ export const projectMilestonesRelations = relations(projectMilestones, ({ one })
   project: one(projects, {
     fields: [projectMilestones.projectId],
     references: [projects.id],
+  }),
+}));
+
+// ============================================
+// MESSAGING SCHEMA
+// ============================================
+
+// Conversations table
+export const conversations = pgTable("conversations", {
+  id: text("id").primaryKey().notNull(),
+  projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }),
+  type: varchar("type", { length: 50 }).default("project"), // project, support, announcement
+  status: varchar("status", { length: 50 }).default("active"), // active, archived, locked
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: text("created_by").references(() => users.id),
+});
+
+// Messages table
+export const messages = pgTable("messages", {
+  id: text("id").primaryKey().notNull(),
+  conversationId: text("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  senderId: text("sender_id").notNull().references(() => users.id),
+  content: text("content"),
+  type: varchar("type", { length: 50 }).default("text"), // text, file, system
+  metadata: jsonb("metadata").default({}), // For reactions, edits, etc.
+  editedAt: timestamp("edited_at"),
+  deletedAt: timestamp("deleted_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Message files table
+export const messageFiles = pgTable("message_files", {
+  id: text("id").primaryKey().notNull(),
+  messageId: text("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  fileType: varchar("file_type", { length: 100 }),
+  fileUrl: text("file_url").notNull(),
+  storagePath: text("storage_path").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Conversation participants table
+export const conversationParticipants = pgTable("conversation_participants", {
+  conversationId: text("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  role: varchar("role", { length: 50 }).default("member"), // owner, admin, member
+  joinedAt: timestamp("joined_at").defaultNow(),
+  leftAt: timestamp("left_at"),
+  notificationsEnabled: boolean("notifications_enabled").default(true),
+  lastReadAt: timestamp("last_read_at"),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.conversationId, table.userId] }),
+}));
+
+// Message read receipts table
+export const messageReadReceipts = pgTable("message_read_receipts", {
+  messageId: text("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  readAt: timestamp("read_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.messageId, table.userId] }),
+}));
+
+// Message reports table
+export const messageReports = pgTable("message_reports", {
+  id: text("id").primaryKey().notNull(),
+  messageId: text("message_id").notNull().references(() => messages.id),
+  reportedBy: text("reported_by").notNull().references(() => users.id),
+  reason: varchar("reason", { length: 100 }).notNull(),
+  description: text("description"),
+  status: varchar("status", { length: 50 }).default("pending"), // pending, reviewed, resolved
+  resolvedBy: text("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ============================================
+// MESSAGING RELATIONS
+// ============================================
+
+// Conversations relations
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [conversations.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [conversations.createdBy],
+    references: [users.id],
+  }),
+  messages: many(messages),
+  participants: many(conversationParticipants),
+}));
+
+// Messages relations
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+  }),
+  files: many(messageFiles),
+  readReceipts: many(messageReadReceipts),
+  reports: many(messageReports),
+}));
+
+// Message files relations
+export const messageFilesRelations = relations(messageFiles, ({ one }) => ({
+  message: one(messages, {
+    fields: [messageFiles.messageId],
+    references: [messages.id],
+  }),
+}));
+
+// Conversation participants relations
+export const conversationParticipantsRelations = relations(conversationParticipants, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationParticipants.conversationId],
+    references: [conversations.id],
+  }),
+  user: one(users, {
+    fields: [conversationParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+// Message read receipts relations
+export const messageReadReceiptsRelations = relations(messageReadReceipts, ({ one }) => ({
+  message: one(messages, {
+    fields: [messageReadReceipts.messageId],
+    references: [messages.id],
+  }),
+  user: one(users, {
+    fields: [messageReadReceipts.userId],
+    references: [users.id],
+  }),
+}));
+
+// Message reports relations
+export const messageReportsRelations = relations(messageReports, ({ one }) => ({
+  message: one(messages, {
+    fields: [messageReports.messageId],
+    references: [messages.id],
+  }),
+  reporter: one(users, {
+    fields: [messageReports.reportedBy],
+    references: [users.id],
+  }),
+  resolver: one(users, {
+    fields: [messageReports.resolvedBy],
+    references: [users.id],
   }),
 }));
