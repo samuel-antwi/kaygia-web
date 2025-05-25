@@ -6,8 +6,8 @@ export const useSupabaseClient = () => {
   if (!supabaseClient) {
     try {
       const config = useRuntimeConfig()
-      const supabaseUrl = config.public.SUPABASE_URL
-      const supabaseAnonKey = config.public.SUPABASE_ANON_KEY
+      const supabaseUrl = config.public.SUPABASE_URL as string | undefined
+      const supabaseAnonKey = config.public.SUPABASE_ANON_KEY as string | undefined
       
       if (!supabaseUrl || !supabaseAnonKey) {
         console.error('Supabase configuration missing:', { supabaseUrl, supabaseAnonKey: !!supabaseAnonKey })
