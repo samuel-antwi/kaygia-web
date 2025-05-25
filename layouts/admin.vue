@@ -14,6 +14,7 @@ import {
   MoreVertical,
   FolderKanban,
   Briefcase,
+  MessageSquare,
 } from "lucide-vue-next";
 // Note: Assuming Button, Avatar, DropdownMenu etc. are globally available via shadcn-vue auto-imports
 
@@ -75,6 +76,7 @@ function toggleSidebar() {
 // TODO: Adjust paths once admin pages are created
 const adminNavItems = [
   { name: "Admin Dashboard", icon: LayoutDashboard, path: "/admin" },
+  { name: "Messages", icon: MessageSquare, path: "/admin/messages" },
   { name: "Manage Tickets", icon: Ticket, path: "/admin/tickets" },
   { name: "Manage Users", icon: Users, path: "/admin/users" },
   { name: "Manage Projects", icon: FolderKanban, path: "/admin/projects" },

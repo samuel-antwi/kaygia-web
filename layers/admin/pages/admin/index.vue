@@ -10,6 +10,7 @@ import {
   ArrowRight,
   AlertTriangle,
   Loader2,
+  MessageSquare,
 } from "lucide-vue-next";
 
 // Ensure middleware runs for this page (it does if global)
@@ -34,6 +35,11 @@ interface DashboardStats {
     total: number;
     inProgress: number;
   };
+  messages?: {
+    conversations: number;
+    activeConversations: number;
+    unreadMessages: number;
+  };
 }
 
 interface RecentActivity {
@@ -52,6 +58,7 @@ const stats = ref<DashboardStats>({
   tickets: { total: 0, open: 0 },
   users: { total: 0, newThisMonth: 0 },
   projects: { total: 0, inProgress: 0 },
+  messages: { conversations: 0, activeConversations: 0, unreadMessages: 0 }
 });
 const recentActivity = ref<RecentActivity[]>([]);
 
@@ -135,7 +142,7 @@ watchEffect(() => {
       </div>
 
       <!-- Summary Cards -->
-      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <!-- Tickets Card -->
         <Card>
           <CardHeader
@@ -245,6 +252,45 @@ watchEffect(() => {
               class="text-xs text-primary flex items-center hover:underline"
             >
               View all projects
+              <ArrowRight class="ml-1 h-3 w-3" />
+            </NuxtLink>
+          </CardFooter>
+        </Card>
+
+        <!-- Messages Card -->
+        <Card>
+          <CardHeader
+            class="flex flex-row items-center justify-between space-y-0 pb-2"
+          >
+            <CardTitle class="text-sm font-medium">Messages</CardTitle>
+            <MessageSquare class="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div class="text-2xl font-bold">
+              <div
+                v-if="isLoadingStats"
+                class="h-8 w-16 rounded bg-muted animate-pulse"
+              ></div>
+              <div v-else>{{ stats.messages?.activeConversations || 0 }}</div>
+            </div>
+            <p class="text-xs text-muted-foreground pt-1">
+              <span v-if="!isLoadingStats && stats.messages?.unreadMessages" class="font-medium text-primary">
+                {{ stats.messages.unreadMessages }}
+              </span>
+              <span
+                v-else-if="isLoadingStats"
+                class="h-4 w-8 rounded bg-muted animate-pulse inline-block"
+              ></span>
+              <span v-else>0</span>
+              unread messages
+            </p>
+          </CardContent>
+          <CardFooter class="p-2">
+            <NuxtLink
+              to="/admin/messages"
+              class="text-xs text-primary flex items-center hover:underline"
+            >
+              View messages
               <ArrowRight class="ml-1 h-3 w-3" />
             </NuxtLink>
           </CardFooter>

@@ -1,6 +1,6 @@
 import { defineEventHandler } from "h3";
 import { getDb } from "~/server/utils/db";
-import { supportTickets, users, projects } from "~/server/db/schema";
+import { supportTickets, users, projects, conversations, messages } from "~/server/db/schema";
 import { count, eq, ne, and, or, gte, desc, sql } from "drizzle-orm";
 import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
 
@@ -60,6 +60,29 @@ export default defineEventHandler(async (event) => {
       .from(projects)
       .where(eq(projects.status, "IN_PROGRESS"));
 
+    // Get messaging stats
+    const totalConversations = await db
+      .select({ count: count() })
+      .from(conversations);
+
+    const activeConversations = await db
+      .select({ count: count() })
+      .from(conversations)
+      .where(eq(conversations.status, "active"));
+
+    // Get unread messages count (messages without read receipts from admins)
+    const unreadMessages = await db
+      .select({ count: count() })
+      .from(messages)
+      .where(
+        sql`NOT EXISTS (
+          SELECT 1 FROM message_read_receipts mrr
+          JOIN users u ON mrr.user_id = u.id
+          WHERE mrr.message_id = ${messages.id}
+          AND u.role = 'ADMIN'
+        )`
+      );
+
     return {
       success: true,
       stats: {
@@ -74,6 +97,11 @@ export default defineEventHandler(async (event) => {
         projects: {
           total: totalProjects[0].count,
           inProgress: inProgressProjects[0].count,
+        },
+        messages: {
+          conversations: totalConversations[0].count,
+          activeConversations: activeConversations[0].count,
+          unreadMessages: unreadMessages[0].count,
         },
       },
     };
