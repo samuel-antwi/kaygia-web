@@ -404,27 +404,15 @@ const saveEditedMilestone = async () => {
                 :show-percentage="false"
               />
 
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-muted-foreground">
-                  Current Phase:
-                  {{
-                    project.currentPhase
-                      ? Object.values(phases).find(
-                          (p) => p.id === project.currentPhase
-                        )?.name
-                      : "Not Started"
-                  }}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  @click="updateProjectProgress(overallProgress)"
-                  :disabled="false"
-                  class="border-blue-200 hover:bg-blue-50"
-                >
-                  <Settings class="h-4 w-4 mr-1" />
-                  Sync to Client
-                </Button>
+              <div class="text-sm text-muted-foreground">
+                Current Phase:
+                {{
+                  project.currentPhase
+                    ? Object.values(phases).find(
+                        (p) => p.id === project.currentPhase
+                      )?.name
+                    : "Not Started"
+                }}
               </div>
             </div>
           </CardContent>
@@ -464,6 +452,18 @@ const saveEditedMilestone = async () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+      
+      <!-- Sync to Client Button -->
+      <div class="flex justify-end mt-4">
+        <Button
+          @click="updateProjectProgress(overallProgress)"
+          :disabled="false"
+          class="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          <Settings class="h-4 w-4 mr-2" />
+          Sync Progress to Client
+        </Button>
       </div>
     </div>
 
