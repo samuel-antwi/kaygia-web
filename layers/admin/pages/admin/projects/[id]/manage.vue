@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick, watch } from "vue";
-import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock, Info, MoreVertical, ExternalLink, ChevronRight } from "lucide-vue-next";
+import { ArrowLeft, Plus, Upload, MessageSquare, BarChart3, FileText, Settings, Eye, Lock, Info, MoreVertical, ExternalLink, ChevronRight, Users, FolderOpen, CheckSquare, MessageCircle, Activity } from "lucide-vue-next";
 import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProjectUpdates.vue";
 import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
 import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
@@ -141,31 +141,13 @@ const internalActions = [
   }
 ];
 
-// Get status color
-const getStatusColor = (status: string): string => {
-  switch (status) {
-    case "PENDING":
-      return "text-amber-600 bg-amber-50 border-amber-200";
-    case "APPROVED":
-      return "text-blue-600 bg-blue-50 border-blue-200";
-    case "IN_PROGRESS":
-      return "text-purple-600 bg-purple-50 border-purple-200";
-    case "REVIEW":
-      return "text-cyan-600 bg-cyan-50 border-cyan-200";
-    case "COMPLETED":
-      return "text-green-600 bg-green-50 border-green-200";
-    case "CANCELLED":
-      return "text-red-600 bg-red-50 border-red-200";
-    default:
-      return "text-gray-600 bg-gray-50 border-gray-200";
-  }
-};
+// Removed getStatusColor - using subtle Badge variants instead
 </script>
 
 <template>
-  <div class="container mx-auto py-6 space-y-6">
+  <div class="min-h-screen bg-gray-50/30">
     <!-- Loading State -->
-    <div v-if="pending" class="flex items-center justify-center py-20">
+    <div v-if="pending" class="flex items-center justify-center min-h-screen">
       <div class="text-center">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
         <p class="mt-2 text-muted-foreground">Loading project...</p>
@@ -173,262 +155,149 @@ const getStatusColor = (status: string): string => {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="text-center py-10">
-      <p class="text-destructive">Error loading project: {{ error.statusMessage }}</p>
-      <Button @click="refresh" variant="outline" class="mt-4">Retry</Button>
+    <div v-else-if="error" class="flex items-center justify-center min-h-screen">
+      <div class="text-center">
+        <p class="text-destructive mb-4">Error loading project</p>
+        <Button @click="refresh" variant="outline" size="sm">Try Again</Button>
+      </div>
     </div>
 
     <!-- Main Content -->
-    <div v-else-if="project" class="space-y-6">
-      <!-- Header -->
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <Button variant="ghost" as-child>
-            <NuxtLink :to="`/admin/projects/${projectId}`" class="flex items-center">
-              <ArrowLeft class="mr-2 h-4 w-4" />
-              Back to Project Details
-            </NuxtLink>
-          </Button>
-          
+    <div v-else-if="project" class="mx-auto max-w-7xl">
+      <!-- Simplified Header -->
+      <div class="bg-white border-b px-6 py-4">
+        <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-2xl font-bold">Manage: {{ project.title }}</h1>
-            <div class="flex items-center space-x-2 mt-1">
-              <Badge :class="getStatusColor(project.status)" variant="outline">
-                {{ project.status }}
+            <div class="flex items-center gap-3 mb-1">
+              <h1 class="text-2xl font-semibold text-gray-900">{{ project.title }}</h1>
+              <Badge variant="secondary" class="font-normal">
+                {{ project.status.replace('_', ' ').toLowerCase() }}
               </Badge>
-              <span class="text-sm text-muted-foreground">
-                Client: {{ project.client?.name || project.client?.email }}
-              </span>
             </div>
+            <p class="text-sm text-muted-foreground">
+              {{ project.client?.name || project.client?.email }} • {{ formatProjectType(project.type) }}
+            </p>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <Button variant="ghost" size="sm" as-child>
+              <NuxtLink :to="`/admin/projects/${projectId}`">
+                <Info class="h-4 w-4" />
+              </NuxtLink>
+            </Button>
+            <Button variant="ghost" size="sm" as-child>
+              <NuxtLink :to="`/dashboard/projects/${projectId}`" target="_blank">
+                <ExternalLink class="h-4 w-4" />
+              </NuxtLink>
+            </Button>
           </div>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <MoreVertical class="h-4 w-4 mr-2" />
-              View Options
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-48">
-            <DropdownMenuItem @click="$router.push(`/admin/projects/${projectId}`)">
-              <Info class="h-4 w-4 mr-2" />
-              View Project Details
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <NuxtLink :to="`/dashboard/projects/${projectId}`" target="_blank" class="flex items-center">
-                <ExternalLink class="h-4 w-4 mr-2" />
-                View Client Page
-                <span class="ml-auto text-xs text-muted-foreground">↗</span>
-              </NuxtLink>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <!-- Progress Bar -->
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-medium">Overall Progress</span>
+            <span class="text-sm text-muted-foreground">{{ projectProgress }}%</span>
+          </div>
+          <ProgressBar 
+            :progress="projectProgress"
+            :show-percentage="false"
+            size="sm"
+          />
+        </div>
       </div>
 
-      <!-- Preview URL Card -->
-      <PreviewUrlCard 
-        :project-id="projectId"
-        :project-title="project.title"
-        :preview-url="project.previewUrl"
-        :preview-password="project.previewPassword"
-        :preview-enabled="project.previewEnabled"
-        :preview-expires-at="project.previewExpiresAt"
-      />
-
-      <!-- Quick Actions -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Client-Facing Actions -->
-        <Card>
-          <CardHeader>
-            <CardTitle class="flex items-center">
-              <Eye class="h-5 w-5 mr-2 text-green-600" />
-              Client-Facing Actions
-            </CardTitle>
-            <CardDescription>
-              These actions create content visible to your client
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div class="space-y-3">
-              <button
-                v-for="action in clientFacingActions"
-                :key="action.id"
-                @click="action.action"
-                class="w-full p-4 border-2 border-green-200 bg-white rounded-lg text-left transition-all hover:border-green-400 hover:bg-green-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 group"
-                :class="{ 'ring-2 ring-green-500 border-green-400 bg-green-50': activeTab === action.tabId }"
-              >
-                <div class="flex items-center space-x-3">
-                  <div class="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                    <component :is="action.icon" class="h-5 w-5 text-green-600" />
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="font-medium text-gray-900">{{ action.label }}</h3>
-                    <p class="text-sm text-muted-foreground">{{ action.description }}</p>
-                  </div>
-                  <ChevronRight class="h-5 w-5 text-gray-400 group-hover:text-green-600 transition-colors" />
-                </div>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <!-- Internal Actions -->
-        <Card>
-          <CardHeader>
-            <CardTitle class="flex items-center">
-              <Lock class="h-5 w-5 mr-2 text-blue-600" />
-              Internal Management
-            </CardTitle>
-            <CardDescription>
-              These actions are for internal tracking only
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div class="space-y-3">
-              <button
-                v-for="action in internalActions"
-                :key="action.id"
-                @click="action.action"
-                class="w-full p-4 border-2 border-blue-200 bg-white rounded-lg text-left transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
-                :class="{ 'ring-2 ring-blue-500 border-blue-400 bg-blue-50': activeTab === action.tabId }"
-              >
-                <div class="flex items-center space-x-3">
-                  <div class="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                    <component :is="action.icon" class="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="font-medium text-gray-900">{{ action.label }}</h3>
-                    <p class="text-sm text-muted-foreground">{{ action.description }}</p>
-                  </div>
-                  <ChevronRight class="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                </div>
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <!-- Management Tabs -->
-      <div ref="tabSectionRef" class="scroll-mt-6">
-        <Card>
-        <CardHeader>
-          <div class="flex space-x-4 border-b">
+      <!-- Main Layout -->
+      <div class="flex flex-col lg:flex-row gap-6 p-6">
+        <!-- Sidebar Navigation -->
+        <aside class="lg:w-64 flex-shrink-0">
+          <nav class="space-y-1">
             <button
               v-for="tab in [
-                { id: 'overview', label: 'Overview', icon: null },
-                { id: 'updates', label: 'Project Updates', icon: Eye, type: 'client' },
-                { id: 'deliverables', label: 'Deliverables', icon: Eye, type: 'client' },
-                { id: 'comments', label: 'Comments', icon: Eye, type: 'client' },
-                { id: 'progress', label: 'Progress Tracking', icon: Lock, type: 'internal' },
-                { id: 'files', label: 'File Management', icon: Lock, type: 'internal' }
+                { id: 'overview', label: 'Overview', icon: Activity },
+                { id: 'updates', label: 'Project Updates', icon: MessageSquare },
+                { id: 'deliverables', label: 'Deliverables', icon: CheckSquare },
+                { id: 'comments', label: 'Comments', icon: MessageCircle },
+                { id: 'progress', label: 'Progress Tracking', icon: BarChart3 },
+                { id: 'files', label: 'File Management', icon: FolderOpen }
               ]"
               :key="tab.id"
               @click="activeTab = tab.id as TabId"
               :class="[
-                'px-4 py-2 font-medium transition-colors border-b-2 flex items-center gap-2',
+                'w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
                 activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               ]"
             >
-              <component 
-                v-if="tab.icon" 
-                :is="tab.icon" 
-                :class="[
-                  'h-3 w-3',
-                  tab.type === 'client' ? 'text-green-600' : 'text-blue-600'
-                ]" 
-              />
+              <component :is="tab.icon" class="h-4 w-4" />
               {{ tab.label }}
             </button>
+          </nav>
+
+          <!-- Preview URL Card -->
+          <div class="mt-6">
+            <PreviewUrlCard 
+              :project-id="projectId"
+              :project-title="project.title"
+              :preview-url="project.previewUrl"
+              :preview-password="project.previewPassword"
+              :preview-enabled="project.previewEnabled"
+              :preview-expires-at="project.previewExpiresAt"
+            />
           </div>
-        </CardHeader>
+        </aside>
 
-        <CardContent class="p-6 min-h-[400px]">
-          <!-- Overview Tab -->
-          <div v-show="activeTab === 'overview'" class="space-y-6">
-            <!-- Quick Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader class="pb-2">
-                  <CardTitle class="text-sm font-medium text-muted-foreground">Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Badge variant="outline" class="text-sm">{{ project?.status }}</Badge>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader class="pb-2">
-                  <CardTitle class="text-sm font-medium text-muted-foreground">Progress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ProgressBar 
-                    :progress="projectProgress"
-                    :show-percentage="true"
-                  />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader class="pb-2">
-                  <CardTitle class="text-sm font-medium text-muted-foreground">Type</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p class="text-sm">{{ formatProjectType(project?.type) }}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader class="pb-2">
-                  <CardTitle class="text-sm font-medium text-muted-foreground">Client</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p class="text-sm">{{ project?.client?.name || project?.client?.email }}</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <!-- Management Overview -->
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Management Overview</CardTitle>
-                <CardDescription>
-                  Use the tabs above to manage different aspects of this project. Each section provides tools to update content visible to the client.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div class="space-y-4">
-                  <Alert>
-                    <MessageSquare class="h-4 w-4" />
-                    <AlertTitle>Getting Started</AlertTitle>
-                    <AlertDescription>
-                      <ul class="list-disc list-inside space-y-1 text-sm">
-                        <li><strong>Project Updates:</strong> Post progress updates that clients can see</li>
-                        <li><strong>Deliverables:</strong> Upload and manage project deliverables</li>
-                        <li><strong>Comments:</strong> View and respond to client questions</li>
-                        <li><strong>Progress Tracking:</strong> Update internal milestones (not visible to clients)</li>
-                        <li><strong>File Management:</strong> Manage project files and assets</li>
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <div class="pt-4">
-                    <Button 
-                      @click="$router.push(`/admin/projects/${projectId}`)"
-                      variant="outline"
-                      class="w-full"
+        <!-- Main Content Area -->
+        <main class="flex-1 min-w-0">
+          <Card class="h-full">
+            <CardContent class="p-6">
+              <!-- Overview Tab -->
+              <div v-show="activeTab === 'overview'" class="space-y-6">
+                <div>
+                  <h2 class="text-lg font-semibold mb-4">Quick Actions</h2>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      v-for="action in [...clientFacingActions, ...internalActions]"
+                      :key="action.id"
+                      @click="action.action"
+                      class="flex items-start gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 transition-colors text-left"
                     >
-                      <FileText class="h-4 w-4 mr-2" />
-                      View Full Project Details
-                    </Button>
+                      <div class="p-2 rounded-md bg-gray-100">
+                        <component :is="action.icon" class="h-4 w-4 text-gray-700" />
+                      </div>
+                      <div class="flex-1">
+                        <h3 class="font-medium text-sm">{{ action.label }}</h3>
+                        <p class="text-xs text-muted-foreground mt-1">{{ action.description }}</p>
+                      </div>
+                    </button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+
+                <Separator />
+
+                <div>
+                  <h2 class="text-lg font-semibold mb-4">Project Overview</h2>
+                  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <p class="text-sm text-muted-foreground">Status</p>
+                      <p class="font-medium">{{ project.status.replace('_', ' ') }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-muted-foreground">Type</p>
+                      <p class="font-medium">{{ formatProjectType(project.type) }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-muted-foreground">Progress</p>
+                      <p class="font-medium">{{ projectProgress }}%</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-muted-foreground">Client</p>
+                      <p class="font-medium">{{ project.client?.name || project.client?.email }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
           <!-- Updates Tab -->
           <div v-show="activeTab === 'updates'" class="min-h-[300px]">
@@ -488,8 +357,9 @@ const getStatusColor = (status: string): string => {
               <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
             </div>
           </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </main>
       </div>
     </div>
   </div>
