@@ -7,6 +7,7 @@ import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjec
 import AdminProjectFiles from "~/layers/admin/components/projects/AdminProjectFiles.vue";
 import AdminProjectComments from "~/layers/admin/components/projects/AdminProjectComments.vue";
 import PreviewUrlCard from "~/layers/admin/components/projects/PreviewUrlCard.vue";
+import ProgressBar from "~/layers/core/components/ProgressBar.vue";
 
 definePageMeta({
   layout: "admin",
@@ -364,15 +365,10 @@ const getStatusColor = (status: string): string => {
                   <CardTitle class="text-sm font-medium text-muted-foreground">Progress</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div class="flex items-center gap-2">
-                    <div class="w-full bg-muted rounded-full h-3">
-                      <div 
-                        class="h-3 rounded-full transition-all duration-500 bg-primary"
-                        :style="{ width: `${projectProgress}%` }"
-                      ></div>
-                    </div>
-                    <span class="text-sm font-medium">{{ projectProgress }}%</span>
-                  </div>
+                  <ProgressBar 
+                    :progress="projectProgress"
+                    :show-percentage="true"
+                  />
                 </CardContent>
               </Card>
               

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Calendar, Clock, CheckCircle } from "lucide-vue-next";
+import ProgressBar from "~/layers/core/components/ProgressBar.vue";
 
 interface Phase {
   id: string;
@@ -145,17 +146,12 @@ const getEstimatedCompletion = (createdAt: Date | string, timelinePreference?: s
     <CardContent class="space-y-6">
       <!-- Progress Bar -->
       <div class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <span>Overall Progress</span>
-          <span class="font-medium">{{ getProgressPercentage() }}%</span>
-        </div>
-        <div class="w-full bg-muted rounded-full h-3">
-          <div 
-            class="h-3 rounded-full transition-all duration-500"
-            :class="status === 'COMPLETED' ? 'bg-green-500' : status === 'CANCELLED' ? 'bg-red-500' : 'bg-primary'"
-            :style="{ width: `${getProgressPercentage()}%` }"
-          ></div>
-        </div>
+        <ProgressBar 
+          :progress="getProgressPercentage()"
+          :variant="status === 'COMPLETED' ? 'success' : status === 'CANCELLED' ? 'danger' : 'default'"
+          :show-percentage="true"
+          label="Overall Progress"
+        />
         <p v-if="currentPhaseName" class="text-xs text-muted-foreground text-center">
           Currently in {{ currentPhaseName }} phase
         </p>

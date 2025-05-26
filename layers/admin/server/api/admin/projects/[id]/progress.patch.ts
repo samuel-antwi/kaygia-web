@@ -77,6 +77,18 @@ export default defineEventHandler(async (event) => {
       updateData.status = body.status;
     }
 
+    // Allow updating progress (0-100)
+    if (body.progress !== undefined) {
+      const progress = parseInt(body.progress);
+      if (isNaN(progress) || progress < 0 || progress > 100) {
+        throw createError({
+          statusCode: 400,
+          statusMessage: "Bad Request: Progress must be a number between 0 and 100",
+        });
+      }
+      updateData.progress = progress;
+    }
+
     // Update project
     await db
       .update(projects)
@@ -90,6 +102,7 @@ export default defineEventHandler(async (event) => {
         id: true,
         title: true,
         status: true,
+        progress: true,
         startDate: true,
         endDate: true,
         createdAt: true,

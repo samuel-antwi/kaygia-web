@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { AlertTriangle, Loader2, Settings } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
+import ProgressBar from "~/layers/core/components/ProgressBar.vue";
 
 // Import modular components
 import ProjectHeader from "~/layers/admin/components/projects/ProjectHeader.vue";
@@ -32,6 +33,7 @@ interface Project {
   type: string;
   budget: number | null;
   requirements: string | null;
+  progress?: number | null;
   
   // Timeline & Scope
   timelinePreference?: string | null;
@@ -102,6 +104,15 @@ const { data, pending, error, refresh } = await useFetch<ApiResponse>(
 
 // Computed property for easier access to the project data
 const project = computed(() => data.value?.project);
+
+// Fetch progress data for accurate milestone-based progress
+const { data: progressData } = await useFetch(`/api/admin/projects/${projectId.value}/progress`, {
+  server: false,
+  watch: [projectId]
+});
+
+// Use calculated progress if available, otherwise fall back to project progress
+const projectProgress = computed(() => progressData.value?.project?.calculatedProgress ?? project.value?.progress ?? 0);
 
 // Function to update project status
 const updateProjectStatus = async (newStatus: string) => {
@@ -211,6 +222,30 @@ const updateProjectStatus = async (newStatus: string) => {
         :project-id="projectId"
         :show-manage-button="true"
       />
+
+      <!-- Project Progress -->
+      <Card>
+        <CardHeader class="pb-3">
+          <div class="flex items-center justify-between">
+            <CardTitle class="text-lg">Project Progress</CardTitle>
+            <span class="text-2xl font-bold text-primary">{{ projectProgress }}%</span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ProgressBar 
+            :progress="projectProgress"
+            :show-percentage="false"
+            size="lg"
+            :variant="project.status === 'COMPLETED' ? 'success' : project.status === 'CANCELLED' ? 'danger' : 'default'"
+          />
+          <p class="text-sm text-muted-foreground mt-2">
+            {{ project.status === 'PENDING' ? 'Awaiting approval' : 
+               project.status === 'COMPLETED' ? 'Project completed' :
+               project.status === 'CANCELLED' ? 'Project cancelled' :
+               'Based on milestone completion' }}
+          </p>
+        </CardContent>
+      </Card>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left Column: Project Information -->

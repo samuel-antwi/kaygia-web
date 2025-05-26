@@ -14,6 +14,7 @@ import {
 } from "lucide-vue-next";
 import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
 import type { ProjectStatus } from "../../types/project";
+import ProgressBar from "~/layers/core/components/ProgressBar.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -192,14 +193,12 @@ const stats = computed(() => [
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div class="flex items-center gap-2">
-                    <Progress
-                      :value="calculateProgress(project.status)"
-                      class="w-[60px] sm:w-[80px]"
+                  <div class="w-[120px]">
+                    <ProgressBar
+                      :progress="project.progress ?? calculateProgress(project.status)"
+                      :show-percentage="true"
+                      size="sm"
                     />
-                    <span class="text-xs"
-                      >{{ calculateProgress(project.status) }}%</span
-                    >
                   </div>
                 </TableCell>
                 <TableCell>{{ formatStatus(project.type) }}</TableCell>

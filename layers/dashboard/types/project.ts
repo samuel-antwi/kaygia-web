@@ -26,6 +26,7 @@ export interface Project {
   type: ProjectType;
   budget?: number | null;
   requirements?: string | null;
+  progress?: number | null; // 0-100
   
   // Timeline & Scope
   timelinePreference?: string | null;

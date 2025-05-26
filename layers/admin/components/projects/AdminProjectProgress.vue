@@ -13,6 +13,7 @@ import {
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
 import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
+import ProgressBar from "~/layers/core/components/ProgressBar.vue";
 
 interface Props {
   projectId: string;
@@ -398,12 +399,10 @@ const saveEditedMilestone = async () => {
                 >
               </div>
 
-              <div class="w-full bg-muted rounded-full h-3">
-                <div
-                  class="h-3 rounded-full transition-all duration-500 bg-primary"
-                  :style="{ width: `${overallProgress}%` }"
-                ></div>
-              </div>
+              <ProgressBar 
+                :progress="overallProgress"
+                :show-percentage="false"
+              />
 
               <div class="flex items-center justify-between text-sm">
                 <span class="text-muted-foreground">
@@ -456,14 +455,11 @@ const saveEditedMilestone = async () => {
                     }}/{{ phaseProgress[phase.id]?.milestones?.length || 0 }})
                   </span>
                 </div>
-                <div class="w-full bg-muted rounded-full h-2">
-                  <div
-                    class="h-2 rounded-full transition-all duration-500 bg-primary"
-                    :style="{
-                      width: `${phaseProgress[phase.id]?.progress || 0}%`,
-                    }"
-                  ></div>
-                </div>
+                <ProgressBar 
+                  :progress="phaseProgress[phase.id]?.progress || 0"
+                  size="sm"
+                  :show-percentage="false"
+                />
               </div>
             </div>
           </CardContent>
