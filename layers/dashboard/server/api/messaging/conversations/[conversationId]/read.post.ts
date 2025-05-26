@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { eq, and, inArray } from 'drizzle-orm'
-import { messageReadReceipts, messages, conversationParticipants } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { messageReadReceipts, messages, conversationParticipants } from '../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../server/utils/db'
 
 const markReadSchema = z.object({
   messageIds: z.array(z.string())

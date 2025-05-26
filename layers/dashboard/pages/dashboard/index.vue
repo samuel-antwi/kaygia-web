@@ -12,9 +12,9 @@ import {
   Bell,
   Calendar,
 } from "lucide-vue-next";
-import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
+import { useProjectStore } from "#layers/dashboard/stores/projectStore";
 import type { ProjectStatus } from "../../types/project";
-import ProgressBar from "~/layers/core/components/ProgressBar.vue";
+import ProgressBar from "#layers/core/components/ProgressBar.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -255,12 +255,12 @@ const stats = computed(() => [
               <div>
                 <p class="text-sm font-medium">Project Update</p>
                 <p class="text-xs sm:text-sm text-muted-foreground">
-                  Your "{{ recentProjects[0].title }}" project status is
-                  {{ formatStatus(recentProjects[0].status) }}.
+                  Your "{{ recentProjects[0]?.title }}" project status is
+                  {{ formatStatus(recentProjects[0]?.status || 'active') }}.
                 </p>
                 <p class="text-xs text-muted-foreground mt-1">
                   {{
-                    new Date(recentProjects[0].updatedAt).toLocaleDateString()
+                    recentProjects[0]?.updatedAt ? new Date(recentProjects[0].updatedAt).toLocaleDateString() : ''
                   }}
                 </p>
               </div>

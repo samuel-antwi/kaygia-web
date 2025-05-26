@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { createError } from 'h3'
 import { eq, and } from 'drizzle-orm'
-import { messages, conversations, conversationParticipants } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { messages, conversations, conversationParticipants } from '../../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../../server/utils/db'
 import { nanoid } from 'nanoid'
 
 const sendMessageSchema = z.object({

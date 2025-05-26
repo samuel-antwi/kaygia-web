@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { eq, desc, and, or, like, sql, inArray, isNotNull } from 'drizzle-orm'
-import { conversations, conversationParticipants, messages, users, projects } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { conversations, conversationParticipants, messages, users, projects } from '../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../server/utils/db'
+import { createError } from 'h3'
 
 const querySchema = z.object({
   projectId: z.string().optional(),
@@ -11,7 +12,7 @@ const querySchema = z.object({
   offset: z.string().transform(Number).default('0')
 })
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event): Promise<{ conversations: any[], total: number }> => {
   const session = await getUserSession(event)
   if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
     throw createError({
@@ -89,11 +90,13 @@ export default defineEventHandler(async (event) => {
     .offset(query.offset)
 
   // Get total count
-  const [{ count }] = await db
+  const countResult = await db
     .select({ count: sql<number>`count(distinct ${conversations.id})` })
     .from(conversations)
     .innerJoin(projects, eq(conversations.projectId, projects.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
+  
+  const count = countResult[0]?.count ?? 0
 
   // Process results to get unique conversations with their latest message
   const conversationMap = new Map()

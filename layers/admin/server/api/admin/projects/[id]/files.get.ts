@@ -1,8 +1,8 @@
 import { defineEventHandler, getRouterParam, createError } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projectFiles, projects } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projectFiles, projects } from "../../../../../../../server/db/schema";
 import { eq, desc } from "drizzle-orm";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // Get project ID from params
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     });
 
     // Calculate total storage used
-    const totalSize = files.reduce((sum, file) => sum + (file.size || 0), 0);
+    const totalSize = files.reduce((sum: number, file: any) => sum + (file.size || 0), 0);
 
     return {
       success: true,
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
       metadata: {
         totalFiles: files.length,
         totalSize,
-        lastUpload: files.length > 0 ? files[0].createdAt : null,
+        lastUpload: files.length > 0 ? files[0]?.createdAt : null,
       },
     };
   } catch (error: any) {

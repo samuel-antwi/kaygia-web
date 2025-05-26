@@ -1,6 +1,6 @@
 import { H3Event } from "h3";
-import { getDb } from "~/server/utils/db";
-import { users } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { users } from "../../../../../server/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
 export default defineEventHandler(async (event: H3Event) => {

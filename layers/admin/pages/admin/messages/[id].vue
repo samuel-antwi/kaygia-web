@@ -12,11 +12,11 @@ import {
   Paperclip,
   Clock
 } from 'lucide-vue-next'
-import type { Message } from '~/layers/dashboard/types/messaging'
-import type { AdminConversation } from '~/layers/admin/types/messaging'
-import { formatDateTime, formatRelativeTime } from '~/layers/admin/utils/dateFormatting'
-import { isSuperAdmin } from '~/layers/admin/utils/adminAccess'
-import AssignTeamDialog from '~/layers/admin/components/messaging/AssignTeamDialog.vue'
+import type { Message } from '#layers/dashboard/types/messaging'
+import type { AdminConversation } from '#layers/admin/types/messaging'
+import { formatDateTime, formatRelativeTime } from '#layers/admin/utils/dateFormatting'
+import { isSuperAdmin } from '#layers/admin/utils/adminAccess'
+import AssignTeamDialog from '#layers/admin/components/messaging/AssignTeamDialog.vue'
 
 definePageMeta({
   layout: 'admin'

@@ -1,8 +1,8 @@
-import { getDb } from "~/server/utils/db";
-import { users, projects, supportTickets } from "~/server/db/schema";
+import { getDb } from "../../../../../../server/utils/db";
+import { users, projects, supportTickets } from "../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { defineEventHandler, createError, getRouterParam } from "h3";
-import { canDeleteUsers } from "~/layers/admin/utils/adminAccess";
+import { canDeleteUsers } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   try {

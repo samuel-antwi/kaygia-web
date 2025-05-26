@@ -1,8 +1,8 @@
 import { H3Event } from "h3";
 import { randomBytes } from "crypto";
 import { sendVerificationEmail } from "~/utils/email";
-import { getDb } from "~/server/utils/db";
-import { users, emailVerifications } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { users, emailVerifications } from "../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 

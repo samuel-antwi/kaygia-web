@@ -2,8 +2,8 @@ import { H3Event } from "h3";
 import * as bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import { sendVerificationEmail } from "~/utils/email";
-import { getDb } from "~/server/utils/db";
-import { users, emailVerifications } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { users, emailVerifications } from "../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
@@ -63,7 +63,7 @@ export default defineEventHandler(async (event: H3Event) => {
       id: uuidv4(),
       token,
       expiresAt,
-      userId: newUser.id,
+      userId: newUser!.id,
     });
 
     // Generate verification URL
@@ -75,12 +75,12 @@ export default defineEventHandler(async (event: H3Event) => {
 
     return {
       success: true,
-      user: {
+      user: newUser ? {
         id: newUser.id,
         email: newUser.email,
         name: newUser.name,
         company: newUser.company,
-      },
+      } : null,
       message:
         "Registration successful. Please check your email to verify your account.",
     };

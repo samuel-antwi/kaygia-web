@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { supabaseStorage, STORAGE_BUCKETS } from "~/server/utils/storage";
-import { users } from "~/server/db/schema";
+import { supabaseStorage, STORAGE_BUCKETS } from "../../../../../server/utils/storage";
+import { users } from "../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { getDb } from "~/server/utils/db";
+import { getDb } from "../../../../../server/utils/db";
 
 const uploadSchema = z.object({
   avatarDataUrl: z.string().refine(
@@ -55,6 +55,12 @@ export default defineEventHandler(async (event) => {
 
     // Convert data URL to buffer
     const base64Data = avatarDataUrl.split(",")[1];
+    if (!base64Data) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Invalid image data format",
+      });
+    }
     const buffer = Buffer.from(base64Data, "base64");
     
     // Get file extension from mime type
@@ -62,10 +68,11 @@ export default defineEventHandler(async (event) => {
     const extension = mimeMatch ? mimeMatch[1] : "png";
     
     // Delete old avatar if exists
-    if (user[0].avatarUrl) {
+    const currentUser = user[0];
+    if (currentUser?.avatarUrl) {
       try {
         // Extract path from URL
-        const urlParts = user[0].avatarUrl.split('/');
+        const urlParts = currentUser.avatarUrl.split('/');
         const bucketIndex = urlParts.indexOf('user-avatars');
         if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
           const oldPath = urlParts.slice(bucketIndex + 1).join('/');
@@ -133,16 +140,16 @@ export default defineEventHandler(async (event) => {
       message: "Avatar uploaded successfully",
       user: updatedUser[0],
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Avatar upload error:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
 
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || "Failed to upload avatar",
+      statusMessage: error instanceof Error ? error.message : "Failed to upload avatar",
     });
   }
 });

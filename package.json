@@ -35,7 +35,7 @@
     "drizzle-zod": "^0.5.1",
     "lucide-vue-next": "^0.483.0",
     "nanoid": "^5.1.5",
-    "nuxt": "^3.16.2",
+    "nuxt": "^3.17.4",
     "nuxt-auth-utils": "^0.5.17",
     "pg": "^8.14.1",
     "postgres": "^3.4.5",

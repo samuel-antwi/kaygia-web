@@ -3,7 +3,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import type { InferSelectModel } from "drizzle-orm";
-import type { supportTickets, ticketComments, users } from "~/server/db/schema";
+import type { supportTickets, ticketComments, users } from "../../../server/db/schema";
 
 // Define interfaces for API responses
 interface TicketListItem extends InferSelectModel<typeof supportTickets> {

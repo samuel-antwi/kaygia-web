@@ -1,8 +1,8 @@
 import { defineEventHandler } from "h3"
 import { z } from "zod"
 import { eq } from "drizzle-orm"
-import { getDb } from "~/server/utils/db"
-import { projects, projectComments, users } from "~/server/db/schema"
+import { getDb } from "../../../utils/db"
+import { projects, projectComments, users } from "../../../db/schema"
 
 const createCommentSchema = z.object({
   message: z.string().min(1, "Message is required").max(5000),
@@ -78,7 +78,7 @@ export default defineEventHandler(async (event) => {
     })
     .from(projectComments)
     .leftJoin(users, eq(projectComments.userId, users.id))
-    .where(eq(projectComments.id, newComment.id))
+    .where(eq(projectComments.id, newComment!.id))
 
   return commentWithUser
 })

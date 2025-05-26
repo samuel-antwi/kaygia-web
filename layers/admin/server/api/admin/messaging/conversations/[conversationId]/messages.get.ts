@@ -1,6 +1,7 @@
 import { eq, desc } from 'drizzle-orm'
-import { messages, users, messageFiles } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { createError } from 'h3'
+import { messages, users, messageFiles } from '../../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../../server/utils/db'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)

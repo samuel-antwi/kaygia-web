@@ -55,19 +55,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Import the user components
-import EditProfileForm from "../../../components/users/EditProfileForm.vue";
-import RoleManagement from "../../../components/users/RoleManagement.vue";
-import PasswordManagement from "../../../components/users/PasswordManagement.vue";
-import AccountStatusManagement from "../../../components/users/AccountStatusManagement.vue";
-import EmailVerificationManagement from "../../../components/users/EmailVerificationManagement.vue";
-import UserStats from "../../../components/users/UserStats.vue";
-import RecentItems from "../../../components/users/RecentItems.vue";
+import EditProfileForm from "#layers/admin/components/users/EditProfileForm.vue";
+import RoleManagement from "#layers/admin/components/users/RoleManagement.vue";
+import PasswordManagement from "#layers/admin/components/users/PasswordManagement.vue";
+import AccountStatusManagement from "#layers/admin/components/users/AccountStatusManagement.vue";
+import EmailVerificationManagement from "#layers/admin/components/users/EmailVerificationManagement.vue";
+import UserStats from "#layers/admin/components/users/UserStats.vue";
+import RecentItems from "#layers/admin/components/users/RecentItems.vue";
 
 // Import Composables
-import { useFormatting } from "~/layers/admin/composables/useFormatting";
-import { hasAdminAccess, canDeleteUsers, isSuperAdmin } from "~/layers/admin/utils/adminAccess";
+import { useFormatting } from "#layers/admin/composables/useFormatting";
+import { hasAdminAccess, canDeleteUsers, isSuperAdmin } from "#layers/admin/utils/adminAccess";
 import { useToast } from "@/components/ui/toast/use-toast";
-import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
+import ConfirmDialog from "#layers/core/components/ConfirmDialog.vue";
 
 definePageMeta({
   layout: "admin",

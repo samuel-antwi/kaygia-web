@@ -1,14 +1,14 @@
 import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, users, projectMilestones } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { projects, users, projectMilestones } from "../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import type {
   ProjectType,
   ProjectStatus,
-} from "~/layers/dashboard/types/project";
-import { getProjectTemplate } from "~/server/utils/project-phase-templates";
+} from "#layers/dashboard/types/project";
+import { getProjectTemplate } from "../../../../../server/utils/project-phase-templates";
 
 // Validation schema for new project
 const createProjectSchema = z.object({
@@ -102,7 +102,7 @@ export default defineEventHandler(async (event) => {
               phase: phase.id,
               phaseOrder: phase.order,
               order: milestoneOrder++,
-              status: 'pending',
+              status: 'pending' as const,
               weight: 1,
               createdAt: now,
               updatedAt: now,

@@ -1,9 +1,9 @@
 import { defineEventHandler, getRouterParam, readBody, createError } from "h3";
-import { getDb } from "~/server/utils/db";
-import { supportTickets, ticketComments } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { supportTickets, ticketComments } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   const ticketId = getRouterParam(event, "ticketId");
@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Create comment and update ticket in a transaction
-    const [newComment] = await db.transaction(async (tx) => {
+    const [newComment] = await db.transaction(async (tx: any) => {
       // Create the comment
       const comment = await tx
         .insert(ticketComments)

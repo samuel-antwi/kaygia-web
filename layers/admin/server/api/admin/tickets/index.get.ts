@@ -1,9 +1,9 @@
 import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { supportTickets, users, ticketComments } from "~/server/db/schema";
+import { getDb } from "../../../../../../server/utils/db";
+import { supportTickets, users, ticketComments } from "../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { roleEnum } from "~/server/db/schema";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { roleEnum } from "../../../../../../server/db/schema";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // --- START DEBUG LOGGING ---

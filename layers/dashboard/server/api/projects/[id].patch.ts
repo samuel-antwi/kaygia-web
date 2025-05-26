@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParam } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, users } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { projects, users } from "../../../../../server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -111,11 +111,11 @@ export default defineEventHandler(async (event) => {
       success: true,
       project: updatedProject,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating project:", error);
     return {
       success: false,
-      message: error.message || "Failed to update project",
+      message: error instanceof Error ? error.message : "Failed to update project",
     };
   }
 });

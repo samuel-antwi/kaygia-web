@@ -1,13 +1,12 @@
 import { defineEventHandler, createError } from "h3";
-import { getDb } from "~/server/utils/db";
+import { getDb } from "../../../../../../server/utils/db";
 import {
   supportTickets,
-  ticketComments,
   users,
   projects,
-} from "~/server/db/schema";
-import { desc, and, or, eq, gte, sql } from "drizzle-orm";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+} from "../../../../../../server/db/schema";
+import { desc, or, gte } from "drizzle-orm";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   try {

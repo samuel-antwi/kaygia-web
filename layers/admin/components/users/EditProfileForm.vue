@@ -2,7 +2,7 @@
 import { CheckIcon, XIcon, Loader2, Upload, UserCircle, Trash2 } from "lucide-vue-next";
 import { z } from "zod";
 import { useToast } from "@/components/ui/toast/use-toast";
-import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
+import ConfirmDialog from "#layers/core/components/ConfirmDialog.vue";
 
 // Define the expected API response type
 interface ApiResponseSuccess {
@@ -98,7 +98,10 @@ async function handleSubmit() {
       // Handle zod validation errors
       e.errors.forEach((err) => {
         if (err.path.length > 0) {
-          errors.value[err.path[0]] = err.message;
+          const key = err.path[0];
+          if (typeof key === 'string') {
+            errors.value[key] = err.message;
+          }
         }
       });
     } else {

@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { AlertTriangle, Loader2, Search, UserCog, UserX } from "lucide-vue-next";
 import type { InferSelectModel } from "drizzle-orm";
-import type { users as usersSchema } from "~/server/db/schema";
+import type { users as usersSchema } from "../../../../../server/db/schema";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { UserPlus } from "lucide-vue-next";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { hasAdminAccess, isSuperAdmin } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess, isSuperAdmin } from "#layers/admin/utils/adminAccess";
 
 definePageMeta({
   layout: "admin",

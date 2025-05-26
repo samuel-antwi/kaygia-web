@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { eq } from 'drizzle-orm'
-import { conversations, conversationParticipants, projects } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { conversations, conversationParticipants, projects } from '../../../../../../server/db/schema'
+import { getDb } from '../../../../../../server/utils/db'
 import { nanoid } from 'nanoid'
 
 const createConversationSchema = z.object({
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
   await db.insert(conversationParticipants).values({
     conversationId: conversationId,
     userId: session.user.id,
-    role: 'owner'
+    role: 'owner' as const
   })
 
   // Add additional participants if provided

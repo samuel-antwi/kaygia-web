@@ -1,8 +1,8 @@
-import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { supportTickets, users, projects, conversations, messages } from "~/server/db/schema";
-import { count, eq, ne, and, or, gte, desc, sql, isNull } from "drizzle-orm";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { defineEventHandler, createError } from "h3";
+import { getDb } from "../../../../../../server/utils/db";
+import { supportTickets, users, projects, conversations, messages } from "../../../../../../server/db/schema";
+import { count, eq, ne, and, gte, sql, isNull } from "drizzle-orm";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -95,21 +95,21 @@ export default defineEventHandler(async (event) => {
       success: true,
       stats: {
         tickets: {
-          total: totalTickets[0].count,
-          open: openTickets[0].count,
+          total: totalTickets[0]?.count || 0,
+          open: openTickets[0]?.count || 0,
         },
         users: {
-          total: totalUsers[0].count,
-          newThisMonth: newUsers[0].count,
+          total: totalUsers[0]?.count || 0,
+          newThisMonth: newUsers[0]?.count || 0,
         },
         projects: {
-          total: totalProjects[0].count,
-          inProgress: inProgressProjects[0].count,
+          total: totalProjects[0]?.count || 0,
+          inProgress: inProgressProjects[0]?.count || 0,
         },
         messages: {
-          conversations: totalConversations[0].count,
-          activeConversations: activeConversations[0].count,
-          unreadMessages: unreadMessages[0].count,
+          conversations: totalConversations[0]?.count || 0,
+          activeConversations: activeConversations[0]?.count || 0,
+          unreadMessages: unreadMessages[0]?.count || 0,
         },
       },
     };

@@ -1,8 +1,8 @@
 import { defineEventHandler, getRouterParam, readBody, createError } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projects } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // Get project ID from params

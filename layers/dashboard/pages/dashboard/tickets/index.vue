@@ -12,7 +12,7 @@ import { storeToRefs } from "pinia";
 import { z } from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
-import DialogContentFixed from "../../../../../components/ui/dialog/DialogContentFixed.vue"; // Adjusted path
+import DialogContentFixed from "@/components/ui/dialog/DialogContentFixed.vue";
 
 definePageMeta({
   layout: "dashboard",

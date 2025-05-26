@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { eq, desc, and, lte } from 'drizzle-orm'
-import { messages, users, conversationParticipants, messageReadReceipts, messageFiles } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { messages, users, conversationParticipants, messageReadReceipts, messageFiles } from '../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../server/utils/db'
 
 const querySchema = z.object({
   limit: z.string().transform(Number).default('50'),

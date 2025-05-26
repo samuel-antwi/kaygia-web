@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { MessageCircle, Phone, Mail, HelpCircle, FileText } from "lucide-vue-next";
 import { useRouter } from 'vue-router';
 import { useToast } from '~/components/ui/toast/use-toast';
-import { useMessaging } from '~/layers/dashboard/composables/useMessaging';
+import { useMessaging } from '#layers/dashboard/composables/useMessaging';
 
 interface Props {
   projectId: string;

@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { eq, desc, and, or } from 'drizzle-orm'
-import { conversations, conversationParticipants, messages, users, projects } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { eq, desc, and } from 'drizzle-orm'
+import { conversations, conversationParticipants, messages, users, projects } from '../../../../../../server/db/schema'
+import { getDb } from '../../../../../../server/utils/db'
 
 const querySchema = z.object({
   projectId: z.string().optional(),

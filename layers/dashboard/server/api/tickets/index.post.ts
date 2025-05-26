@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { supportTickets, users, ticketComments } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { supportTickets, users, ticketComments } from "../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
           description: content, // Use initial content as description
           clientId: user.id,
           projectId: projectId,
-          status: "OPEN",
+          status: "OPEN" as const,
           createdAt: now,
           updatedAt: now,
           lastRepliedAt: now,
@@ -109,7 +109,7 @@ export default defineEventHandler(async (event) => {
         content: content,
         ticketId: ticketId,
         userId: user.id,
-        sender: "CLIENT",
+        sender: "CLIENT" as const,
         createdAt: now,
         updatedAt: now,
       });
@@ -118,6 +118,13 @@ export default defineEventHandler(async (event) => {
     });
 
     // Return only essential ticket info on creation
+    if (!newTicket) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: "Failed to create ticket",
+      });
+    }
+    
     return {
       success: true,
       ticket: {

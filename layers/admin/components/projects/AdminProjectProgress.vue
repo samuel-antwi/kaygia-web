@@ -12,8 +12,8 @@ import {
   AlertCircle,
 } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
-import ProgressBar from "~/layers/core/components/ProgressBar.vue";
+import ConfirmDialog from "#layers/core/components/ConfirmDialog.vue";
+import ProgressBar from "#layers/core/components/ProgressBar.vue";
 
 interface Props {
   projectId: string;
@@ -676,14 +676,14 @@ const saveEditedMilestone = async () => {
 
                 <div class="flex items-center space-x-4 mt-3">
                   <Badge
-                    :class="getStatusInfo(milestone.status).color"
+                    :class="getStatusInfo(milestone.status)?.color"
                     variant="outline"
                   >
                     <component
-                      :is="getStatusInfo(milestone.status).icon"
+                      :is="getStatusInfo(milestone.status)?.icon"
                       class="h-3 w-3 mr-1"
                     />
-                    {{ getStatusInfo(milestone.status).label }}
+                    {{ getStatusInfo(milestone.status)?.label }}
                   </Badge>
 
                   <Badge

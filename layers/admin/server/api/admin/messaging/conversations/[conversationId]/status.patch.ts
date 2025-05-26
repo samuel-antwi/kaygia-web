@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { createError } from 'h3'
 import { eq } from 'drizzle-orm'
-import { conversations } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { conversations } from '../../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../../server/utils/db'
 
 const updateStatusSchema = z.object({
   status: z.enum(['active', 'archived', 'closed'])

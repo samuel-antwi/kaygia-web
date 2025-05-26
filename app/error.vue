@@ -179,7 +179,7 @@ const clearError = () => {
 const clearNuxtError = () => {
   // This is the proper way to clear errors in Nuxt 3
   const nuxtApp = useNuxtApp();
-  nuxtApp.payload.error = null;
+  nuxtApp.payload.error = undefined;
 };
 
 // Log errors in production (you can send to error tracking service)

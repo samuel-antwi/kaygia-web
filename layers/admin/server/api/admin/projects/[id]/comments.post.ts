@@ -1,9 +1,9 @@
 import { defineEventHandler } from "h3"
 import { z } from "zod"
 import { eq } from "drizzle-orm"
-import { getDb } from "~/server/utils/db"
-import { projects, projectComments } from "~/server/db/schema"
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess"
+import { getDb } from "../../../../../../../server/utils/db"
+import { projects, projectComments } from "../../../../../../../server/db/schema"
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess"
 
 const createCommentSchema = z.object({
   message: z.string().min(1, "Message is required").max(5000),
@@ -60,6 +60,13 @@ export default defineEventHandler(async (event) => {
       type: validatedData.type
     })
     .returning()
+
+  if (!newComment) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Failed to create comment"
+    })
+  }
 
   return {
     id: newComment.id,

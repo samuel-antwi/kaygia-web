@@ -1,8 +1,9 @@
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
-import { supabaseStorage, STORAGE_BUCKETS } from "~/server/utils/storage";
-import { users } from "~/server/db/schema";
+import { createError } from 'h3'
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
+import { supabaseStorage, STORAGE_BUCKETS } from "../../../../../../../server/utils/storage";
+import { users } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { getDb } from "~/server/utils/db";
+import { getDb } from "../../../../../../../server/utils/db";
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -40,7 +41,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if (!user[0].avatarUrl) {
+    if (!user[0]?.avatarUrl) {
       return {
         success: true,
         message: "No avatar to delete",
@@ -50,7 +51,7 @@ export default defineEventHandler(async (event) => {
     // Delete avatar from storage
     try {
       // Extract path from URL
-      const urlParts = user[0].avatarUrl.split('/');
+      const urlParts = user[0]?.avatarUrl?.split('/') || [];
       const bucketIndex = urlParts.indexOf('user-avatars');
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
         const avatarPath = urlParts.slice(bucketIndex + 1).join('/');

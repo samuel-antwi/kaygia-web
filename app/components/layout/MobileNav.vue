@@ -8,6 +8,7 @@ import {
   Briefcase,
   Mail,
   LogIn,
+  LayoutDashboard,
   User,
 } from "lucide-vue-next";
 import type { FunctionalComponent } from "vue";
@@ -22,6 +23,9 @@ function toggleMobileMenu() {
 
 // Use the imported site as fallback if $site is not available
 const { $site = site } = useNuxtApp();
+
+// Get user state
+const { user } = useUserState();
 
 function closeMenu() {
   mobileMenuOpen.value = false;
@@ -80,12 +84,13 @@ function getNavIcon(name: string): FunctionalComponent<LucideProps> {
             </NuxtLink>
             <Separator />
             <NuxtLink
-              to="/auth/login"
+              :to="user ? '/dashboard' : '/auth/login'"
               @click="closeMenu"
               class="flex items-center gap-2 py-2 text-sm font-medium hover:text-primary"
             >
-              <LogIn class="h-4 w-4" />
-              Client Login
+              <LogIn v-if="!user" class="h-4 w-4" />
+              <LayoutDashboard v-else class="h-4 w-4" />
+              {{ user ? 'Client Area' : 'Client Login' }}
             </NuxtLink>
           </nav>
         </div>

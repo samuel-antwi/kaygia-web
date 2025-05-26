@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParam, createError } from "h3";
-import { getDb } from "~/server/utils/db";
-import { manageEmailVerification } from "~/server/utils/email-verification";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { getDb } from "../../../../../../../server/utils/db";
+import { manageEmailVerification } from "../../../../../../../server/utils/email-verification";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   const userId = getRouterParam(event, "userId");

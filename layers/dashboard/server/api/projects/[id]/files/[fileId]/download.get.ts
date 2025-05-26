@@ -1,8 +1,8 @@
 import { defineEventHandler, getRouterParam, setHeader } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectFiles, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../../server/utils/db";
+import { projects, projectFiles, users } from "../../../../../../../../server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { getSignedUrl, STORAGE_BUCKETS } from "~/server/utils/storage";
+import { getSignedUrl, STORAGE_BUCKETS } from "../../../../../../../../server/utils/storage";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -61,16 +61,16 @@ export default defineEventHandler(async (event) => {
     // Alternatively, you could proxy the file through your server
     return await sendRedirect(event, signedUrl);
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error downloading file:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to download file" 
+      statusMessage: error instanceof Error ? error.message : "Failed to download file" 
     });
   }
 });

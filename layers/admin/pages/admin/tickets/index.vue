@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { AlertTriangle, Loader2, Search } from "lucide-vue-next";
 import { Role } from "../../../types/role"; // Import local Role enum
 import type { InferSelectModel } from "drizzle-orm";
-import type { supportTickets, users } from "~/server/db/schema";
+import type { supportTickets, users } from "../../../../../server/db/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -14,7 +14,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 definePageMeta({
   layout: "admin",
