@@ -1,9 +1,9 @@
 import { randomBytes } from "crypto";
 import { v4 as uuidv4 } from "uuid";
-import { emailVerifications, users } from "~/server/db/schema";
+import { emailVerifications, users } from "../db/schema";
 import { eq } from "drizzle-orm";
-import type { DbClient } from "~/server/db";
-import { sendVerificationEmail as sendEmail } from "~/utils/email";
+import type { DbClient } from "../db";
+import { sendVerificationEmail as sendEmail } from "../../app/utils/email";
 
 interface EmailVerificationOptions {
   /**

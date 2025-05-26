@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus, Eye, FileText, Search } from "lucide-vue-next";
-import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
+import { useProjectStore } from "#layers/dashboard/stores/projectStore";
 import type { ProjectStatus } from "../../../types/project";
 
 definePageMeta({

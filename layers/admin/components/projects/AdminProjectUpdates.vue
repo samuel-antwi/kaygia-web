@@ -2,7 +2,7 @@
 import { ref, computed, watch } from "vue";
 import { Plus, MessageSquare, Calendar, User, Edit, Trash2, Eye } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
+import ConfirmDialog from "#layers/core/components/ConfirmDialog.vue";
 
 interface Props {
   projectId: string;
@@ -285,8 +285,8 @@ const getUpdateTypeInfo = (type: string) => {
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <div class="flex items-center space-x-2 mb-2">
-                <Badge :class="getUpdateTypeInfo(update.type).color" variant="outline">
-                  {{ getUpdateTypeInfo(update.type).label }}
+                <Badge :class="getUpdateTypeInfo(update.type)?.color" variant="outline">
+                  {{ getUpdateTypeInfo(update.type)?.label }}
                 </Badge>
                 <span class="text-sm text-muted-foreground">
                   by {{ update.author }}

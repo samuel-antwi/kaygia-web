@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeft } from "lucide-vue-next";
-import UserCreationForm from "../../../components/users/UserCreationForm.vue";
+import UserCreationForm from "#layers/admin/components/users/UserCreationForm.vue";
 
 definePageMeta({
   layout: "admin",

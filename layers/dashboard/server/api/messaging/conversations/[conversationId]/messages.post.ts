@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { eq, and } from 'drizzle-orm'
-import { messages, conversationParticipants, conversations, users } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { messages, conversationParticipants, conversations, users } from '../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../server/utils/db'
 import { nanoid } from 'nanoid'
 
 const sendMessageSchema = z.object({
@@ -91,7 +91,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(conversations.id, conversationId))
 
   // Send real-time notification via WebSocket
-  const { websocketEvents } = await import('~/server/utils/websocket')
+  const { websocketEvents } = await import('../../../../../../../server/utils/websocket')
   const messageWithSender = {
     ...newMessage,
     sender,

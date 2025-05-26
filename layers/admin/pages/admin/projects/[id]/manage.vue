@@ -20,13 +20,13 @@ import {
   MessageCircle,
   Activity,
 } from "lucide-vue-next";
-import AdminProjectUpdates from "~/layers/admin/components/projects/AdminProjectUpdates.vue";
-import AdminProjectDeliverables from "~/layers/admin/components/projects/AdminProjectDeliverables.vue";
-import AdminProjectProgress from "~/layers/admin/components/projects/AdminProjectProgress.vue";
-import AdminProjectFiles from "~/layers/admin/components/projects/AdminProjectFiles.vue";
-import AdminProjectComments from "~/layers/admin/components/projects/AdminProjectComments.vue";
-import PreviewUrlCard from "~/layers/admin/components/projects/PreviewUrlCard.vue";
-import ProgressBar from "~/layers/core/components/ProgressBar.vue";
+import AdminProjectUpdates from "#layers/admin/components/projects/AdminProjectUpdates.vue";
+import AdminProjectDeliverables from "#layers/admin/components/projects/AdminProjectDeliverables.vue";
+import AdminProjectProgress from "#layers/admin/components/projects/AdminProjectProgress.vue";
+import AdminProjectFiles from "#layers/admin/components/projects/AdminProjectFiles.vue";
+import AdminProjectComments from "#layers/admin/components/projects/AdminProjectComments.vue";
+import PreviewUrlCard from "#layers/admin/components/projects/PreviewUrlCard.vue";
+import ProgressBar from "#layers/core/components/ProgressBar.vue";
 
 definePageMeta({
   layout: "admin",

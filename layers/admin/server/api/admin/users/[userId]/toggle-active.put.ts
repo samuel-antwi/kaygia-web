@@ -1,8 +1,8 @@
-import { defineEventHandler, getRouterParam, readBody } from "h3";
-import { getDb } from "~/server/utils/db";
-import { users } from "~/server/db/schema";
+import { defineEventHandler, getRouterParam, readBody, createError } from "h3";
+import { getDb } from "../../../../../../../server/utils/db";
+import { users } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   const userId = getRouterParam(event, "userId");

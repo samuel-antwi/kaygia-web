@@ -1,8 +1,8 @@
-import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { users } from "~/server/db/schema";
+import { defineEventHandler, createError } from "h3";
+import { getDb } from "../../../../../../server/utils/db";
+import { users } from "../../../../../../server/db/schema";
 import { desc, isNotNull } from "drizzle-orm";
-import { isSuperAdmin } from "~/layers/admin/utils/adminAccess";
+import { isSuperAdmin } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // Check for super admin session

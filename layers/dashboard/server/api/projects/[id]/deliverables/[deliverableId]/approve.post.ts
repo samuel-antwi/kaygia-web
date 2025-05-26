@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParam, readBody } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectDeliverables, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../../server/utils/db";
+import { projects, projectDeliverables, users } from "../../../../../../../../server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -92,25 +92,25 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      deliverable: {
+      deliverable: updatedDeliverable ? {
         id: updatedDeliverable.id,
         status: updatedDeliverable.status,
         approvedAt: updatedDeliverable.approvedAt,
-      },
+      } : null,
       message: validation.data.action === "approve" 
         ? "Deliverable approved successfully" 
         : "Deliverable feedback submitted",
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating deliverable approval:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to update deliverable approval" 
+      statusMessage: error instanceof Error ? error.message : "Failed to update deliverable approval" 
     });
   }
 });

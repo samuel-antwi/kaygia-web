@@ -1,8 +1,8 @@
-import { getDb } from "~/server/utils/db";
-import { users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { users } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { defineEventHandler, createError, getRouterParam } from "h3";
-import { isSuperAdmin } from "~/layers/admin/utils/adminAccess";
+import { isSuperAdmin } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -54,10 +54,10 @@ export default defineEventHandler(async (event) => {
     const now = new Date();
     await db
       .update(users)
-      .set({ 
+      .set({
         deletedAt: null,
         active: true,
-        updatedAt: now
+        updatedAt: now,
       })
       .where(eq(users.id, userId));
 

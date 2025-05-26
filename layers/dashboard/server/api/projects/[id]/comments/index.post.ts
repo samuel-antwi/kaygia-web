@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParam, readBody } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectComments, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projects, projectComments, users } from "../../../../../../../server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -118,16 +118,16 @@ export default defineEventHandler(async (event) => {
       },
       message: "Comment added successfully",
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating project comment:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to create comment" 
+      statusMessage: error instanceof Error ? error.message : "Failed to create comment" 
     });
   }
 });

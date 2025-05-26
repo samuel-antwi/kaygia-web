@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParam, readMultipartFormData } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectFiles, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projects, projectFiles, users } from "../../../../../../../server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { 
@@ -10,7 +10,7 @@ import {
   isAllowedFileType, 
   getMaxFileSize,
   STORAGE_BUCKETS 
-} from "~/server/utils/storage";
+} from "../../../../../../../server/utils/storage";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -103,7 +103,7 @@ export default defineEventHandler(async (event) => {
           .values({
             id: fileId,
             projectId: projectId,
-            name: filename.split('.')[0], // Name without extension
+            name: filename.split('.')[0] || filename, // Name without extension
             originalName: filename,
             path: storagePath,
             type: getFileTypeCategory(mimeType),
@@ -113,14 +113,16 @@ export default defineEventHandler(async (event) => {
           })
           .returning();
 
-        uploadedFiles.push({
-          id: savedFile.id,
-          name: savedFile.name,
-          originalName: savedFile.originalName,
-          type: savedFile.type,
-          size: savedFile.size,
-          createdAt: savedFile.createdAt,
-        });
+        if (savedFile) {
+          uploadedFiles.push({
+            id: savedFile.id,
+            name: savedFile.name,
+            originalName: savedFile.originalName,
+            type: savedFile.type,
+            size: savedFile.size,
+            createdAt: savedFile.createdAt,
+          });
+        }
       }
     }
 
@@ -133,16 +135,16 @@ export default defineEventHandler(async (event) => {
       files: uploadedFiles,
       message: `Successfully uploaded ${uploadedFiles.length} file(s)`,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error uploading files:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to upload files" 
+      statusMessage: error instanceof Error ? error.message : "Failed to upload files" 
     });
   }
 });

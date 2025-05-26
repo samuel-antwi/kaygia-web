@@ -1,5 +1,5 @@
-import type { User } from "~/layers/auth/types/user"; // Adjust path as needed
-import { Role } from "~/layers/admin/types/role"; // Import local Role enum
+import type { User } from "#layers/auth/types/user"; // Adjust path as needed
+import { Role } from "#layers/admin/types/role"; // Import local Role enum
 import { useUserState } from "~/composables/useUserState";
 
 // Define the expected success response shape explicitly

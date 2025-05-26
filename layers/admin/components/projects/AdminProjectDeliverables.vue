@@ -59,7 +59,7 @@ const handleFileSelect = (event: Event) => {
   const file = target.files?.[0];
   if (file) {
     newDeliverable.value.file = file;
-    newDeliverable.value.name = newDeliverable.value.name || file.name.split('.')[0];
+    newDeliverable.value.name = newDeliverable.value.name || file.name.split('.')[0] || '';
     
     // Auto-detect file type
     if (file.type.startsWith('image/')) {

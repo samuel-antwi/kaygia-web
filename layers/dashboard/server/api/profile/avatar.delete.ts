@@ -1,7 +1,7 @@
-import { supabaseStorage, STORAGE_BUCKETS } from "~/server/utils/storage";
-import { users } from "~/server/db/schema";
+import { supabaseStorage, STORAGE_BUCKETS } from "../../../../../server/utils/storage";
+import { users } from "../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { getDb } from "~/server/utils/db";
+import { getDb } from "../../../../../server/utils/db";
 
 export default defineEventHandler(async (event) => {
   // Check authentication
@@ -32,7 +32,8 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if (!user[0].avatarUrl) {
+    const currentUser = user[0];
+    if (!currentUser?.avatarUrl) {
       return {
         success: true,
         message: "No avatar to delete",
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
     // Delete avatar from storage
     try {
       // Extract path from URL
-      const urlParts = user[0].avatarUrl.split('/');
+      const urlParts = currentUser.avatarUrl.split('/');
       const bucketIndex = urlParts.indexOf('user-avatars');
       if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
         const avatarPath = urlParts.slice(bucketIndex + 1).join('/');
@@ -67,16 +68,16 @@ export default defineEventHandler(async (event) => {
       success: true,
       message: "Avatar deleted successfully",
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Avatar deletion error:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
 
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || "Failed to delete avatar",
+      statusMessage: error instanceof Error ? error.message : "Failed to delete avatar",
     });
   }
 });

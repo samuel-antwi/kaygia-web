@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeft, ArrowRight, CheckCircle, Globe, Paintbrush, ShoppingCart, Smartphone, Megaphone, Settings as SettingsIcon, Package, AlertCircle } from "lucide-vue-next";
-import { useProjectStore } from "~/layers/dashboard/stores/projectStore";
+import { useProjectStore } from "#layers/dashboard/stores/projectStore";
 import type { CreateProjectPayload, ProjectType } from "../../../types/project";
 
 definePageMeta({

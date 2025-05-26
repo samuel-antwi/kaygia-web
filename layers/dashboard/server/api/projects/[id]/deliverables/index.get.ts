@@ -1,8 +1,8 @@
 import { defineEventHandler, getRouterParam } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectDeliverables, projectFiles, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projects, projectDeliverables, projectFiles, users } from "../../../../../../../server/db/schema";
 import { and, eq, desc } from "drizzle-orm";
-import { getPublicUrl, STORAGE_BUCKETS } from "~/server/utils/storage";
+import { getPublicUrl, STORAGE_BUCKETS } from "../../../../../../../server/utils/storage";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
       let fileUrl = null;
       
       if (deliverable.type === 'file' && deliverable.file) {
-        fileUrl = getPublicUrl(STORAGE_BUCKETS.PROJECT_FILES, (deliverable.file as any).path);
+        fileUrl = getPublicUrl(STORAGE_BUCKETS.PROJECT_FILES, deliverable.file.path);
       } else if (deliverable.type === 'link' || deliverable.type === 'preview') {
         fileUrl = deliverable.url;
       }
@@ -77,11 +77,11 @@ export default defineEventHandler(async (event) => {
         approvedAt: deliverable.approvedAt,
         approvedBy: deliverable.approvedBy,
         file: deliverable.file ? {
-          id: (deliverable.file as any).id,
-          name: (deliverable.file as any).name,
-          originalName: (deliverable.file as any).originalName,
-          size: (deliverable.file as any).size,
-          mimeType: (deliverable.file as any).mimeType,
+          id: deliverable.file.id,
+          name: deliverable.file.name,
+          originalName: deliverable.file.originalName,
+          size: deliverable.file.size,
+          mimeType: deliverable.file.mimeType,
         } : null,
       };
     });
@@ -90,16 +90,16 @@ export default defineEventHandler(async (event) => {
       success: true,
       deliverables: formattedDeliverables,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching project deliverables:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to fetch project deliverables" 
+      statusMessage: error instanceof Error ? error.message : "Failed to fetch project deliverables" 
     });
   }
 });

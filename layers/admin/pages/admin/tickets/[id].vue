@@ -2,8 +2,8 @@
 import { ref, computed, watch } from "vue";
 import { useFetch } from "#app";
 import type { InferSelectModel } from "drizzle-orm";
-import type { supportTickets, ticketComments, users } from "~/server/db/schema";
-import { ticketStatusEnum } from "~/server/db/schema";
+import type { supportTickets, ticketComments, users } from "../../../../../server/db/schema";
+import { ticketStatusEnum } from "../../../../../server/db/schema";
 import { Role } from "../../../types/role"; // Import local Role enum
 import { useToast } from "@/components/ui/toast/use-toast";
 import {
@@ -641,7 +641,7 @@ watch(
                     Last update:
                     {{
                       formatDate(
-                        ticket.comments[ticket.comments.length - 1].createdAt
+                        ticket.comments[ticket.comments.length - 1]?.createdAt || new Date()
                       )
                     }}
                   </p>

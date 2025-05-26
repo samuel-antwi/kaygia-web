@@ -1,8 +1,8 @@
 import { defineEventHandler, getRouterParam, readMultipartFormData, createError } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projectFiles, projects } from "~/server/db/schema";
+import { getDb } from "../../../../../../../../server/utils/db";
+import { projectFiles, projects } from "../../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 import { randomUUID } from "crypto";
 
 export default defineEventHandler(async (event) => {

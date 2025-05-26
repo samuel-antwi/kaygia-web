@@ -1,14 +1,14 @@
 import { defineEventHandler, getRouterParam, createError } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projectMilestones, projects } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projectMilestones, projects } from "../../../../../../../server/db/schema";
 import { eq, asc } from "drizzle-orm";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 import { 
   getProjectPhases, 
   calculatePhaseProgress, 
   calculateOverallProgressByPhases,
   getCurrentPhaseFromProgress 
-} from "~/server/utils/project-phases-dynamic";
+} from "../../../../../../../server/utils/project-phases-dynamic";
 
 export default defineEventHandler(async (event) => {
   // Get project ID from params

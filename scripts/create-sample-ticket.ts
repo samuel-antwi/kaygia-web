@@ -57,14 +57,14 @@ async function main() {
         id: uuidv4(),
         content:
           "Welcome! Feel free to reply here with any questions you have about your project.",
-        ticketId: ticket.id,
+        ticketId: ticket!.id,
         userId: user.id, // Track who the comment is FOR (client), even if ADMIN sent it
         sender: "ADMIN",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      console.log("Successfully created sample ticket:", ticket.id);
+      console.log("Successfully created sample ticket:", ticket!.id);
     });
   } catch (error) {
     console.error("\nError creating sample ticket:", error);

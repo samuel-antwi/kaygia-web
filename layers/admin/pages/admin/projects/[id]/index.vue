@@ -2,18 +2,18 @@
 import { computed, ref } from "vue";
 import { AlertTriangle, Loader2, Settings } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import ProgressBar from "~/layers/core/components/ProgressBar.vue";
+import ProgressBar from "#layers/core/components/ProgressBar.vue";
 
 // Import modular components
-import ProjectHeader from "~/layers/admin/components/projects/ProjectHeader.vue";
-import ProjectBasicInfo from "~/layers/admin/components/projects/ProjectBasicInfo.vue";
-import ProjectTimelineSection from "~/layers/admin/components/projects/ProjectTimelineSection.vue";
-import ProjectTechnicalSection from "~/layers/admin/components/projects/ProjectTechnicalSection.vue";
-import ProjectContentSection from "~/layers/admin/components/projects/ProjectContentSection.vue";
-import ProjectBusinessSection from "~/layers/admin/components/projects/ProjectBusinessSection.vue";
-import ProjectCommunicationSection from "~/layers/admin/components/projects/ProjectCommunicationSection.vue";
-import ClientInfoCard from "~/layers/admin/components/projects/ClientInfoCard.vue";
-import StatusManagementCard from "~/layers/admin/components/projects/StatusManagementCard.vue";
+import ProjectHeader from "#layers/admin/components/projects/ProjectHeader.vue";
+import ProjectBasicInfo from "#layers/admin/components/projects/ProjectBasicInfo.vue";
+import ProjectTimelineSection from "#layers/admin/components/projects/ProjectTimelineSection.vue";
+import ProjectTechnicalSection from "#layers/admin/components/projects/ProjectTechnicalSection.vue";
+import ProjectContentSection from "#layers/admin/components/projects/ProjectContentSection.vue";
+import ProjectBusinessSection from "#layers/admin/components/projects/ProjectBusinessSection.vue";
+import ProjectCommunicationSection from "#layers/admin/components/projects/ProjectCommunicationSection.vue";
+import ClientInfoCard from "#layers/admin/components/projects/ClientInfoCard.vue";
+import StatusManagementCard from "#layers/admin/components/projects/StatusManagementCard.vue";
 
 definePageMeta({
   layout: "admin",

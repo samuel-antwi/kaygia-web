@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { getDb } from "~/server/utils/db";
-import { users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { users } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { defineEventHandler, readBody, createError, getRouterParam } from "h3";
-import { canEditUsers } from "~/layers/admin/utils/adminAccess";
+import { canEditUsers } from "#layers/admin/utils/adminAccess";
 
 // No need to explicitly import getUserSession in h3 endpoints
 // It's globally available in the server context

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useToast } from "../../../../components/ui/toast/use-toast";
+import { useToast } from "@/components/ui/toast/use-toast";
 import PasswordChangeForm from "../../components/PasswordChangeForm.vue";
 import { z } from "zod";
 import { toTypedSchema } from "@vee-validate/zod";

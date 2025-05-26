@@ -3,12 +3,12 @@ import { computed, ref } from "vue";
 import { ArrowLeft, AlertTriangle, Loader2 } from "lucide-vue-next";
 
 // Import client-facing components
-import ProjectOverviewCard from "~/layers/dashboard/components/projects/ProjectOverviewCard.vue";
-import ProjectProgressCard from "~/layers/dashboard/components/projects/ProjectProgressCard.vue";
-import ProjectUpdatesCard from "~/layers/dashboard/components/projects/ProjectUpdatesCard.vue";
-import ProjectDeliverablesCard from "~/layers/dashboard/components/projects/ProjectDeliverablesCard.vue";
-import ProjectSupportCard from "~/layers/dashboard/components/projects/ProjectSupportCard.vue";
-import ProjectPreviewCard from "~/layers/dashboard/components/projects/ProjectPreviewCard.vue";
+import ProjectOverviewCard from "#layers/dashboard/components/projects/ProjectOverviewCard.vue";
+import ProjectProgressCard from "#layers/dashboard/components/projects/ProjectProgressCard.vue";
+import ProjectUpdatesCard from "#layers/dashboard/components/projects/ProjectUpdatesCard.vue";
+import ProjectDeliverablesCard from "#layers/dashboard/components/projects/ProjectDeliverablesCard.vue";
+import ProjectSupportCard from "#layers/dashboard/components/projects/ProjectSupportCard.vue";
+import ProjectPreviewCard from "#layers/dashboard/components/projects/ProjectPreviewCard.vue";
 
 definePageMeta({
   layout: "dashboard",

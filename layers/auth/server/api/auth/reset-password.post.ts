@@ -1,6 +1,6 @@
 import { H3Event } from "h3";
-import { getDb } from "~/server/utils/db";
-import { createPasswordReset } from "~/server/utils/password-reset";
+import { getDb } from "../../../../../server/utils/db";
+import { createPasswordReset } from "../../../../../server/utils/password-reset";
 
 export default defineEventHandler(async (event: H3Event) => {
   try {

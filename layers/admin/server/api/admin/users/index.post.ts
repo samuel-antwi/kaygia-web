@@ -1,13 +1,13 @@
 import { defineEventHandler, readBody, createError } from "h3";
 import { z } from "zod";
-import { getDb } from "~/server/utils/db";
-import { users, roleEnum } from "~/server/db/schema";
+import { getDb } from "../../../../../../server/utils/db";
+import { users, roleEnum } from "../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { hash } from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { sendVerificationEmail } from "~/utils/email";
-import { manageEmailVerification } from "~/server/utils/email-verification";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { manageEmailVerification } from "../../../../../../server/utils/email-verification";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 // Define validation schema for user creation
 const userCreationSchema = z.object({
@@ -129,7 +129,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       user: newUser,
-      message: `User ${newUser.name} (${newUser.email}) created successfully.`,
+      message: newUser ? `User ${newUser.name} (${newUser.email}) created successfully.` : 'User created successfully',
       passwordGenerated: generatedPassword,
       generatedPassword: generatedPassword ? password : undefined,
       verificationEmailSent: verificationSent,

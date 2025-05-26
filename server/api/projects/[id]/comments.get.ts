@@ -1,7 +1,7 @@
 import { defineEventHandler } from "h3"
 import { eq, desc } from "drizzle-orm"
-import { getDb } from "~/server/utils/db"
-import { projects, users, projectComments } from "~/server/db/schema"
+import { getDb } from "../../../utils/db"
+import { projects, users, projectComments } from "../../../db/schema"
 
 export default defineEventHandler(async (event) => {
   // Get session

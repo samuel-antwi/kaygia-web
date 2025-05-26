@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { MessageSquare, Search, Users, Clock, MoreVertical, Archive, UserPlus } from 'lucide-vue-next'
-import type { AdminConversation } from '~/layers/admin/types/messaging'
-import { formatRelativeTime } from '~/layers/admin/utils/dateFormatting'
-import AssignTeamDialog from '~/layers/admin/components/messaging/AssignTeamDialog.vue'
-import { isSuperAdmin } from '~/layers/admin/utils/adminAccess'
+import type { AdminConversation } from '#layers/admin/types/messaging'
+import { formatRelativeTime } from '#layers/admin/utils/dateFormatting'
+import AssignTeamDialog from '#layers/admin/components/messaging/AssignTeamDialog.vue'
+import { isSuperAdmin } from '#layers/admin/utils/adminAccess'
 
 definePageMeta({
   layout: 'admin'

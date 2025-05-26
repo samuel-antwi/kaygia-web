@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParam } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectUpdates, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projects, projectUpdates, users } from "../../../../../../../server/db/schema";
 import { and, eq, desc } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
@@ -56,16 +56,16 @@ export default defineEventHandler(async (event) => {
         createdAt: update.createdAt,
       })),
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching project updates:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to fetch project updates" 
+      statusMessage: error instanceof Error ? error.message : "Failed to fetch project updates" 
     });
   }
 });

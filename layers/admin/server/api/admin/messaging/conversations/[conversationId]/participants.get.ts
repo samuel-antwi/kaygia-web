@@ -1,10 +1,11 @@
 import { eq } from 'drizzle-orm'
-import { conversationParticipants, users } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { createError } from 'h3'
+import { conversationParticipants, users } from '../../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../../server/utils/db'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
-  if (!session.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
+  if (!session?.user || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Admin access required'

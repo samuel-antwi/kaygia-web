@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { supportTickets, users, ticketComments } from "~/server/db/schema";
+import { getDb } from "../../../../../../server/utils/db";
+import { supportTickets, users, ticketComments } from "../../../../../../server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
           content: content,
           ticketId: ticket.id,
           userId: user.id,
-          sender: "CLIENT",
+          sender: "CLIENT" as const,
           createdAt: now,
           updatedAt: now,
         })
@@ -121,7 +121,7 @@ export default defineEventHandler(async (event) => {
 
       // Include user details in the response for immediate display
       const commentWithUser = await tx.query.ticketComments.findFirst({
-        where: eq(ticketComments.id, comment[0].id),
+        where: eq(ticketComments.id, comment[0]!.id),
         with: {
           user: {
             columns: { name: true, id: true },

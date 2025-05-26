@@ -2,9 +2,9 @@
 import { ref, computed, h } from "vue";
 import { AlertTriangle, Loader2, UserX, RotateCcw, Search, ArrowLeft, MoreHorizontal } from "lucide-vue-next";
 import { useToast } from "@/components/ui/toast/use-toast";
-import { useFormatting } from "~/layers/admin/composables/useFormatting";
-import { isSuperAdmin } from "~/layers/admin/utils/adminAccess";
-import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
+import { useFormatting } from "#layers/admin/composables/useFormatting";
+import { isSuperAdmin } from "#layers/admin/utils/adminAccess";
+import ConfirmDialog from "#layers/core/components/ConfirmDialog.vue";
 import type { ColumnDef } from "@tanstack/vue-table";
 import {
   FlexRender,

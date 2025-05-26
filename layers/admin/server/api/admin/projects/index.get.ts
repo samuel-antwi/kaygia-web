@@ -1,7 +1,7 @@
 import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects } from "~/server/db/schema";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
+import { getDb } from "../../../../../../server/utils/db";
+import { projects } from "../../../../../../server/db/schema";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
 
 export default defineEventHandler(async (event) => {
   // Get the user session

@@ -1,9 +1,9 @@
 import { randomBytes } from "crypto";
 import { v4 as uuidv4 } from "uuid";
-import { passwordResets, users } from "~/server/db/schema";
+import { passwordResets, users } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { sendPasswordResetEmail } from "~/utils/email";
-import type { DbClient } from "~/server/db";
+import { sendPasswordResetEmail } from "../../app/utils/email";
+import type { DbClient } from "../db";
 
 interface CreatePasswordResetOptions {
   /**

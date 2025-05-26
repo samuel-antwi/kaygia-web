@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Calendar, Clock, CheckCircle } from "lucide-vue-next";
-import ProgressBar from "~/layers/core/components/ProgressBar.vue";
+import ProgressBar from "#layers/core/components/ProgressBar.vue";
 
 interface Phase {
   id: string;

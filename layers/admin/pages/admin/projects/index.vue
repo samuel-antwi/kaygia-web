@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { AlertTriangle, Loader2, Search, FolderKanban, Settings } from "lucide-vue-next";
 import type { InferSelectModel } from "drizzle-orm";
-import type { projects as projectsSchema } from "~/server/db/schema";
+import type { projects as projectsSchema } from "../../../../../server/db/schema";
 
 // First let's check if the composable exists
 // If not, we'll define the formatting functions inline

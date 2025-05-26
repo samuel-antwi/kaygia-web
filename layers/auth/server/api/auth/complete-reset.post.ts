@@ -1,8 +1,8 @@
 import { H3Event } from "h3";
 import * as bcrypt from "bcrypt";
 import { sendPasswordChangedEmail } from "~/utils/email";
-import { getDb } from "~/server/utils/db";
-import { users, passwordResets } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { users, passwordResets } from "../../../../../server/db/schema";
 import { eq, and, gt } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
 

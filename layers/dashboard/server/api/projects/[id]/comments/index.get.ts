@@ -1,6 +1,6 @@
 import { defineEventHandler, getRouterParam } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectComments, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projects, projectComments, users } from "../../../../../../../server/db/schema";
 import { and, eq, desc, isNull } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {
@@ -77,7 +77,7 @@ export default defineEventHandler(async (event) => {
         createdAt: comment.createdAt,
         updatedAt: comment.updatedAt,
         user: comment.user,
-        replies: comment.replies.map((reply: any) => ({
+        replies: comment.replies.map((reply) => ({
           id: reply.id,
           message: reply.message,
           type: reply.type,
@@ -87,16 +87,16 @@ export default defineEventHandler(async (event) => {
         })),
       })),
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching project comments:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to fetch project comments" 
+      statusMessage: error instanceof Error ? error.message : "Failed to fetch project comments" 
     });
   }
 });

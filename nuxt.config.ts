@@ -2,6 +2,9 @@
 import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
+  future: {
+    compatibilityVersion: 4,
+  },
   devtools: { enabled: true },
   extends: [
     "./layers/core",
@@ -39,7 +42,7 @@ export default defineNuxtConfig({
      * Directory that the component lives in.
      * @default "./components/ui"
      */
-    componentDir: "./components/ui",
+    componentDir: "./app/components/ui",
   },
 
   compatibilityDate: "2025-03-23",
@@ -77,6 +80,4 @@ export default defineNuxtConfig({
       "window.global": {},
     },
   },
-
-
 });

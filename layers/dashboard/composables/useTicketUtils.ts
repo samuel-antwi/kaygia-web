@@ -1,9 +1,8 @@
 // New empty file content, old file will be deleted
 
 import { MessagesSquare, UserCircle } from "lucide-vue-next";
-import { computed } from "vue";
 import type { InferSelectModel } from "drizzle-orm";
-import type { supportTickets } from "~/server/db/schema";
+import type { supportTickets } from "../../../server/db/schema";
 
 export function useTicketUtils() {
   // Function to format date

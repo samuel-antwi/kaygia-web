@@ -1,6 +1,6 @@
 import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { users } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { users } from "../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import bcrypt from "bcrypt";

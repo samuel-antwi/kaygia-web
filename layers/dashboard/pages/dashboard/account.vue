@@ -3,7 +3,7 @@ import { reactive, watch, ref } from "vue";
 import { z } from "zod";
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
-import { useToast } from "../../../../components/ui/toast/use-toast";
+import { useToast } from "@/components/ui/toast/use-toast";
 import PasswordChangeForm from "../../components/PasswordChangeForm.vue";
 import { User, Settings, Camera, Upload, Trash2 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import ConfirmDialog from "~/layers/core/components/ConfirmDialog.vue";
+import ConfirmDialog from "#layers/core/components/ConfirmDialog.vue";
 import { Input } from "@/components/ui/input";
 import {
   FormControl,

@@ -1,8 +1,8 @@
 import { defineEventHandler, getRouterParam } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, projectFiles, users } from "~/server/db/schema";
+import { getDb } from "../../../../../../../server/utils/db";
+import { projects, projectFiles, users } from "../../../../../../../server/db/schema";
 import { and, eq, desc } from "drizzle-orm";
-import { getPublicUrl, STORAGE_BUCKETS } from "~/server/utils/storage";
+import { getPublicUrl, STORAGE_BUCKETS } from "../../../../../../../server/utils/storage";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -72,16 +72,16 @@ export default defineEventHandler(async (event) => {
       success: true,
       files: filesWithUrls,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching project files:", error);
     
-    if (error.statusCode) {
+    if (error && typeof error === 'object' && 'statusCode' in error) {
       throw error;
     }
     
     throw createError({ 
       statusCode: 500, 
-      statusMessage: error.message || "Failed to fetch project files" 
+      statusMessage: error instanceof Error ? error.message : "Failed to fetch project files" 
     });
   }
 });

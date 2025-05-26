@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { eq, sql, and, or, isNull } from 'drizzle-orm'
-import { users, conversations, conversationParticipants } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { users, conversations, conversationParticipants } from '../../../../../../server/db/schema'
+import { getDb } from '../../../../../../server/utils/db'
 
 const querySchema = z.object({
   includeStats: z.string().transform(val => val === 'true').optional()

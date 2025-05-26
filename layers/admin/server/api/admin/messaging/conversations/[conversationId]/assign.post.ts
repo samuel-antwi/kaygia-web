@@ -1,7 +1,8 @@
 import { z } from 'zod'
+import { createError } from 'h3'
 import { eq, and, isNull } from 'drizzle-orm'
-import { conversations, users, conversationParticipants } from '~/server/db/schema'
-import { getDb } from '~/server/utils/db'
+import { conversations, users, conversationParticipants } from '../../../../../../../../server/db/schema'
+import { getDb } from '../../../../../../../../server/utils/db'
 
 const bodySchema = z.object({
   teamMemberId: z.string()

@@ -1,13 +1,13 @@
 import { defineEventHandler } from "h3";
-import { getDb } from "~/server/utils/db";
-import { projects, users, projectMilestones } from "~/server/db/schema";
+import { getDb } from "../../../../../server/utils/db";
+import { projects, users, projectMilestones } from "../../../../../server/db/schema";
 import { and, eq, asc } from "drizzle-orm";
 import { 
   getProjectPhases, 
   calculatePhaseProgress, 
   calculateOverallProgressByPhases,
   getCurrentPhaseFromProgress 
-} from "~/server/utils/project-phases-dynamic";
+} from "../../../../../server/utils/project-phases-dynamic";
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event);

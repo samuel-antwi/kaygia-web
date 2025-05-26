@@ -1,9 +1,10 @@
+import { createError } from 'h3'
 import { z } from "zod";
-import { hasAdminAccess } from "~/layers/admin/utils/adminAccess";
-import { supabaseStorage, STORAGE_BUCKETS } from "~/server/utils/storage";
-import { users } from "~/server/db/schema";
+import { hasAdminAccess } from "#layers/admin/utils/adminAccess";
+import { supabaseStorage, STORAGE_BUCKETS } from "../../../../../../../server/utils/storage";
+import { users } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
-import { getDb } from "~/server/utils/db";
+import { getDb } from "../../../../../../../server/utils/db";
 
 const uploadSchema = z.object({
   avatarDataUrl: z.string().refine(
@@ -64,6 +65,12 @@ export default defineEventHandler(async (event) => {
 
     // Convert data URL to buffer
     const base64Data = avatarDataUrl.split(",")[1];
+    if (!base64Data) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Invalid image data format",
+      });
+    }
     const buffer = Buffer.from(base64Data, "base64");
     
     // Get file extension from mime type
@@ -71,10 +78,10 @@ export default defineEventHandler(async (event) => {
     const extension = mimeMatch ? mimeMatch[1] : "png";
     
     // Delete old avatar if exists
-    if (user[0].avatarUrl) {
+    if (user[0]?.avatarUrl) {
       try {
         // Extract path from URL
-        const urlParts = user[0].avatarUrl.split('/');
+        const urlParts = user[0]?.avatarUrl?.split('/') || [];
         const bucketIndex = urlParts.indexOf('user-avatars');
         if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
           const oldPath = urlParts.slice(bucketIndex + 1).join('/');

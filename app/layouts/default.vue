@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   LogIn,
+  LayoutDashboard,
   Twitter,
   Instagram,
   Linkedin,
@@ -15,6 +16,9 @@ const { $site = site } = useNuxtApp();
 
 // Get current route for active page indicator
 const route = useRoute();
+
+// Get user state
+const { user } = useUserState();
 </script>
 
 <template>
@@ -49,11 +53,12 @@ const route = useRoute();
         </div>
 
         <div class="flex items-center gap-4">
-          <!-- Login button -->
+          <!-- Login/Dashboard button -->
           <Button as-child variant="default" size="sm" class="hidden md:flex">
-            <NuxtLink to="/auth/login" class="flex items-center gap-1">
-              <LogIn class="h-4 w-4 mr-1" />
-              Client Login
+            <NuxtLink :to="user ? '/dashboard' : '/auth/login'" class="flex items-center gap-1">
+              <LogIn v-if="!user" class="h-4 w-4 mr-1" />
+              <LayoutDashboard v-else class="h-4 w-4 mr-1" />
+              {{ user ? 'Client Area' : 'Client Login' }}
             </NuxtLink>
           </Button>
 
@@ -121,7 +126,7 @@ const route = useRoute();
                   :to="item.href"
                   class="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {{ item.name }}
+                  {{ item.name === 'Client Login' ? (user ? 'Client Area' : 'Client Login') : item.name }}
                 </NuxtLink>
               </li>
             </ul>

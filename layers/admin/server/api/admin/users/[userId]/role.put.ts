@@ -1,6 +1,6 @@
-import { defineEventHandler, getRouterParam, readBody } from "h3";
-import { getDb } from "~/server/utils/db";
-import { users, roleEnum } from "~/server/db/schema";
+import { defineEventHandler, getRouterParam, readBody, createError } from "h3";
+import { getDb } from "../../../../../../../server/utils/db";
+import { users, roleEnum } from "../../../../../../../server/db/schema";
 import { eq } from "drizzle-orm";
 
 export default defineEventHandler(async (event) => {

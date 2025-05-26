@@ -1,4 +1,4 @@
-import type { Conversation as BaseConversation, ConversationParticipant } from '~/layers/dashboard/types/messaging'
+import type { Conversation as BaseConversation, ConversationParticipant } from '#layers/dashboard/types/messaging'
 
 export interface AdminConversation extends BaseConversation {
   participants?: ConversationParticipant[]
