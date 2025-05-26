@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted, computed } from "vue";
 import {
   PanelLeft,
   PanelLeftClose,
-  Menu,
   MoreVertical,
   User,
   LogOut,
@@ -93,10 +92,26 @@ const toggleSidebar = () => {
   emit("toggle", isSidebarCollapsed.value);
 };
 
-// Check if route is active
+// Check if route is active - finds the most specific match
 const isRouteActive = (path: string): boolean => {
   const currentPath = useRoute().path;
-  return currentPath === path || (path !== "/" && currentPath.startsWith(path));
+  
+  // Exact match
+  if (currentPath === path) {
+    return true;
+  }
+  
+  // For non-exact matches, find the longest matching path among all nav items
+  const allPaths = props.navItems.map(item => item.path);
+  const matchingPaths = allPaths.filter(itemPath => 
+    currentPath.startsWith(itemPath) && itemPath !== "/"
+  );
+  
+  // Sort by length (longest first) to find the most specific match
+  matchingPaths.sort((a, b) => b.length - a.length);
+  
+  // Only highlight if this path is the most specific match
+  return matchingPaths.length > 0 && matchingPaths[0] === path;
 };
 
 // Handle dropdown item click

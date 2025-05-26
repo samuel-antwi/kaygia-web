@@ -84,13 +84,7 @@ const adminNavItems = [
   // Add other admin sections as needed
 ];
 
-// Function to check if a route is active (simple version for admin)
-function isAdminRouteActive(path: string): boolean {
-  const currentPath = useRoute().path;
-  return (
-    currentPath === path || (path !== "/admin" && currentPath.startsWith(path))
-  );
-}
+// Note: Route active logic is now handled by AppSidebar component
 
 // Get current page title based on route
 const pageTitle = computed<string>(() => {
@@ -155,6 +149,8 @@ const dropdownItems = ref<DropdownItem[]>([
     :dropdown-items="dropdownItems"
     brand-path="/admin"
     brand-text="Admin Panel"
+    active-item-class="bg-primary/10 text-primary"
+    :show-active-indicator="true"
     @logout="handleLogout"
   >
     <!-- Header slot -->
