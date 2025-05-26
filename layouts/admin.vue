@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import {
   LogOut,
   User,
@@ -91,6 +91,59 @@ function isAdminRouteActive(path: string): boolean {
     currentPath === path || (path !== "/admin" && currentPath.startsWith(path))
   );
 }
+
+// Get current page title based on route
+const pageTitle = computed<string>(() => {
+  const currentPath = useRoute().path;
+  
+  // Find matching nav item
+  const matchingItem = adminNavItems.find(
+    (item) =>
+      (item.path === "/admin" && currentPath === "/admin") ||
+      (item.path !== "/admin" && currentPath.startsWith(item.path))
+  );
+  
+  if (matchingItem) {
+    return matchingItem.name;
+  }
+  
+  // Default titles for specific paths
+  if (currentPath.includes("/users/")) {
+    return "User Details";
+  }
+  if (currentPath.includes("/projects/")) {
+    return "Project Details";
+  }
+  if (currentPath.includes("/tickets/")) {
+    return "Ticket Details";
+  }
+  
+  return "Admin Dashboard";
+});
+
+// Dropdown items for user menu  
+interface DropdownItem {
+  label: string;
+  icon?: any;
+  action?: () => void | Promise<void>;
+  href?: string;
+  disabled?: boolean;
+  variant?: "default" | "danger";
+}
+
+const dropdownItems = ref<DropdownItem[]>([
+  {
+    label: "Profile",
+    icon: User,
+    href: "/dashboard/profile",
+  },
+  {
+    label: "Logout",
+    icon: LogOut,
+    action: handleLogout,
+    variant: "danger" as const,
+  },
+]);
 </script>
 
 <template>

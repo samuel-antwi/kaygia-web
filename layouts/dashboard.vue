@@ -59,8 +59,7 @@ const navItems = [
   { name: "Account", icon: Settings, path: "/dashboard/account" },
 ];
 
-// Sidebar state
-const isSidebarCollapsed = useState('dashboard.sidebarCollapsed', () => false);
+// Note: Sidebar state is managed by AppSidebar component internally
 
 // Dropdown items for user menu
 const dropdownItems = ref([
@@ -86,8 +85,8 @@ const dropdownItems = ref([
 <template>
   <AppSidebar
     :nav-items="navItems"
-    :user-name="user?.name"
-    :user-email="user?.email"
+    :user-name="user?.name ?? undefined"
+    :user-email="user?.email ?? undefined"
     :user-avatar="user?.avatarUrl || undefined"
     :dropdown-items="dropdownItems"
     brand-path="/dashboard"
