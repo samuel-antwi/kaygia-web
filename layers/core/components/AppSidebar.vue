@@ -195,7 +195,11 @@ const mainContentPadding = computed(() => {
 
       <!-- Navigation -->
       <nav class="flex-1 overflow-y-auto py-4">
-        <TooltipProvider :delay-duration="100">
+        <TooltipProvider
+          :key="`tooltip-provider-${isSidebarCollapsed}`"
+          :delay-duration="isSidebarCollapsed ? 500 : 0"
+          :skip-delay-duration="100"
+        >
           <ul class="space-y-1 px-2">
             <li v-for="item in navItems" :key="item.path">
               <Tooltip>
