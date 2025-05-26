@@ -27,23 +27,23 @@ interface DropdownItem {
 interface Props {
   // Navigation
   navItems: NavItem[];
-  
+
   // Branding
   brandText?: string;
   brandPath?: string;
-  
+
   // User info
   userName?: string;
   userEmail?: string;
   userAvatar?: string;
-  
+
   // Dropdown menu
   dropdownItems?: DropdownItem[];
-  
+
   // Styling
   activeItemClass?: string;
   showActiveIndicator?: boolean;
-  
+
   // Behavior
   defaultCollapsed?: boolean;
   autoCollapseOnMobile?: boolean;
@@ -72,7 +72,11 @@ const isMobile = ref(false);
 // Check screen size
 const checkIfMobile = () => {
   isMobile.value = window.innerWidth < 768;
-  if (props.autoCollapseOnMobile && isMobile.value && !isSidebarCollapsed.value) {
+  if (
+    props.autoCollapseOnMobile &&
+    isMobile.value &&
+    !isSidebarCollapsed.value
+  ) {
     isSidebarCollapsed.value = true;
   }
 };
@@ -95,21 +99,21 @@ const toggleSidebar = () => {
 // Check if route is active - finds the most specific match
 const isRouteActive = (path: string): boolean => {
   const currentPath = useRoute().path;
-  
+
   // Exact match
   if (currentPath === path) {
     return true;
   }
-  
+
   // For non-exact matches, find the longest matching path among all nav items
-  const allPaths = props.navItems.map(item => item.path);
-  const matchingPaths = allPaths.filter(itemPath => 
-    currentPath.startsWith(itemPath) && itemPath !== "/"
+  const allPaths = props.navItems.map((item) => item.path);
+  const matchingPaths = allPaths.filter(
+    (itemPath) => currentPath.startsWith(itemPath) && itemPath !== "/"
   );
-  
+
   // Sort by length (longest first) to find the most specific match
   matchingPaths.sort((a, b) => b.length - a.length);
-  
+
   // Only highlight if this path is the most specific match
   return matchingPaths.length > 0 && matchingPaths[0] === path;
 };
@@ -117,13 +121,13 @@ const isRouteActive = (path: string): boolean => {
 // Handle dropdown item click
 const handleDropdownItemClick = async (item: DropdownItem) => {
   if (item.disabled) return;
-  
+
   if (item.action) {
     await item.action();
   }
-  
+
   emit("dropdown-action", item);
-  
+
   if (item.label.toLowerCase().includes("logout")) {
     emit("logout");
   }
@@ -162,17 +166,20 @@ const mainContentPadding = computed(() => {
       :class="sidebarClasses"
     >
       <!-- Sidebar Header -->
-      <div class="flex h-16 shrink-0 items-center justify-between border-b px-4">
+      <div
+        class="flex h-16 shrink-0 items-center border-b px-4"
+        :class="isSidebarCollapsed ? 'justify-center' : 'justify-between'"
+      >
         <NuxtLink
+          v-if="!isSidebarCollapsed"
           :to="brandPath"
-          class="flex items-center gap-2 font-semibold transition-opacity"
-          :class="isSidebarCollapsed ? 'opacity-0' : 'opacity-100'"
+          class="flex items-center gap-2 font-semibold"
         >
           <slot name="brand">
             {{ brandText }}
           </slot>
         </NuxtLink>
-        
+
         <!-- Sidebar Toggle Button -->
         <Button
           variant="ghost"
@@ -207,7 +214,7 @@ const mainContentPadding = computed(() => {
                       v-if="showActiveIndicator && isRouteActive(item.path)"
                       class="absolute left-0 h-8 w-1 rounded-r-md bg-primary"
                     ></div>
-                    
+
                     <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
                     <span :class="isSidebarCollapsed ? 'sr-only' : ''">
                       {{ item.name }}
@@ -221,23 +228,24 @@ const mainContentPadding = computed(() => {
             </li>
           </ul>
         </TooltipProvider>
-        
+
         <!-- Slot for additional nav content -->
         <slot name="nav-after" :collapsed="isSidebarCollapsed" />
       </nav>
 
       <!-- Sidebar Footer (User Info & Logout) -->
-      <div
-        class="mt-auto border-t"
-        :class="isSidebarCollapsed ? 'p-2' : 'p-4'"
-      >
+      <div class="mt-auto border-t" :class="isSidebarCollapsed ? 'p-2' : 'p-4'">
         <slot name="footer" :collapsed="isSidebarCollapsed">
           <DropdownMenu>
             <!-- When collapsed: Avatar becomes the trigger -->
             <DropdownMenuTrigger v-if="isSidebarCollapsed" as-child>
               <Button variant="ghost" class="w-full p-1 justify-center">
                 <Avatar class="h-8 w-8">
-                  <AvatarImage v-if="userAvatar" :src="userAvatar" alt="User avatar" />
+                  <AvatarImage
+                    v-if="userAvatar"
+                    :src="userAvatar"
+                    alt="User avatar"
+                  />
                   <AvatarFallback>
                     <User class="h-4 w-4" />
                   </AvatarFallback>
@@ -249,7 +257,11 @@ const mainContentPadding = computed(() => {
             <template v-else>
               <div class="flex items-center gap-2">
                 <Avatar class="h-8 w-8">
-                  <AvatarImage v-if="userAvatar" :src="userAvatar" alt="User avatar" />
+                  <AvatarImage
+                    v-if="userAvatar"
+                    :src="userAvatar"
+                    alt="User avatar"
+                  />
                   <AvatarFallback>
                     <User class="h-4 w-4" />
                   </AvatarFallback>
@@ -277,7 +289,7 @@ const mainContentPadding = computed(() => {
               <slot name="dropdown-content">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                
+
                 <template v-for="item in dropdownItems" :key="item.label">
                   <DropdownMenuItem
                     :disabled="item.disabled"
@@ -288,7 +300,10 @@ const mainContentPadding = computed(() => {
                     }"
                   >
                     <template v-if="item.href">
-                      <NuxtLink :to="item.href" class="flex items-center w-full">
+                      <NuxtLink
+                        :to="item.href"
+                        class="flex items-center w-full"
+                      >
                         <component
                           v-if="item.icon"
                           :is="item.icon"
@@ -307,7 +322,7 @@ const mainContentPadding = computed(() => {
                     </template>
                   </DropdownMenuItem>
                 </template>
-                
+
                 <!-- Default logout if no items provided -->
                 <template v-if="dropdownItems.length === 0">
                   <DropdownMenuItem
@@ -330,13 +345,13 @@ const mainContentPadding = computed(() => {
       class="transition-all duration-300 ease-in-out w-full"
       :class="mainContentPadding"
     >
-      <slot 
-        name="header" 
-        :collapsed="isSidebarCollapsed" 
+      <slot
+        name="header"
+        :collapsed="isSidebarCollapsed"
         :toggle-sidebar="toggleSidebar"
         :is-mobile="isMobile"
       />
-      
+
       <slot />
     </div>
   </div>
