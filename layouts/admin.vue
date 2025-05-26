@@ -182,61 +182,67 @@ function isAdminRouteActive(path: string): boolean {
       </nav>
       <!-- Sidebar Footer (User Info & Logout) -->
       <div
-        class="mt-auto border-t p-2"
-        :class="isSidebarCollapsed ? 'px-2 py-2' : 'p-4'"
+        class="mt-auto border-t"
+        :class="isSidebarCollapsed ? 'p-2' : 'p-4'"
       >
-        <!-- Modified structure -->
-        <div class="flex items-center gap-2">
-          <!-- User Avatar & Info (always visible unless collapsed) -->
-          <Avatar class="h-8 w-8 shrink-0">
-            <AvatarFallback>
-              <User class="h-4 w-4" />
-            </AvatarFallback>
-          </Avatar>
-          <div
-            :class="
-              isSidebarCollapsed ? 'sr-only' : 'flex flex-col items-start'
-            "
-          >
-            <span class="text-sm font-medium truncate">{{
-              user?.name || "Admin User"
-            }}</span>
-            <span class="text-xs text-muted-foreground truncate">{{
-              user?.email
-            }}</span>
-          </div>
+        <DropdownMenu>
+          <!-- When collapsed: Avatar becomes the trigger -->
+          <DropdownMenuTrigger v-if="isSidebarCollapsed" as-child>
+            <Button variant="ghost" class="w-full p-1 justify-center">
+              <Avatar class="h-8 w-8">
+                <AvatarImage src="" alt="User avatar" />
+                <AvatarFallback>
+                  <User class="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
 
-          <!-- Dropdown Menu Trigger (separate button) -->
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child class="ml-auto">
-              <Button
-                variant="ghost"
-                size="icon"
-                class="h-8 w-8"
-                :class="isSidebarCollapsed ? 'mx-auto' : ''"
-                aria-label="User actions"
-              >
-                <MoreVertical class="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="top" class="w-52 mb-1">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>
-                <User class="mr-2 h-4 w-4" />
-                <NuxtLink to="/admin/profile">Profile</NuxtLink>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                @click="handleLogout"
-                class="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-100"
-              >
-                <LogOut class="mr-2 h-4 w-4" />
-                <span>Logout</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+          <!-- When expanded: Show user info and separate trigger -->
+          <template v-else>
+            <div class="flex items-center gap-2">
+              <Avatar class="h-8 w-8">
+                <AvatarImage src="" alt="User avatar" />
+                <AvatarFallback>
+                  <User class="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div class="flex-1">
+                <p class="text-sm font-medium">{{ user?.name || "Admin User" }}</p>
+                <p class="text-xs text-muted-foreground">
+                  {{ user?.email || "admin@example.com" }}
+                </p>
+              </div>
+              <DropdownMenuTrigger class="ml-auto">
+                <Button variant="ghost" size="icon" class="h-8 w-8">
+                  <MoreVertical class="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </div>
+          </template>
+
+          <!-- Dropdown Menu Content -->
+          <DropdownMenuContent 
+            :align="isSidebarCollapsed ? 'center' : 'end'" 
+            side="top" 
+            class="w-52 mb-1"
+          >
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled>
+              <User class="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              @click="handleLogout"
+              class="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-100"
+            >
+              <LogOut class="mr-2 h-4 w-4" />
+              <span>Logout</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
 
